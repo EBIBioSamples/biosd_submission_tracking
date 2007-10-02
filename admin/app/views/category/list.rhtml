@@ -1,0 +1,45 @@
+<%= render_partial "title" %>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+      <%= content_tag("th", "Ontology term") %>
+      <%= content_tag("th", "Display label") %>
+      <%= content_tag("th", "Is common") %>
+      <%= content_tag("th", "Can be a BMC") %>
+      <%= content_tag("th", "Can be a FV") %>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+    </tr>
+
+    <% @categories.each do |cat| %>
+      <tr>
+	<td>
+	<%= link_to "Edit", :action => "edit", 
+                            :id     => cat.id %>
+        </td>
+	<%= content_tag("td", cat.ontology_term) %>
+	<%= content_tag("td", cat.display_label) %>
+	<%= content_tag("td", cat.is_common? ? 'Yes' : 'No') %>
+	<%= content_tag("td", cat.is_bmc?    ? 'Yes' : 'No') %>
+	<%= content_tag("td", cat.is_fv?     ? 'Yes' : 'No') %>
+	<td>
+        <%= link_to "Delete", {:action  => "deprecate", 
+                               :id      => cat.id},
+                               :confirm => "Really delete category \"#{cat.ontology_term}\"?" %>
+        </td>
+      </tr> 
+    <% end %>
+  </table>
+
+  <p class="footer">
+    <%= link_to 'Previous', { :page => @category_pages.current.previous } if @category_pages.current.previous %>
+    <%= pagination_links( @category_pages, options={:window_size => 3} ) %>
+    <%= link_to 'Next', { :page => @category_pages.current.next } if @category_pages.current.next %>
+  </p>
+
+  <%= content_tag("p", link_to("Add new category", 
+                        :controller => "category", 
+                        :action     => "new"), { :class => 'footer' } ) %>
+
+</div>

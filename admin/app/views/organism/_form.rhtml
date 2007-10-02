@@ -1,0 +1,25 @@
+<%= error_messages_for 'organism' %>
+
+<table><tr>
+<td><a href="http://mged.sourceforge.net/ontologies/MOhtml/">MGED Ontology webpage</a></td>
+<td><a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=Taxonomy">NCBI taxonomy webpage</a></td>
+</tr><table>
+
+<table>
+  <tr>
+    <%= content_tag("td", "Scientific name:") %>
+    <%= content_tag("td", input("organism", "scientific_name")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Common name:") %>
+    <%= content_tag("td", input("organism", "common_name")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Accession:") %>
+    <%= content_tag("td", input("organism", "accession")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Taxon common name:") %>
+    <%= content_tag("td", select("organism", "taxon_id", Taxon.find(:all, :conditions => 'is_deleted=0').collect { |t| [t.common_name, t.id] }.sort_by { |name, id| name })) %>
+  </tr>
+</table>

@@ -1,0 +1,49 @@
+<%= render_partial "title" %>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+      <%= content_tag("th", "Login") %>
+      <%= content_tag("th", "Name") %>
+      <%= content_tag("th", "Password") %>
+      <%= content_tag("th", "Email") %>
+      <%= content_tag("th", "Modified") %>
+      <%= content_tag("th", "Created") %>
+      <%= content_tag("th", "Accessed") %>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+    </tr>
+
+    <% @users.each do |u| %>
+      <tr>
+	<td>
+	<%= link_to "Edit", :action => "edit", 
+                            :id     => u.id %>
+        </td>
+	<%= content_tag("td", u.login) %>
+	<%= content_tag("td", u.name) %>
+	<%= content_tag("td", u.password) %>
+	<%= content_tag("td", u.email) %>
+	<%= content_tag("td", u.modified_at) %>
+	<%= content_tag("td", u.created_at) %>
+	<%= content_tag("td", u.access) %>
+	<td>
+        <%= link_to "Delete", {:action  => "deprecate", 
+                               :id      => u.id},
+                               :confirm => "Really delete user \"#{u.login}\"?" %>
+        </td>
+      </tr> 
+    <% end %>
+  </table>
+
+  <p class="footer">
+    <%= link_to 'Previous', { :page => @user_pages.current.previous } if @user_pages.current.previous %>
+    <%= pagination_links( @user_pages, options={:window_size => 3} ) %>
+    <%= link_to 'Next', { :page => @user_pages.current.next } if @user_pages.current.next %>
+  </p>
+
+  <%= content_tag("p", link_to("Add new user", 
+                        :controller => "users", 
+                        :action     => "new"), { :class => 'footer' } ) %>
+
+</div>

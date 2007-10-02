@@ -1,0 +1,52 @@
+<table>
+<tr>
+<th>Designs</th>
+<th>Materials</th>
+<th>Organisms</th>
+</tr>
+
+<tr>
+<td valign="top">
+<table>
+  <% Design.find(:all, :conditions => "is_deleted=0").sort_by { |d| d.ontology_value }.each do |design| %>
+    <tr>
+      <td>
+        <%= check_box_tag("annotation[design_ids][]",
+                           design.id,
+                           @experiment.designs.include?(design)) %>
+      </td>
+      <%= content_tag("td", design.display_label) %>
+    </tr>
+  <% end %>
+</table>
+</td>
+<td valign="top">
+<table>
+  <% Material.find(:all, :conditions => "is_deleted=0").sort_by { |d| d.ontology_value }.each do |material| %>
+    <tr>
+      <td>
+        <%= check_box_tag("annotation[material_ids][]",
+                           material.id,
+                           @experiment.materials.include?(material)) %>
+      </td>
+      <%= content_tag("td", material.display_label) %>
+    </tr>
+  <% end %>
+</table>
+</td>
+<td valign="top">
+<table>
+  <% Organism.find(:all, :conditions => "is_deleted=0").sort_by { |d| d.scientific_name }.each do |organism| %>
+    <tr>
+      <td>
+        <%= check_box_tag("annotation[organism_ids][]",
+                           organism.id,
+                           @experiment.organisms.include?(organism)) %>
+      </td>
+      <%= content_tag("td", organism.scientific_name) %>
+    </tr>
+  <% end %>
+</table>
+</td>
+</tr>
+</table>

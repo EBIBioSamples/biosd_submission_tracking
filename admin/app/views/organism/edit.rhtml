@@ -1,0 +1,8 @@
+<%= render_partial "title" %>
+
+<div>
+  <%= start_form_tag :action => "update", :id => @organism.id %>
+    <%= render_partial "form" %>
+    <%= submit_tag "Update" %>
+  <%= end_form_tag %>
+</div>

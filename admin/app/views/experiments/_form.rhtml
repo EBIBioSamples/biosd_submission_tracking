@@ -1,0 +1,26 @@
+<%= error_messages_for 'experiment' %>
+
+<table>
+  <tr>
+    <%= content_tag("td", 'User login:') %>
+    <%= content_tag("td", select(
+	"experiment",
+	"user_id",
+	User.find_all.collect { |t| [t.login, t.id] }.sort_by { |login, id| login },
+	{ :include_blank => true })) %>
+  </tr>
+  <% Experiment.content_columns.each do |c| %>
+    <tr>
+      <%= content_tag("td", c.name.humanize.concat(":")) %>
+      <%= content_tag("td", input("experiment", c.name)) %>
+    </tr>
+  <% end %>
+  <tr>
+    <%= content_tag("td", "Spreadsheet:") %>
+    <%= content_tag("td", @experiment.spreadsheets.collect {|s| s.name}) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Data files:") %>
+    <%= content_tag("td", @experiment.data_files.collect {|d| d.name}) %>
+  </tr>
+</table>

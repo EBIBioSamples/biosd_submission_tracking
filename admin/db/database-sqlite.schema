@@ -1,0 +1,712 @@
+BEGIN TRANSACTION;
+CREATE TABLE array_designs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  miamexpress_subid INTEGER UNIQUE,
+  accession CHAR(15),
+  name VARCHAR(255),
+  miamexpress_login CHAR(50),
+  status VARCHAR(100),
+  data_warehouse_ready CHAR(15),
+  date_last_processed DATETIME,
+  comment TEXT,
+  is_deleted INTEGER NOT NULL,
+  miame_score INTEGER,
+  in_data_warehouse INTEGER);
+CREATE TABLE categories (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ontology_term varchar default NULL,
+  display_label varchar default NULL,
+  is_common integer default null,
+  is_bmc integer default null,
+  is_fv integer default null,
+  is_deleted INTEGER NOT NULL);
+CREATE TABLE categories_designs (
+  category_id INTEGER NOT NULL
+    CONSTRAINT fk_cd_category_id REFERENCES categories(id)
+    ON DELETE CASCADE,
+  design_id INTEGER NOT NULL
+    CONSTRAINT fk_cd_design_id REFERENCES designs(id)
+    ON DELETE CASCADE
+);
+CREATE TABLE categories_materials (
+  category_id INTEGER NOT NULL
+    CONSTRAINT fk_cm_category_id REFERENCES categories(id)
+    ON DELETE CASCADE,
+  material_id INTEGER NOT NULL
+    CONSTRAINT fk_cm_material_id REFERENCES materials(id)
+    ON DELETE CASCADE
+);
+CREATE TABLE categories_taxons (
+  category_id INTEGER NOT NULL
+    CONSTRAINT fk_ct_category_id REFERENCES categories(id)
+    ON DELETE CASCADE,
+  taxon_id INTEGER NOT NULL
+    CONSTRAINT fk_ct_taxon_id REFERENCES taxons(id)
+    ON DELETE CASCADE
+);
+CREATE TABLE data_files (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  experiment_id INTEGER NOT NULL
+    CONSTRAINT fk_datafile_expt_id REFERENCES experiments(id)
+    ON DELETE RESTRICT,
+  name VARCHAR(255),
+  is_unpacked INTEGER,
+  is_deleted INTEGER NOT NULL);
+CREATE TABLE design_instances (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  design_id INTEGER NOT NULL
+    CONSTRAINT fk_di_design_id REFERENCES designs(id)
+    ON DELETE CASCADE,
+  experiment_id INTEGER NOT NULL
+    CONSTRAINT fk_di_experiment_id REFERENCES experiments(id)
+    ON DELETE CASCADE
+);
+CREATE TABLE designs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  display_label varchar default NULL,
+  ontology_category varchar default NULL,
+  ontology_value varchar default NULL,
+  design_type char(15) NOT NULL,
+  is_deleted INTEGER NOT NULL);
+CREATE TABLE experiments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  accession CHAR(15),
+  name VARCHAR(255),
+  user_id INTEGER default NULL
+    CONSTRAINT fk_e_user_id REFERENCES users(id)
+    ON DELETE RESTRICT,
+  checker_score INTEGER,
+  software VARCHAR(100),
+  status VARCHAR(100),
+  data_warehouse_ready INTEGER,
+  date_last_edited DATETIME,
+  date_submitted DATETIME,
+  date_last_processed DATETIME,
+  in_curation INTEGER,
+  curator CHAR(30),
+  comment TEXT,
+  experiment_type CHAR(30),
+  miamexpress_login CHAR(30),
+  miamexpress_subid INTEGER,
+  is_affymetrix INTEGER,
+  is_mx_batchloader INTEGER,
+  is_deleted INTEGER NOT NULL,
+  miame_score INTEGER,
+  in_data_warehouse INTEGER);
+CREATE TABLE material_instances (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  material_id INTEGER NOT NULL
+    CONSTRAINT fk_mi_material_id REFERENCES materials(id)
+    ON DELETE CASCADE,
+  experiment_id INTEGER NOT NULL
+    CONSTRAINT fk_mi_experiment_id REFERENCES experiments(id)
+    ON DELETE CASCADE
+);
+CREATE TABLE materials (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  display_label varchar default NULL,
+  ontology_category varchar default NULL,
+  ontology_value varchar default NULL,
+  is_deleted INTEGER NOT NULL);
+CREATE TABLE organism_instances (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  organism_id INTEGER NOT NULL
+    CONSTRAINT fk_oi_organism_id REFERENCES organisms(id)
+    ON DELETE CASCADE,
+  experiment_id INTEGER NOT NULL
+    CONSTRAINT fk_oi_experiment_id REFERENCES experiments(id)
+    ON DELETE CASCADE
+);
+CREATE TABLE organisms (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  scientific_name varchar default NULL,
+  common_name varchar default NULL,
+  accession INTEGER default NULL,
+  taxon_id INTEGER NOT NULL
+    CONSTRAINT fk_o_taxon_id REFERENCES taxons(id)
+    ON DELETE RESTRICT,
+  is_deleted INTEGER NOT NULL);
+CREATE TABLE permissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name VARCHAR(40) NOT NULL,
+  info VARCHAR(80) NULL,
+  is_deleted INTEGER NOT NULL);
+CREATE TABLE permissions_roles (
+  role_id INTEGER NOT NULL
+    CONSTRAINT fk_pr_role_id REFERENCES roles(id)
+    ON DELETE CASCADE,
+  permission_id INTEGER NOT NULL
+    CONSTRAINT fk_pr_permission_id REFERENCES permissions(id)
+    ON DELETE CASCADE
+);
+CREATE TABLE protocols (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  accession CHAR(15) UNIQUE,
+  user_accession VARCHAR(100),
+  expt_accession CHAR(15),
+  name VARCHAR(255),
+  date_last_processed DATETIME,
+  comment TEXT,
+  is_deleted INTEGER NOT NULL);
+CREATE TABLE roles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name VARCHAR(40) NOT NULL,
+  info VARCHAR(80),
+  is_deleted INTEGER NOT NULL);
+CREATE TABLE roles_users (
+  user_id INTEGER NOT NULL
+    CONSTRAINT fk_ru_user_id REFERENCES users(id)
+    ON DELETE CASCADE,
+  role_id INTEGER NOT NULL
+    CONSTRAINT fk_ru_role_id REFERENCES roles(id)
+    ON DELETE CASCADE
+);
+CREATE TABLE spreadsheets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  experiment_id INTEGER NOT NULL
+    CONSTRAINT fk_spreadsheet_expt_id REFERENCES experiments(id)
+    ON DELETE RESTRICT,
+  name VARCHAR(255),
+  is_deleted INTEGER NOT NULL);
+CREATE TABLE taxons (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  scientific_name varchar default NULL,
+  common_name varchar default NULL,
+  accession INTEGER default NULL,
+  is_deleted INTEGER NOT NULL);
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  login VARCHAR(40) UNIQUE NOT NULL,
+  name VARCHAR(40),
+  password VARCHAR(40) NOT NULL,
+  email VARCHAR(100),
+  modified_at DATETIME,
+  created_at DATETIME,
+  access DATETIME,
+  is_deleted INTEGER NOT NULL
+);
+CREATE TRIGGER fkd_data_files_experiment_id_experiments_id
+BEFORE DELETE ON experiments
+FOR EACH ROW BEGIN
+  SELECT RAISE(ROLLBACK, 'delete on table "experiments" violates foreign key constraint "fkd_data_files_experiment_id_experiments_id"')
+  WHERE (SELECT experiment_id FROM data_files WHERE experiment_id = OLD.id) IS NOT NULL;
+END;
+CREATE TRIGGER fkd_experiments_user_id_users_id
+BEFORE DELETE ON users
+FOR EACH ROW BEGIN
+  SELECT RAISE(ROLLBACK, 'delete on table "users" violates foreign key constraint "fkd_experiments_user_id_users_id"')
+  WHERE (SELECT user_id FROM experiments WHERE user_id = OLD.id) IS NOT NULL;
+END;
+CREATE TRIGGER fkd_organisms_taxon_id_taxons_id
+BEFORE DELETE ON taxons
+FOR EACH ROW BEGIN
+  SELECT RAISE(ROLLBACK, 'delete on table "taxons" violates foreign key constraint "fkd_organisms_taxon_id_taxons_id"')
+  WHERE (SELECT taxon_id FROM organisms WHERE taxon_id = OLD.id) IS NOT NULL;
+END;
+CREATE TRIGGER fkd_spreadsheets_experiment_id_experiments_id
+BEFORE DELETE ON experiments
+FOR EACH ROW BEGIN
+  SELECT RAISE(ROLLBACK, 'delete on table "experiments" violates foreign key constraint "fkd_spreadsheets_experiment_id_experiments_id"')
+  WHERE (SELECT experiment_id FROM spreadsheets WHERE experiment_id = OLD.id) IS NOT NULL;
+END;
+CREATE TRIGGER fkdc_categories_designs_category_id_categories_id
+BEFORE DELETE ON categories
+FOR EACH ROW BEGIN
+    DELETE FROM categories_designs WHERE categories_designs.category_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_categories_designs_design_id_designs_id
+BEFORE DELETE ON designs
+FOR EACH ROW BEGIN
+    DELETE FROM categories_designs WHERE categories_designs.design_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_categories_materials_category_id_categories_id
+BEFORE DELETE ON categories
+FOR EACH ROW BEGIN
+    DELETE FROM categories_materials WHERE categories_materials.category_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_categories_materials_material_id_materials_id
+BEFORE DELETE ON materials
+FOR EACH ROW BEGIN
+    DELETE FROM categories_materials WHERE categories_materials.material_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_categories_taxons_category_id_categories_id
+BEFORE DELETE ON categories
+FOR EACH ROW BEGIN
+    DELETE FROM categories_taxons WHERE categories_taxons.category_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_categories_taxons_taxon_id_taxons_id
+BEFORE DELETE ON taxons
+FOR EACH ROW BEGIN
+    DELETE FROM categories_taxons WHERE categories_taxons.taxon_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_design_instances_design_id_designs_id
+BEFORE DELETE ON designs
+FOR EACH ROW BEGIN
+    DELETE FROM design_instances WHERE design_instances.design_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_design_instances_experiment_id_experiments_id
+BEFORE DELETE ON experiments
+FOR EACH ROW BEGIN
+    DELETE FROM design_instances WHERE design_instances.experiment_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_material_instances_experiment_id_experiments_id
+BEFORE DELETE ON experiments
+FOR EACH ROW BEGIN
+    DELETE FROM material_instances WHERE material_instances.experiment_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_material_instances_material_id_materials_id
+BEFORE DELETE ON materials
+FOR EACH ROW BEGIN
+    DELETE FROM material_instances WHERE material_instances.material_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_organism_instances_experiment_id_experiments_id
+BEFORE DELETE ON experiments
+FOR EACH ROW BEGIN
+    DELETE FROM organism_instances WHERE organism_instances.experiment_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_organism_instances_organism_id_organisms_id
+BEFORE DELETE ON organisms
+FOR EACH ROW BEGIN
+    DELETE FROM organism_instances WHERE organism_instances.organism_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_permissions_roles_permission_id_permissions_id
+BEFORE DELETE ON permissions
+FOR EACH ROW BEGIN
+    DELETE FROM permissions_roles WHERE permissions_roles.permission_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_permissions_roles_role_id_roles_id
+BEFORE DELETE ON roles
+FOR EACH ROW BEGIN
+    DELETE FROM permissions_roles WHERE permissions_roles.role_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_roles_users_role_id_roles_id
+BEFORE DELETE ON roles
+FOR EACH ROW BEGIN
+    DELETE FROM roles_users WHERE roles_users.role_id = OLD.id;
+END;
+CREATE TRIGGER fkdc_roles_users_user_id_users_id
+BEFORE DELETE ON users
+FOR EACH ROW BEGIN
+    DELETE FROM roles_users WHERE roles_users.user_id = OLD.id;
+END;
+CREATE TRIGGER fki_categories_designs_category_id_categories_id
+BEFORE INSERT ON [categories_designs] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM categories
+             WHERE id = NEW.category_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "categories_designs" violates foreign key constraint "fki_categories_designs_category_id_categories_id"')
+     END;
+END;
+CREATE TRIGGER fki_categories_designs_design_id_designs_id
+BEFORE INSERT ON [categories_designs] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM designs
+             WHERE id = NEW.design_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "categories_designs" violates foreign key constraint "fki_categories_designs_design_id_designs_id"')
+     END;
+END;
+CREATE TRIGGER fki_categories_materials_category_id_categories_id
+BEFORE INSERT ON [categories_materials] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM categories
+             WHERE id = NEW.category_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "categories_materials" violates foreign key constraint "fki_categories_materials_category_id_categories_id"')
+     END;
+END;
+CREATE TRIGGER fki_categories_materials_material_id_materials_id
+BEFORE INSERT ON [categories_materials] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM materials
+             WHERE id = NEW.material_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "categories_materials" violates foreign key constraint "fki_categories_materials_material_id_materials_id"')
+     END;
+END;
+CREATE TRIGGER fki_categories_taxons_category_id_categories_id
+BEFORE INSERT ON [categories_taxons] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN NEW.category_id IS NOT NULL AND ((SELECT id
+             FROM categories
+             WHERE id = NEW.category_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "categories_taxons" violates foreign key constraint "fki_categories_taxons_category_id_categories_id"')
+     END;
+END;
+CREATE TRIGGER fki_categories_taxons_taxon_id_taxons_id
+BEFORE INSERT ON [categories_taxons] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN NEW.taxon_id IS NOT NULL AND ((SELECT id
+             FROM taxons
+             WHERE id = NEW.taxon_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "categories_taxons" violates foreign key constraint "fki_categories_taxons_taxon_id_taxons_id"')
+     END;
+END;
+CREATE TRIGGER fki_data_files_experiment_id_experiments_id
+BEFORE INSERT ON [data_files]
+FOR EACH ROW BEGIN
+  SELECT RAISE(ROLLBACK, 'insert on table "data_files" violates foreign key constraint "fki_data_files_experiment_id_experiments_id"')
+  WHERE (SELECT id FROM experiments WHERE id = NEW.experiment_id) IS NULL;
+END;
+CREATE TRIGGER fki_design_instances_design_id_designs_id
+BEFORE INSERT ON [design_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM designs
+             WHERE id = NEW.design_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "design_instances" violates foreign key constraint "fki_design_instances_design_id_designs_id"')
+     END;
+END;
+CREATE TRIGGER fki_design_instances_experiment_id_experiments_id
+BEFORE INSERT ON [design_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM experiments
+             WHERE id = NEW.experiment_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "design_instances" violates foreign key constraint "fki_design_instances_experiment_id_experiments_id"')
+     END;
+END;
+CREATE TRIGGER fki_experiments_user_id_users_id
+BEFORE INSERT ON [experiments] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN NEW.user_id IS NOT NULL AND ((SELECT id
+             FROM users
+             WHERE id = NEW.user_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "experiments" violates foreign key constraint "fki_experiments_user_id_users_id"')
+     END;
+END;
+CREATE TRIGGER fki_material_instances_experiment_id_experiments_id
+BEFORE INSERT ON [material_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM experiments
+             WHERE id = NEW.experiment_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "material_instances" violates foreign key constraint "fki_material_instances_experiment_id_experiments_id"')
+     END;
+END;
+CREATE TRIGGER fki_material_instances_material_id_materials_id
+BEFORE INSERT ON [material_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM materials
+             WHERE id = NEW.material_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "material_instances" violates foreign key constraint "fki_material_instances_material_id_materials_id"')
+     END;
+END;
+CREATE TRIGGER fki_organism_instances_experiment_id_experiments_id
+BEFORE INSERT ON [organism_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM experiments
+             WHERE id = NEW.experiment_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "organism_instances" violates foreign key constraint "fki_organism_instances_experiment_id_experiments_id"')
+     END;
+END;
+CREATE TRIGGER fki_organism_instances_organism_id_organisms_id
+BEFORE INSERT ON [organism_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM organisms
+             WHERE id = NEW.organism_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "organism_instances" violates foreign key constraint "fki_organism_instances_organism_id_organisms_id"')
+     END;
+END;
+CREATE TRIGGER fki_organisms_taxon_id_taxons_id
+BEFORE INSERT ON [organisms] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM taxons
+             WHERE id = NEW.taxon_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "organisms" violates foreign key constraint "fki_organisms_taxon_id_taxons_id"')
+     END;
+END;
+CREATE TRIGGER fki_permissions_roles_permission_id_permissions_id
+BEFORE INSERT ON [permissions_roles] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM permissions
+             WHERE id = NEW.permission_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "permissions_roles" violates foreign key constraint "fki_permissions_roles_permission_id_permissions_id"')
+     END;
+END;
+CREATE TRIGGER fki_permissions_roles_role_id_roles_id
+BEFORE INSERT ON [permissions_roles] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM roles
+             WHERE id = NEW.role_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "permissions_roles" violates foreign key constraint "fki_permissions_roles_role_id_roles_id"')
+     END;
+END;
+CREATE TRIGGER fki_roles_users_role_id_roles_id
+BEFORE INSERT ON [roles_users] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM roles
+             WHERE id = NEW.role_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "roles_users" violates foreign key constraint "fki_roles_users_role_id_roles_id"')
+     END;
+END;
+CREATE TRIGGER fki_roles_users_user_id_users_id
+BEFORE INSERT ON [roles_users] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM users
+             WHERE id = NEW.user_id)
+         IS NULL)
+     THEN RAISE(ABORT, 'insert on table "roles_users" violates foreign key constraint "fki_roles_users_user_id_users_id"')
+     END;
+END;
+CREATE TRIGGER fki_spreadsheets_experiment_id_experiments_id
+BEFORE INSERT ON [spreadsheets]
+FOR EACH ROW BEGIN
+  SELECT RAISE(ROLLBACK, 'insert on table "spreadsheets" violates foreign key constraint "fki_spreadsheets_experiment_id_experiments_id"')
+  WHERE (SELECT id FROM experiments WHERE id = NEW.experiment_id) IS NULL;
+END;
+CREATE TRIGGER fku_categories_designs_category_id_categories_id
+BEFORE UPDATE ON [categories_designs] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM categories
+             WHERE id = NEW.category_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "categories_designs" violates foreign key constraint "fku_categories_designs_category_id_categories_id"')
+     END;
+END;
+CREATE TRIGGER fku_categories_designs_design_id_designs_id
+BEFORE UPDATE ON [categories_designs] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM designs
+             WHERE id = NEW.design_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "categories_designs" violates foreign key constraint "fku_categories_designs_design_id_designs_id"')
+     END;
+END;
+CREATE TRIGGER fku_categories_materials_category_id_categories_id
+BEFORE UPDATE ON [categories_materials] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM categories
+             WHERE id = NEW.category_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "categories_materials" violates foreign key constraint "fku_categories_materials_category_id_categories_id"')
+     END;
+END;
+CREATE TRIGGER fku_categories_materials_material_id_materials_id
+BEFORE UPDATE ON [categories_materials] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM materials
+             WHERE id = NEW.material_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "categories_materials" violates foreign key constraint "fku_categories_materials_material_id_materials_id"')
+     END;
+END;
+CREATE TRIGGER fku_categories_taxons_category_id_categories_id
+BEFORE UPDATE ON [categories_taxons] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN NEW.category_id IS NOT NULL AND ((SELECT id
+             FROM categories
+             WHERE id = NEW.category_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "categories_taxons" violates foreign key constraint "fku_categories_taxons_category_id_categories_id"')
+     END;
+END;
+CREATE TRIGGER fku_categories_taxons_taxon_id_taxons_id
+BEFORE UPDATE ON [categories_taxons] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN NEW.taxon_id IS NOT NULL AND ((SELECT id
+             FROM taxons
+             WHERE id = NEW.taxon_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "categories_taxons" violates foreign key constraint "fku_categories_taxons_taxon_id_taxons_id"')
+     END;
+END;
+CREATE TRIGGER fku_data_files_experiment_id_experiments_id
+BEFORE UPDATE ON [data_files]
+FOR EACH ROW BEGIN
+    SELECT RAISE(ROLLBACK, 'update on table "data_files" violates foreign key constraint "fku_data_files_experiment_id_experiments_id"')
+      WHERE (SELECT id FROM experiments WHERE id = NEW.experiment_id) IS NULL;
+END;
+CREATE TRIGGER fku_design_instances_design_id_designs_id
+BEFORE UPDATE ON [design_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM designs
+             WHERE id = NEW.design_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "design_instances" violates foreign key constraint "fku_design_instances_design_id_designs_id"')
+     END;
+END;
+CREATE TRIGGER fku_design_instances_experiment_id_experiments_id
+BEFORE UPDATE ON [design_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM experiments
+             WHERE id = NEW.experiment_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "design_instances" violates foreign key constraint "fku_design_instances_experiment_id_experiments_id"')
+     END;
+END;
+CREATE TRIGGER fku_experiments_user_id_users_id
+BEFORE UPDATE ON [experiments] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN NEW.user_id IS NOT NULL AND ((SELECT id
+             FROM users
+             WHERE id = NEW.user_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "experiments" violates foreign key constraint "fku_experiments_user_id_users_id"')
+     END;
+END;
+CREATE TRIGGER fku_material_instances_experiment_id_experiments_id
+BEFORE UPDATE ON [material_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM experiments
+             WHERE id = NEW.experiment_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "material_instances" violates foreign key constraint "fku_material_instances_experiment_id_experiments_id"')
+     END;
+END;
+CREATE TRIGGER fku_material_instances_material_id_materials_id
+BEFORE UPDATE ON [material_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM materials
+             WHERE id = NEW.material_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "material_instances" violates foreign key constraint "fku_material_instances_material_id_materials_id"')
+     END;
+END;
+CREATE TRIGGER fku_organism_instances_experiment_id_experiments_id
+BEFORE UPDATE ON [organism_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM experiments
+             WHERE id = NEW.experiment_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "organism_instances" violates foreign key constraint "fku_organism_instances_experiment_id_experiments_id"')
+     END;
+END;
+CREATE TRIGGER fku_organism_instances_organism_id_organisms_id
+BEFORE UPDATE ON [organism_instances] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM organisms
+             WHERE id = NEW.organism_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "organism_instances" violates foreign key constraint "fku_organism_instances_organism_id_organisms_id"')
+     END;
+END;
+CREATE TRIGGER fku_organisms_taxon_id_taxons_id
+BEFORE UPDATE ON [organisms] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM taxons
+             WHERE id = NEW.taxon_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "organisms" violates foreign key constraint "fku_organisms_taxon_id_taxons_id"')
+     END;
+END;
+CREATE TRIGGER fku_permissions_roles_permission_id_permissions_id
+BEFORE UPDATE ON [permissions_roles] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM permissions
+             WHERE id = NEW.permission_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "permissions_roles" violates foreign key constraint "fku_permissions_roles_permission_id_permissions_id"')
+     END;
+END;
+CREATE TRIGGER fku_permissions_roles_role_id_roles_id
+BEFORE UPDATE ON [permissions_roles] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM roles
+             WHERE id = NEW.role_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "permissions_roles" violates foreign key constraint "fku_permissions_roles_role_id_roles_id"')
+     END;
+END;
+CREATE TRIGGER fku_roles_users_role_id_roles_id
+BEFORE UPDATE ON [roles_users] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM roles
+             WHERE id = NEW.role_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "roles_users" violates foreign key constraint "fku_roles_users_role_id_roles_id"')
+     END;
+END;
+CREATE TRIGGER fku_roles_users_user_id_users_id
+BEFORE UPDATE ON [roles_users] FOR EACH ROW
+  BEGIN
+  SELECT CASE
+     WHEN ((SELECT id
+             FROM users
+             WHERE id = NEW.user_id )
+         IS NULL)
+     THEN RAISE(ABORT, 'update on table "roles_users" violates foreign key constraint "fku_roles_users_user_id_users_id"')
+     END;
+END;
+CREATE TRIGGER fku_spreadsheets_experiment_id_experiments_id
+BEFORE UPDATE ON [spreadsheets]
+FOR EACH ROW BEGIN
+    SELECT RAISE(ROLLBACK, 'update on table "spreadsheets" violates foreign key constraint "fku_spreadsheets_experiment_id_experiments_id"')
+      WHERE (SELECT id FROM experiments WHERE id = NEW.experiment_id) IS NULL;
+END;
+COMMIT;

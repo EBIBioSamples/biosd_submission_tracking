@@ -1,0 +1,106 @@
+body {
+  font-family: verdana, ariel, helvetica, sans-serif;
+  line-height: 120%;
+  background-color: #b7dcff;
+}
+
+.title { 
+  font-size: 120%;
+}
+
+td { 
+  background-color: #c9edff;
+  padding: 4px;
+  font-size: 80%;
+}
+
+th { 
+  background-color: #eeffff;
+  padding: 4px;
+  font-size: 80%;
+}
+
+.actionlist {
+  background-color: #ffffee;
+}
+
+.footer { 
+  background-color: #ffffee;
+  width: 30em;
+  text-align: center;
+  padding: 4px;
+}
+
+.fieldWithErrors {
+  padding: 0px;
+  background-color: red;
+  display: table;
+}
+
+#errorExplanation { 
+  margin-left: auto; 
+  margin-right: auto;
+}
+
+#errorExplanation h2 { 
+  font-size: 110%;
+}
+
+/* Set up the sidebar */
+div.link-list {
+  width:11em;
+  position:absolute;
+  top:0;
+  bottom:0;
+  font-size:100%;
+  padding-left:1%;
+  padding-right:1%;
+  padding-top:1%;
+  margin-left:0;
+  margin-right:0;
+  background-color: #c9edff;
+}
+
+div.menu-item {
+  margin-top: 2px;
+  margin-bottom: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #ffffff;
+}
+
+div.submenu {
+  background-color: #ddefff;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+div.submenutitle {
+  text-align: center;
+}
+
+#main {
+  margin-left:11em;
+  padding-left:2em;
+}
+
+#sidebar {
+  left:0;
+  text-align: left;
+  line-height: 150%;
+}
+
+.notice {
+  font-size: 90%;
+  color: blue;
+}
+
+:link {
+  color: #3333aa;
+}
+
+:visited {
+  color: #7700aa;
+}

@@ -1,0 +1,11 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+first:
+  id: 1
+  accession: 1
+  user_accession: 1
+  expt_accession: 1
+another:
+  id: 2
+  accession: 2
+  user_accession: 2
+  expt_accession: 2

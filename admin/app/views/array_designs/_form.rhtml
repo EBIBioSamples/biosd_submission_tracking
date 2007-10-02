@@ -1,0 +1,44 @@
+<%= error_messages_for 'array_design' %>
+
+<table>
+  <tr>
+    <%= content_tag("td", "Submission ID:") %>
+    <%= content_tag("td", @array_design.miamexpress_subid) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Accession:") %>
+    <%= content_tag("td", input("array_design", "accession")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Name:") %>
+    <%= content_tag("td", @array_design.name) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "User:") %>
+    <%= content_tag("td", @array_design.miamexpress_login) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Status:") %>
+    <%= content_tag("td", input("array_design", "status")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "DW ready:") %>
+    <%= content_tag("td", check_box("array_design", "data_warehouse_ready")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Loaded in DW:") %>
+    <%= content_tag("td", check_box("array_design", "in_data_warehouse")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "MIAME score:") %>
+    <%= content_tag("td", @array_design.miame_score? ? 'Pass' : 'Fail') %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Date last processed:") %>
+    <%= content_tag("td", @array_design.date_last_processed) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Comment:") %>
+    <%= content_tag("td", input("array_design", "comment")) %>
+  </tr>
+</table>

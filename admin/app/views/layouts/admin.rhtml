@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+ <head>
+   <title>Submissions Tracking</title>
+   <%= stylesheet_link_tag "admin" %>
+ </head>
+ <body>
+
+  <div class="link-list" id="sidebar">
+   <div class="submenu">
+    <div class="submenutitle">
+      <%= content_tag("h4", "Submissions") %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "Tab2MAGE experiments", 
+                :controller => "tab2mages", 
+                :action => "list",
+	        :experiment_type => "Tab2MAGE" %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "MIAMExpress experiments", 
+                :controller => "miamexps", 
+                :action => "list",
+	        :experiment_type => "MIAMExpress" %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "MIAMExpress arrays", 
+                :controller => "array_designs", 
+                :action => "list" %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "MUGEN experiments", 
+                :controller => "tab2mages", 
+                :action => "list",
+	        :experiment_type => "MUGEN" %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "GEO experiments", 
+                :controller => "tab2mages", 
+                :action => "list",
+	        :experiment_type => "GEO" %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "MAGE-TAB experiments", 
+                :controller => "tab2mages", 
+                :action => "list",
+	        :experiment_type => "MAGE-TAB" %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "Protocols", 
+                :controller => "protocols", 
+                :action => "list" %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "Recent experiments", 
+                :controller => "experiments", 
+                :action => "today_list" %>
+    </div>
+   </div>
+
+   <div class="submenu">
+    <div class="submenutitle">
+      <%= content_tag("h4", "Ontology") %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "Categories", 
+                :controller => "category", 
+                :action => "list" %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "Taxa", 
+                :controller => "taxon", 
+                :action => "list" %>
+    </div>
+     
+    <div class="menu-item">
+    <%= link_to "Organisms", 
+                :controller => "organism", 
+                :action => "list" %>
+    </div>
+     
+    <div class="menu-item">
+    <%= link_to "Designs", 
+                :controller => "design", 
+                :action => "list" %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "Materials", 
+                :controller => "material", 
+                :action => "list" %>
+    </div>
+   </div>
+
+   <div class="submenu">
+    <div class="submenutitle">
+      <%= content_tag("h4", "Admin") %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "User Accounts", 
+                :controller => "users", 
+                :action => "list" %>
+    </div>
+   </div>
+
+   <div class="submenu">
+    <% if !@session['user'].nil? %>
+      <div class="submenutitle">
+        <%= content_tag("h4", "Account") %>
+      </div>
+
+    <div class="menu-item">
+      <%= link_to "Log out",
+                  :controller => "account",
+                  :action => "logout" %>
+    </div>
+    <% end %>
+   </div>
+
+  </div>
+  <div id="main">
+
+   <%= @content_for_layout %>
+
+  </div>
+ </body>
+</html>

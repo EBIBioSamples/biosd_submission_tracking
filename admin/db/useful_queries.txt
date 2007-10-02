@@ -1,0 +1,8 @@
+--
+-- List of design types, category and associated FV class(es)
+--
+select d.ontology_value, d.design_type, c.ontology_term from designs d left outer join categories_designs cd on d.id=cd.design_id left outer join categories c on c.id=cd.category_id order by d.design_type, d.ontology_value;
+--
+-- List of experiments flagged as AEDW "maybes" not loaded into AEDW yet.
+select miamexpress_login, miamexpress_subid from experiments where not (data_warehouse_ready & 1) and (data_warehouse_ready & 2) and (data_warehouse_ready & 4) and (data_warehouse_ready & 8) and (data_warehouse_ready & 16) and (in_data_warehouse=0 or in_data_warehouse is null);
+--

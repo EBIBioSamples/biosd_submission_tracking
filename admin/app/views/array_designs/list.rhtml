@@ -1,0 +1,73 @@
+<%= render_partial "title" %>
+
+<div>
+	<%= form_tag %>
+	<%= content_tag("span", "Search on SubId, Accession, Name or User (wildcards: *, ?): ") %>
+	<%= text_field_tag("search_term", @search_term) %>
+	<%= submit_tag("Search") %>
+	<%= end_form_tag %>
+</div>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+      <%= content_tag("th", "SubID") %>
+      <%= content_tag("th", "Accession") %>
+      <%= content_tag("th", "Name") %>
+      <%= content_tag("th", "User") %>
+      <%= content_tag("th", "Status") %>
+      <%= content_tag("th", "MIAME") %>
+      <%= content_tag("th", "DW status") %>
+      <%= content_tag("th", "Date last processed") %>
+      <%= content_tag("th", "Comment") %>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+    </tr>
+
+    <% @array_designs.each do |a| %>
+      <tr>
+	<td>
+	<%= link_to "Edit", :action      => "edit", 
+                            :id          => a.id,
+			    :page        => @array_design_pages.current,
+	                    :search_term => @search_term %>
+        </td>
+	<%= content_tag("td", a.miamexpress_subid) %>
+	<%= content_tag("td", a.accession) %>
+	<%= content_tag("td", a.name) %>
+	<%= content_tag("td", a.miamexpress_login) %>
+	<%= content_tag("td", a.status) %>
+	<%= content_tag("td", a.miame_score.nil? ? '' :
+                              a.miame_score? ?
+                              '<font color="green">PASS</font>' :
+                              '<font color="red">fail</font>') %>
+	<%= content_tag("td", a.in_data_warehouse? ? '<font color="blue">Loaded</font>' :
+	                      a.data_warehouse_ready.nil? ? '' :
+                              a.data_warehouse_ready? ?
+                              '<font color="green">YES</font>' :
+                              '<font color="red">no</font>') %>
+	<%= content_tag("td", a.date_last_processed ?
+			      a.date_last_processed.strftime('%Y-%m-%d') :
+                              "") %>
+	<%= content_tag("td", a.comment) %>
+	<td>
+        <%= link_to "Delete", {:action      => "deprecate", 
+                               :id          => a.id,
+	                       :page        => @array_design_pages.current,
+	                       :search_term => @search_term },
+                               :confirm     => "Really delete array design \"#{a.accession}\"?" %>
+        </td>
+      </tr> 
+    <% end %>
+  </table>
+
+  <p class="footer">
+    <%= link_to 'Previous', { :page => @array_design_pages.current.previous, :search_term => @search_term } if @array_design_pages.current.previous %>
+    <%= pagination_links( @array_design_pages, options={:window_size => 3, :params => {:search_term => @search_term} } ) %>
+    <%= link_to 'Next', { :page => @array_design_pages.current.next, :search_term => @search_term } if @array_design_pages.current.next %>
+  </p>
+
+  <%= render_partial "miameinfo" %>
+  <%= render_partial "aedwinfo" %>
+
+</div>

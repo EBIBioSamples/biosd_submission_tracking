@@ -1,0 +1,86 @@
+<%= render_partial "title" %>
+
+<div>
+	<%= form_tag %>
+	<%= content_tag("span", "Search on SubId, Login, Accession or Name (wildcards: *, ?): ") %>
+	<%= text_field_tag("search_term", @search_term) %>
+        <%= hidden_field_tag("experiment_type", @params[:experiment_type]) %>
+	<%= submit_tag("Search") %>
+	<%= end_form_tag %>
+</div>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+      <%= content_tag("th", "SubId") %>
+      <%= content_tag("th", "Login") %>
+      <%= content_tag("th", "Accession") %>
+      <%= content_tag("th", "Name") %>
+      <%= content_tag("th", "Checker score") %>
+      <%= content_tag("th", "MIAME score") %>
+      <%= content_tag("th", "DW status") %>
+      <%= content_tag("th", "Status") %>
+      <%= content_tag("th", "Date last processed") %>
+      <%= content_tag("th", "Curator") %>
+      <%= content_tag("th", "Software") %>
+      <%= content_tag("th", "Batchloader used") %>
+      <%= content_tag("th", "Comment") %>
+    </tr>
+
+    <% @experiments.each do |e| %>
+      <tr>
+	<td>
+	<%= link_to "Edit", :action          => "edit", 
+                            :id              => e.id,
+			    :page            => @experiment_pages.current,
+                            :experiment_type => @params[:experiment_type],
+	                    :search_term     => @search_term %>
+        </td>
+	<%= content_tag("td", e.miamexpress_subid) %>
+	<%= content_tag("td", e.miamexpress_login) %>
+	<%= content_tag("td", e.accession) %>
+	<%= content_tag("td", e.name) %>
+	<%= content_tag("td", e.checker_score) %>
+	<%= content_tag("td", (e.miame_score.to_i.&(1).nonzero? ? 'R' : '') +
+                              (e.miame_score.to_i.&(2).nonzero? ? 'N' : '') +
+                              (e.miame_score.to_i.&(4).nonzero? ? 'F' : '') +
+                              (e.miame_score.to_i.&(8).nonzero? ? 'P' : '') +
+                              (e.miame_score.to_i.&(16).nonzero? ? 'A' : '')) %>
+	<%= content_tag("td", e.in_data_warehouse?        ? '<font color="blue">Loaded</font>' :
+                              e.data_warehouse_ready.nil? ? '' :
+                              e.data_warehouse_ready.to_i.eql?(31) ? '<font color="green">YES</font>' :
+			      e.data_warehouse_ready.to_i.eql?(30) ? '<font color="red">maybe</font>' :
+                              '<font color="red">no</font>') %>
+	<%= content_tag("td", e.status) %>
+	<%= content_tag("td", e.date_last_processed ?
+			      e.date_last_processed.strftime('%Y-%m-%d') :
+                              "") %>
+	<%= content_tag("td", e.curator) %>
+	<%= content_tag("td", e.software) %>
+	<%= content_tag("td", e.is_mx_batchloader.nil? ? '' :
+                              e.is_mx_batchloader? ?
+                              'yes' :
+                              'no') %>
+	<%= content_tag("td", truncate(e.comment, 30)) %>
+      </tr> 
+    <% end %>
+  </table>
+
+  <p class="footer">
+    <%= link_to 'Previous', { :page            => @experiment_pages.current.previous,
+                              :experiment_type => @params[:experiment_type],
+                              :search_term     => @search_term } if @experiment_pages.current.previous %>
+
+    <%= pagination_links( @experiment_pages, options={:window_size => 3,
+                                  :params => {:search_term     => @search_term,
+                                              :experiment_type => @params[:experiment_type]} } ) %>
+
+    <%= link_to 'Next', { :page            => @experiment_pages.current.next,
+                          :experiment_type => @params[:experiment_type],
+                          :search_term     => @search_term } if @experiment_pages.current.next %>
+  </p>
+
+  <%= render_partial "miameinfo" %>
+
+</div>

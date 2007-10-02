@@ -1,0 +1,91 @@
+<%= error_messages_for 'experiment' %>
+
+  <tr>
+    <%= content_tag("td", "Accession:") %>
+    <%= content_tag("td", input("experiment", "accession")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Name:") %>
+    <%= content_tag("td", input("experiment", "name")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Status:") %>
+    <%= content_tag("td", select(
+	"experiment",
+	"status",
+	['Waiting',
+	 'Retrieving info from MX',
+    	 'Checking in progress',
+         '** CHECKER CRASH **',
+         'Checking failed',
+         'Checking passed',
+    	 'MAGE-ML export',
+	 'Export postponed',
+         'Export failed',
+         'Complete',
+	])) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Directory:") %>
+    <%= content_tag("td", @experiment.experiment_type.to_s + "_" + @experiment.id.to_s) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Spreadsheet:") %>
+    <%= content_tag("td", @experiment.spreadsheets.find(:all, :conditions => "is_deleted=0").collect{|s| s.name}.join("<br>")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Data files:") %>
+    <%= content_tag("td", @experiment.data_files.find(:all, :conditions => "is_deleted=0").collect{|d| d.name}.join("<br>")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Checker score:") %>
+    <%= content_tag("td", @experiment.checker_score) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "MIAME score") %>
+    <%= content_tag("td", (@experiment.miame_score.to_i.&(1).nonzero?  ? 'R' : '') +
+                          (@experiment.miame_score.to_i.&(2).nonzero?  ? 'N' : '') +
+                          (@experiment.miame_score.to_i.&(4).nonzero?  ? 'F' : '') +
+                          (@experiment.miame_score.to_i.&(8).nonzero?  ? 'P' : '') +
+                          (@experiment.miame_score.to_i.&(16).nonzero? ? 'A' : '')) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "DW ready:") %>
+    <%= content_tag("td", (@experiment.data_warehouse_ready.to_i.&(1).nonzero?  ? 'T' : '') +
+                          (@experiment.data_warehouse_ready.to_i.&(2).nonzero?  ? 'H' : '') +
+                          (@experiment.data_warehouse_ready.to_i.&(4).nonzero?  ? 'A' : '') +
+                          (@experiment.data_warehouse_ready.to_i.&(8).nonzero?  ? 'F' : '') +
+                          (@experiment.data_warehouse_ready.to_i.&(16).nonzero? ? 'D' : '')) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Loaded in DW:") %>
+    <%= content_tag("td", check_box("experiment", "in_data_warehouse")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Affymetrix:") %>
+    <%= content_tag("td", check_box("experiment", "is_affymetrix")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Software:") %>
+    <%= content_tag("td", input("experiment", "software")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Curator:") %>
+    <%= content_tag("td", input("experiment", "curator")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Date last edited:") %>
+    <%= content_tag("td", @experiment.date_last_edited) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Date submitted:") %>
+    <%= content_tag("td", @experiment.date_submitted) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Date last processed:") %>
+    <%= content_tag("td", @experiment.date_last_processed) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Comment:") %>
+    <%= content_tag("td", input("experiment", "comment")) %>
+  </tr>

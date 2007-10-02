@@ -1,0 +1,46 @@
+<%= render_partial "title" %>
+
+<%= content_tag("p", link_to("Taxa categories table", 
+                        :controller => "taxon", 
+                        :action     => "category_table"), { :class => 'footer' } ) %>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+      <%= content_tag("th", "Scientific name") %>
+      <%= content_tag("th", "Common name") %>
+      <%= content_tag("th", "Accession") %>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+    </tr>
+
+    <% @taxons.each do |t| %>
+
+      <tr>
+	<td>
+	<%= link_to "Edit", :action => "edit", 
+                            :id     => t.id %>
+        </td>
+        <%= content_tag("td", t.scientific_name) %>
+        <%= content_tag("td", t.common_name) %>
+        <%= content_tag("td", t.accession) %>
+	<td>
+        <%= link_to "Delete", {:action  => "deprecate", 
+                               :id      => t.id},
+                               :confirm => "Really delete taxon \"#{t.scientific_name}\"?" %>
+        </td>
+      </tr> 
+    <% end %>
+  </table>
+
+  <p class="footer">
+    <%= link_to 'Previous', { :page => @taxon_pages.current.previous } if @taxon_pages.current.previous %>
+    <%= pagination_links( @taxon_pages, options={:window_size => 3} ) %>
+    <%= link_to 'Next', { :page => @taxon_pages.current.next } if @taxon_pages.current.next %>
+  </p>
+
+  <%= content_tag("p", link_to("Add new taxon", 
+                        :controller => "taxon", 
+                        :action     => "new"), { :class => 'footer' } ) %>
+
+</div>

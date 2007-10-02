@@ -1,0 +1,34 @@
+<%= error_messages_for 'category' %>
+
+<table><tr>
+<td><a href="http://mged.sourceforge.net/ontologies/MOhtml/">MGED Ontology webpage</a></td>
+</tr><table>
+
+<table>
+  <tr>
+    <%= content_tag("td", "Ontology term:") %>
+    <%= content_tag("td", input("category", "ontology_term")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Display label:") %>
+    <%= content_tag("td", input("category", "display_label")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Can be a BioMaterialCharacteristic:") %>
+    <%= content_tag("td", check_box("category", "is_bmc")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Can be a FactorValue:") %>
+    <%= content_tag("td", check_box("category", "is_fv")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Is common to all spreadsheets:") %>
+    <%= content_tag("td", check_box("category", "is_common")) %>
+  </tr>
+</table>
+
+<p class="text">Use the check boxes to indicate whether a given
+category can be used as a BioMaterialCharacteristic or FactorValue
+(examples: Compound, Dose are FVs, but not BMCs). If a category should
+be asked of <em>all</em> submissions (e.g. Species,
+BioSourceProvider), check the "common" box.</p>

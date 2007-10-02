@@ -1,0 +1,580 @@
+-- MySQL dump 10.10
+--
+-- Host: localhost    Database: test
+-- ------------------------------------------------------
+-- Server version	5.0.27
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `array_designs`
+--
+
+DROP TABLE IF EXISTS `array_designs`;
+CREATE TABLE `array_designs` (
+  `id` int(11) NOT NULL auto_increment,
+  `miamexpress_subid` int(11) default NULL,
+  `accession` char(15) default NULL,
+  `name` varchar(255) default NULL,
+  `miamexpress_login` varchar(50) default NULL,
+  `status` varchar(50) default NULL,
+  `data_warehouse_ready` char(15) default NULL,
+  `date_last_processed` datetime default NULL,
+  `comment` text,
+  `is_deleted` int(11) NOT NULL,
+  `miame_score` int(11) default NULL,
+  `in_data_warehouse` int(11) default NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `miamexpress_subid` (`miamexpress_subid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `array_designs`
+--
+
+LOCK TABLES `array_designs` WRITE;
+/*!40000 ALTER TABLE `array_designs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `array_designs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `categories`
+--
+
+DROP TABLE IF EXISTS `categories`;
+CREATE TABLE `categories` (
+  `id` int(11) NOT NULL auto_increment,
+  `ontology_term` varchar(50) default NULL,
+  `display_label` varchar(50) default NULL,
+  `is_common` int(11) default NULL,
+  `is_bmc` int(11) default NULL,
+  `is_fv` int(11) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `categories`
+--
+
+LOCK TABLES `categories` WRITE;
+/*!40000 ALTER TABLE `categories` DISABLE KEYS */;
+/*!40000 ALTER TABLE `categories` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `categories_designs`
+--
+
+DROP TABLE IF EXISTS `categories_designs`;
+CREATE TABLE `categories_designs` (
+  `category_id` int(11) NOT NULL,
+  `design_id` int(11) NOT NULL,
+  KEY `category_id` (`category_id`),
+  KEY `design_id` (`design_id`),
+  CONSTRAINT `categories_designs_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `categories_designs_ibfk_2` FOREIGN KEY (`design_id`) REFERENCES `designs` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `categories_designs`
+--
+
+LOCK TABLES `categories_designs` WRITE;
+/*!40000 ALTER TABLE `categories_designs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `categories_designs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `categories_materials`
+--
+
+DROP TABLE IF EXISTS `categories_materials`;
+CREATE TABLE `categories_materials` (
+  `category_id` int(11) NOT NULL,
+  `material_id` int(11) NOT NULL,
+  KEY `category_id` (`category_id`),
+  KEY `material_id` (`material_id`),
+  CONSTRAINT `categories_materials_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `categories_materials_ibfk_2` FOREIGN KEY (`material_id`) REFERENCES `materials` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `categories_materials`
+--
+
+LOCK TABLES `categories_materials` WRITE;
+/*!40000 ALTER TABLE `categories_materials` DISABLE KEYS */;
+/*!40000 ALTER TABLE `categories_materials` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `categories_taxons`
+--
+
+DROP TABLE IF EXISTS `categories_taxons`;
+CREATE TABLE `categories_taxons` (
+  `category_id` int(11) NOT NULL,
+  `taxon_id` int(11) NOT NULL,
+  KEY `category_id` (`category_id`),
+  KEY `taxon_id` (`taxon_id`),
+  CONSTRAINT `categories_taxons_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `categories_taxons_ibfk_2` FOREIGN KEY (`taxon_id`) REFERENCES `taxons` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `categories_taxons`
+--
+
+LOCK TABLES `categories_taxons` WRITE;
+/*!40000 ALTER TABLE `categories_taxons` DISABLE KEYS */;
+/*!40000 ALTER TABLE `categories_taxons` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `data_files`
+--
+
+DROP TABLE IF EXISTS `data_files`;
+CREATE TABLE `data_files` (
+  `id` int(11) NOT NULL auto_increment,
+  `experiment_id` int(11) NOT NULL,
+  `name` varchar(255) default NULL,
+  `is_unpacked` int(11) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `data_files_ibfk_1` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `data_files`
+--
+
+LOCK TABLES `data_files` WRITE;
+/*!40000 ALTER TABLE `data_files` DISABLE KEYS */;
+/*!40000 ALTER TABLE `data_files` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `design_instances`
+--
+
+DROP TABLE IF EXISTS `design_instances`;
+CREATE TABLE `design_instances` (
+  `id` int(11) NOT NULL auto_increment,
+  `design_id` int(11) NOT NULL,
+  `experiment_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `design_id` (`design_id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `design_instances_ibfk_1` FOREIGN KEY (`design_id`) REFERENCES `designs` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `design_instances_ibfk_2` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `design_instances`
+--
+
+LOCK TABLES `design_instances` WRITE;
+/*!40000 ALTER TABLE `design_instances` DISABLE KEYS */;
+/*!40000 ALTER TABLE `design_instances` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `designs`
+--
+
+DROP TABLE IF EXISTS `designs`;
+CREATE TABLE `designs` (
+  `id` int(11) NOT NULL auto_increment,
+  `display_label` varchar(50) default NULL,
+  `ontology_category` varchar(50) default NULL,
+  `ontology_value` varchar(50) default NULL,
+  `design_type` char(15) NOT NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `designs`
+--
+
+LOCK TABLES `designs` WRITE;
+/*!40000 ALTER TABLE `designs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `designs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `experiments`
+--
+
+DROP TABLE IF EXISTS `experiments`;
+CREATE TABLE `experiments` (
+  `id` int(11) NOT NULL auto_increment,
+  `accession` char(15) default NULL,
+  `name` varchar(255) default NULL,
+  `user_id` int(11) default NULL,
+  `checker_score` int(11) default NULL,
+  `software` varchar(100) default NULL,
+  `status` varchar(50) default NULL,
+  `data_warehouse_ready` int(11) default NULL,
+  `date_last_edited` datetime default NULL,
+  `date_submitted` datetime default NULL,
+  `date_last_processed` datetime default NULL,
+  `in_curation` int(11) default NULL,
+  `curator` char(30) default NULL,
+  `comment` text,
+  `experiment_type` char(30) default NULL,
+  `miamexpress_login` char(30) default NULL,
+  `miamexpress_subid` int(11) default NULL,
+  `is_affymetrix` int(11) default NULL,
+  `is_mx_batchloader` int(11) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  `miame_score` int(11) default NULL,
+  `in_data_warehouse` int(11) default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `experiments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `experiments`
+--
+
+LOCK TABLES `experiments` WRITE;
+/*!40000 ALTER TABLE `experiments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `experiments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `material_instances`
+--
+
+DROP TABLE IF EXISTS `material_instances`;
+CREATE TABLE `material_instances` (
+  `id` int(11) NOT NULL auto_increment,
+  `material_id` int(11) NOT NULL,
+  `experiment_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `material_id` (`material_id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `material_instances_ibfk_1` FOREIGN KEY (`material_id`) REFERENCES `materials` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `material_instances_ibfk_2` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `material_instances`
+--
+
+LOCK TABLES `material_instances` WRITE;
+/*!40000 ALTER TABLE `material_instances` DISABLE KEYS */;
+/*!40000 ALTER TABLE `material_instances` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `materials`
+--
+
+DROP TABLE IF EXISTS `materials`;
+CREATE TABLE `materials` (
+  `id` int(11) NOT NULL auto_increment,
+  `display_label` varchar(50) default NULL,
+  `ontology_category` varchar(50) default NULL,
+  `ontology_value` varchar(50) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `materials`
+--
+
+LOCK TABLES `materials` WRITE;
+/*!40000 ALTER TABLE `materials` DISABLE KEYS */;
+/*!40000 ALTER TABLE `materials` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `meta`
+--
+
+DROP TABLE IF EXISTS `meta`;
+CREATE TABLE `meta` (
+  `name` varchar(128) NOT NULL default '',
+  `value` varchar(128) NOT NULL default '',
+  PRIMARY KEY  (`name`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `meta`
+--
+
+LOCK TABLES `meta` WRITE;
+/*!40000 ALTER TABLE `meta` DISABLE KEYS */;
+INSERT INTO `meta` VALUES ('serializer','Storable'),('index_subfeatures','1'),('autoindex','1');
+/*!40000 ALTER TABLE `meta` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `organism_instances`
+--
+
+DROP TABLE IF EXISTS `organism_instances`;
+CREATE TABLE `organism_instances` (
+  `id` int(11) NOT NULL auto_increment,
+  `organism_id` int(11) NOT NULL,
+  `experiment_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `organism_id` (`organism_id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `organism_instances_ibfk_1` FOREIGN KEY (`organism_id`) REFERENCES `organisms` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `organism_instances_ibfk_2` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `organism_instances`
+--
+
+LOCK TABLES `organism_instances` WRITE;
+/*!40000 ALTER TABLE `organism_instances` DISABLE KEYS */;
+/*!40000 ALTER TABLE `organism_instances` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `organisms`
+--
+
+DROP TABLE IF EXISTS `organisms`;
+CREATE TABLE `organisms` (
+  `id` int(11) NOT NULL auto_increment,
+  `scientific_name` varchar(50) default NULL,
+  `common_name` varchar(50) default NULL,
+  `accession` int(11) default NULL,
+  `taxon_id` int(11) NOT NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `taxon_id` (`taxon_id`),
+  CONSTRAINT `organisms_ibfk_1` FOREIGN KEY (`taxon_id`) REFERENCES `taxons` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `organisms`
+--
+
+LOCK TABLES `organisms` WRITE;
+/*!40000 ALTER TABLE `organisms` DISABLE KEYS */;
+/*!40000 ALTER TABLE `organisms` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `permissions`
+--
+
+DROP TABLE IF EXISTS `permissions`;
+CREATE TABLE `permissions` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(40) NOT NULL,
+  `info` varchar(80) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `permissions`
+--
+
+LOCK TABLES `permissions` WRITE;
+/*!40000 ALTER TABLE `permissions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `permissions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `permissions_roles`
+--
+
+DROP TABLE IF EXISTS `permissions_roles`;
+CREATE TABLE `permissions_roles` (
+  `role_id` int(11) NOT NULL,
+  `permission_id` int(11) NOT NULL,
+  KEY `role_id` (`role_id`),
+  KEY `permission_id` (`permission_id`),
+  CONSTRAINT `permissions_roles_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `permissions_roles_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `permissions_roles`
+--
+
+LOCK TABLES `permissions_roles` WRITE;
+/*!40000 ALTER TABLE `permissions_roles` DISABLE KEYS */;
+/*!40000 ALTER TABLE `permissions_roles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `protocols`
+--
+
+DROP TABLE IF EXISTS `protocols`;
+CREATE TABLE `protocols` (
+  `id` int(11) NOT NULL auto_increment,
+  `accession` char(15) default NULL,
+  `user_accession` varchar(100) default NULL,
+  `expt_accession` char(15) default NULL,
+  `name` varchar(255) default NULL,
+  `date_last_processed` datetime default NULL,
+  `comment` text,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `accession` (`accession`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `protocols`
+--
+
+LOCK TABLES `protocols` WRITE;
+/*!40000 ALTER TABLE `protocols` DISABLE KEYS */;
+/*!40000 ALTER TABLE `protocols` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `roles`
+--
+
+DROP TABLE IF EXISTS `roles`;
+CREATE TABLE `roles` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(40) NOT NULL,
+  `info` varchar(80) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `roles`
+--
+
+LOCK TABLES `roles` WRITE;
+/*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+/*!40000 ALTER TABLE `roles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `roles_users`
+--
+
+DROP TABLE IF EXISTS `roles_users`;
+CREATE TABLE `roles_users` (
+  `user_id` int(11) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  KEY `user_id` (`user_id`),
+  KEY `role_id` (`role_id`),
+  CONSTRAINT `roles_users_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `roles_users_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `roles_users`
+--
+
+LOCK TABLES `roles_users` WRITE;
+/*!40000 ALTER TABLE `roles_users` DISABLE KEYS */;
+/*!40000 ALTER TABLE `roles_users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `spreadsheets`
+--
+
+DROP TABLE IF EXISTS `spreadsheets`;
+CREATE TABLE `spreadsheets` (
+  `id` int(11) NOT NULL auto_increment,
+  `experiment_id` int(11) NOT NULL,
+  `name` varchar(255) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `spreadsheets_ibfk_1` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `spreadsheets`
+--
+
+LOCK TABLES `spreadsheets` WRITE;
+/*!40000 ALTER TABLE `spreadsheets` DISABLE KEYS */;
+/*!40000 ALTER TABLE `spreadsheets` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `taxons`
+--
+
+DROP TABLE IF EXISTS `taxons`;
+CREATE TABLE `taxons` (
+  `id` int(11) NOT NULL auto_increment,
+  `scientific_name` varchar(50) default NULL,
+  `common_name` varchar(50) default NULL,
+  `accession` int(11) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `taxons`
+--
+
+LOCK TABLES `taxons` WRITE;
+/*!40000 ALTER TABLE `taxons` DISABLE KEYS */;
+/*!40000 ALTER TABLE `taxons` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL auto_increment,
+  `login` varchar(40) NOT NULL,
+  `name` varchar(40) default NULL,
+  `password` varchar(40) NOT NULL,
+  `email` varchar(100) default NULL,
+  `modified_at` datetime default NULL,
+  `created_at` datetime default NULL,
+  `access` datetime default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `login` (`login`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2007-04-24 15:37:45

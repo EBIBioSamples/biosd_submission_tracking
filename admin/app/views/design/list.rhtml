@@ -1,0 +1,43 @@
+<%= render_partial "title" %>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+      <%= content_tag("th", "Display label") %>
+      <%= content_tag("th", "Ontology category") %>
+      <%= content_tag("th", "Ontology value") %>
+      <%= content_tag("th", "Design type") %>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+    </tr>
+
+    <% @designs.each do |d| %>
+      <tr>
+	<td>
+	<%= link_to "Edit", :action => "edit", 
+                            :id     => d.id %>
+        </td>
+	<%= content_tag("td", d.display_label) %>
+	<%= content_tag("td", d.ontology_category) %>
+	<%= content_tag("td", d.ontology_value) %>
+	<%= content_tag("td", d.design_type) %>
+	<td>
+        <%= link_to "Delete", {:action  => "deprecate", 
+                               :id      => d.id},
+                               :confirm => "Really delete design \"#{d.ontology_value}\"?" %>
+        </td>
+      </tr> 
+    <% end %>
+  </table>
+
+  <p class="footer">
+    <%= link_to 'Previous', { :page => @design_pages.current.previous } if @design_pages.current.previous %>
+    <%= pagination_links( @design_pages, options={:window_size => 3} ) %>
+    <%= link_to 'Next', { :page => @design_pages.current.next } if @design_pages.current.next %>
+  </p>
+
+  <%= content_tag("p", link_to("Add new design", 
+                        :controller => "design", 
+                        :action     => "new"), { :class => 'footer' } ) %>
+
+</div>

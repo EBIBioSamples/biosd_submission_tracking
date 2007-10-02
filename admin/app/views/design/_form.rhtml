@@ -1,0 +1,43 @@
+<%= error_messages_for 'design' %>
+
+<table><tr>
+<td><a href="http://mged.sourceforge.net/ontologies/MOhtml/">MGED Ontology webpage</a></td>
+</tr><table>
+
+<table>
+  <tr>
+    <%= content_tag("td", "Display label:") %>
+    <%= content_tag("td", input("design", "display_label")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Ontology category:") %>
+    <%= content_tag("td", input("design", "ontology_category")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Ontology value:") %>
+    <%= content_tag("td", input("design", "ontology_value")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Design type:") %>
+    <%= content_tag("td", select(
+	"design",
+	"design_type",
+	['biological',
+         'methodological',
+	 'technological'
+	])) %>
+  </tr>
+</table>
+
+<table>
+  <% Category.find(:all, :conditions => "is_deleted=0").sort_by { |c| c.ontology_term }.each do |cat| %>
+    <tr>
+      <td>
+        <%= check_box_tag("design[category_ids][]",
+                           cat.id,
+                           @design.categories.include?(cat)) %>
+      </td>
+      <%= content_tag("td", cat.ontology_term) %>
+    </tr>
+  <% end %>
+</table>

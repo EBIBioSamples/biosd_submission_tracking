@@ -1,0 +1,113 @@
+<%= render_partial "title" %>
+
+<div>
+	<%= form_tag %>
+	<%= content_tag("span", "Search on Accession, User or Name (wildcards: *, ?): ") %>
+	<%= text_field_tag("search_term", @search_term) %>
+        <%= hidden_field_tag("experiment_type", @params[:experiment_type]) %>
+	<%= submit_tag("Search") %>
+	<%= end_form_tag %>
+</div>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+      <%= content_tag("th", "Accession") %>
+      <%= content_tag("th", "User") %>
+      <%= content_tag("th", "Directory") %>
+      <%= content_tag("th", "Name") %>
+      <%= content_tag("th", "Checker score") %>
+      <%= content_tag("th", "MIAME score") %>
+      <%= content_tag("th", "DW status") %>
+      <%= content_tag("th", "In curation") %>
+      <%= content_tag("th", "Status") %>
+      <%= content_tag("th", "Affymetrix") %>
+      <%= content_tag("th", "Software") %>
+      <%= content_tag("th", "Date last edited") %>
+      <%= content_tag("th", "Date submitted") %>
+      <%= content_tag("th", "Date last processed") %>
+      <%= content_tag("th", "Curator") %>
+      <%= content_tag("th", "Comment") %>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+    </tr>
+
+    <% @experiments.each do |e| %>
+      <tr>
+	<td>
+	<%= link_to "Edit", :action          => "edit", 
+                            :id              => e.id,
+			    :page            => @experiment_pages.current,
+                            :experiment_type => @params[:experiment_type],
+	                    :search_term     => @search_term %>
+        </td>
+	<%= content_tag("td", e.accession) %>
+	<%= content_tag("td", e.user ? e.user.login : nil) %>
+        <%= content_tag("td", e.experiment_type.to_s + "_" + e.id.to_s) %>
+	<%= content_tag("td", e.name) %>
+	<%= content_tag("td", e.checker_score) %>
+	<%= content_tag("td", (e.miame_score.to_i.&(1).nonzero? ? 'R' : '') +
+                              (e.miame_score.to_i.&(2).nonzero? ? 'N' : '') +
+                              (e.miame_score.to_i.&(4).nonzero? ? 'F' : '') +
+                              (e.miame_score.to_i.&(8).nonzero? ? 'P' : '') +
+                              (e.miame_score.to_i.&(16).nonzero? ? 'A' : '')) %>
+	<%= content_tag("td", e.in_data_warehouse?        ? '<font color="blue">Loaded</font>' :
+                              e.data_warehouse_ready.nil? ? '' :
+                              e.data_warehouse_ready.to_i.eql?(31) ? '<font color="green">YES</font>' :
+			      e.data_warehouse_ready.to_i.eql?(30) ? '<font color="red">maybe</font>' :
+                              '<font color="red">no</font>') %>
+	<%= content_tag("td", e.in_curation.nil? ? '' :
+                              e.in_curation? ?
+                              '<font color="green">YES</font>' :
+                              '<font color="red">no</font>') %>
+	<%= content_tag("td", e.status) %>
+	<%= content_tag("td", e.is_affymetrix.nil? ? '' :
+                              e.is_affymetrix? ?
+                              'yes' :
+                              'no') %>
+	<%= content_tag("td", e.software) %>
+	<%= content_tag("td", e.date_last_edited ?
+			      e.date_last_edited.strftime('%Y-%m-%d') :
+                              "") %>
+	<%= content_tag("td", e.date_submitted ?
+			      e.date_submitted.strftime('%Y-%m-%d') :
+                              "") %>
+	<%= content_tag("td", e.date_last_processed ?
+			      e.date_last_processed.strftime('%Y-%m-%d') :
+                              "") %>
+	<%= content_tag("td", e.curator) %>
+	<%= content_tag("td", truncate(e.comment, 30)) %>
+	<td>
+        <%= link_to "Delete", {:action          => "deprecate", 
+                               :id              => e.id,
+	                       :page            => @experiment_pages.current,
+                               :experiment_type => @params[:experiment_type],
+	                       :search_term     => @search_term },
+                               :confirm         => "Really delete experiment \"#{e.id}\"?" %>
+        </td>
+      </tr> 
+    <% end %>
+  </table>
+
+  <p class="footer">
+    <%= link_to 'Previous', { :page            => @experiment_pages.current.previous,
+                              :experiment_type => @params[:experiment_type],
+                              :search_term     => @search_term } if @experiment_pages.current.previous %>
+
+    <%= pagination_links( @experiment_pages, options={:window_size => 3,
+                                              :params => {:search_term     => @search_term,
+                                                          :experiment_type => @params[:experiment_type]} } ) %>
+
+    <%= link_to 'Next', { :page            => @experiment_pages.current.next,
+                          :experiment_type => @params[:experiment_type],
+                          :search_term     => @search_term } if @experiment_pages.current.next %>
+  </p>
+
+  <%= content_tag("p", link_to("Add new #{@params[:experiment_type]} experiment", 
+                        :controller      => "tab2mages",
+                        :experiment_type => @params[:experiment_type],
+                        :action          => "new"), { :class => 'footer' } ) %>
+
+  <%= render_partial "miameinfo" %>
+
+</div>

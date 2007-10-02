@@ -1,0 +1,68 @@
+AutoSubmissions installation notes
+==================================
+
+These are installation notes for the MySQL/Ruby on Rails automated
+submissions system. There is a set of Perl modules installed as part
+of the main Tab2MAGE installation which are required for the CGI web
+submissions form and automated processing daemons; this document
+covers database initialization, and setup and invocation of the
+curation submissions tracking web interface.
+
+Prerequisites
+-------------
+
+First, install ruby, rubygems and rails. See http://rubyforge.org and
+http://www.rubyonrails.com for details on how to do this. You will
+also need to install MySQL (version 4.1 or 5.0 is recommended; see
+http://www.mysql.org).
+
+You will also most likely need to install the native MySQL interface
+for Ruby. This is most easily accomplished using the rubygems system:
+
+gem install -y mysql -v 2.7 -- --with-mysql-config /the/path/to/your/mysql-config/executable
+
+Database setup
+--------------
+
+Creation of the MySQL database and suitable login privileges is left
+to the user. To set up the database tables, switch to the db/
+directory and issue the following command:
+
+mysql your_database_name < database-mysql.schema
+
+This only creates the tables. Alternatively, you can create a database
+populated with some initial values for experiment annotation and
+default users:
+
+mysql your_database_name < database-mysql.dump
+
+Your database details must be entered in the config/database.yml file;
+See the file, database.yml-mysql, for an example.
+
+Webserver setup
+---------------
+
+To start the included WEBrick server, type:
+
+ruby scripts/server webrick
+
+Now navigate to http://localhost:3000/ to check that everything is
+working.
+
+If you have installed the LightTPD web server, you should be able to
+use it in full backgrounded daemon mode like this:
+
+ruby scripts/server -d
+
+In this case the webserver will be available at
+http://localhost:8087/, with configuration options set in the
+config/lighttpd.conf file.
+
+Once running, please use the user account 'admin' (password 'admin')
+to access all parts of the application. Low-privilege users may be
+added using the web interface; curator- and admin-level users must be
+created by modifying the roles_users table directly in the MySQL
+database. Examples are included in the database-mysql.dump file.
+
+---------------------------------------------------------------------
+Copyright Tim Rayner <rayner@ebi.ac.uk> ArrayExpress Team, EBI, 2007.

@@ -1,0 +1,21 @@
+<%= render_partial "title" %>
+
+<%= content_tag("p", link_to("Taxa list", 
+                        :controller => "taxon", 
+                        :action     => "list"), { :class => 'footer' } ) %>
+
+<table>
+  <tr>
+    <%= content_tag("th", "Categories") %>
+    <% @taxons.each do |t| %>
+      <%= content_tag("th", t.common_name) %>
+    <% end %>
+  <% @categories.each do |c| %>
+    <tr>
+      <%= content_tag("th", c.ontology_term) %>
+      <% @taxons.each do |t| %>
+	<%= content_tag("td", (c.taxons.include?(t) ? "X" : ""), "align" => "center" ) %>
+      <% end %>
+    </tr>
+  <% end %>
+</table>

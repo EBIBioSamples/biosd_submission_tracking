@@ -1,0 +1,45 @@
+*** NOTE ***
+
+As of Tab2MAGE version 1.9.9 these notes are obsolete, since we have
+migrated to using MySQL as the back-end database. These instructions
+are included in case future users wish to revert to SQLite
+
+*** END NOTE ***
+
+
+The standard SQLite interface included with ActiveRecord apparently
+has a default timeout of zero when connecting to the database. This
+can cause problems ("SQLite3::BusyException"), especially when the
+SQLite db file is on an NFS mount (which strictly speaking should be
+avoided anyway...). The ticket here:
+
+http://dev.rubyonrails.org/ticket/6126
+
+gives a possible solution, which involves applying the patch below,
+and adding a :timeout value to the database.yml config entry in this
+directory. We are currently evaluating this.
+
+Index: test/connections/native_sqlite3/connection.rb
+===================================================================
+--- test/connections/native_sqlite3/connection.rb	(revision 5072)
++++ test/connections/native_sqlite3/connection.rb	(working copy)
+@@ -11,7 +11,7 @@
+ sqlite_test_db2 = "#{BASE_DIR}/fixture_database_2.sqlite3"
+
+ def make_connection(clazz, db_file, db_definitions_file)
+-  ActiveRecord::Base.configurations = { clazz.name => { :adapter => 'sqlite3', :database => db_file } }
++  ActiveRecord::Base.configurations = { clazz.name => { :adapter => 'sqlite3', :database => db_file, :timeout => 5000 } }
+   unless File.exist?(db_file)
+     puts "SQLite3 database not found at #{db_file}. Rebuilding it."
+     sqlite_command = %Q{sqlite3 #{db_file} "create table a (a integer); drop table a;"}
+Index: lib/active_record/connection_adapters/sqlite_adapter.rb
+===================================================================
+--- lib/active_record/connection_adapters/sqlite_adapter.rb	(revision 5072)
++++ lib/active_record/connection_adapters/sqlite_adapter.rb	(working copy)
+@@ -19,6 +19,7 @@
+           :results_as_hash => true,
+           :type_translation => false
+         )
++        db.busy_timeout(config[:timeout]) unless config[:timeout].nil?
+         ConnectionAdapters::SQLiteAdapter.new(db, logger)
+       end

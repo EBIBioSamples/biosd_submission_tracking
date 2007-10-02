@@ -1,0 +1,34 @@
+<%= error_messages_for 'taxon' %>
+
+<table><tr>
+<td><a href="http://mged.sourceforge.net/ontologies/MOhtml/">MGED Ontology webpage</a></td>
+<td><a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=Taxonomy">NCBI taxonomy webpage</a></td>
+</tr><table>
+
+<table>
+  <tr>
+    <%= content_tag("td", "Scientific name:") %>
+    <%= content_tag("td", input("taxon", "scientific_name")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Common name:") %>
+    <%= content_tag("td", input("taxon", "common_name")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Accession:") %>
+    <%= content_tag("td", input("taxon", "accession")) %>
+  </tr>
+</table>
+
+<table>
+  <% Category.find_all.sort_by { |c| c.ontology_term }.each do |cat| %>
+    <tr>
+      <td>
+        <%= check_box_tag("taxon[category_ids][]",
+                           cat.id,
+                           @taxon.categories.include?(cat)) %>
+      </td>
+      <%= content_tag("td", cat.ontology_term) %>
+    </tr>
+  <% end %>
+</table>

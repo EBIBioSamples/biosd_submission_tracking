@@ -1,0 +1,9 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+first:
+  id: 1
+  subid: 1
+  accession: 1
+another:
+  id: 2
+  subid: 2
+  accession: 2

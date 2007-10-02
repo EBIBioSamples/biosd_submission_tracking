@@ -1,0 +1,28 @@
+<%= error_messages_for 'protocol' %>
+
+<table>
+  <tr>
+    <%= content_tag("td", "Accession:") %>
+    <%= content_tag("td", input("protocol", "accession")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "User accession:") %>
+    <%= content_tag("td", input("protocol", "user_accession")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Expt accession:") %>
+    <%= content_tag("td", input("protocol", "expt_accession")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Name:") %>
+    <%= content_tag("td", input("protocol", "name")) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Date last processed:") %>
+    <%= content_tag("td", @protocol.date_last_processed) %>
+  </tr>
+  <tr>
+    <%= content_tag("td", "Comment:") %>
+    <%= content_tag("td", input("protocol", "comment")) %>
+  </tr>
+</table>

@@ -1,0 +1,31 @@
+<%= error_messages_for 'user' %>
+
+<table>
+    <tr>
+      <%= content_tag("td", "Login:") %>
+      <%= content_tag("td", input("user",
+                                  :login)) %>
+    </tr>
+    <tr>
+      <%= content_tag("td", "Name:") %>
+      <%= content_tag("td", input("user",
+                                  :name)) %>
+    </tr>
+    <tr>
+      <%= content_tag("td", "Password:") %>
+      <%= content_tag("td", input("user",
+                                  :password)) %>
+    </tr>
+    <tr>
+      <%= content_tag("td", "Confirm password:") %>
+      <%= content_tag("td", input("user",
+                                  :password,
+                                  "id"   => "user_password_confirmation",
+                                  "name" => "user[password_confirmation]")) %>
+    </tr>
+    <tr>
+      <%= content_tag("td", "Email address:") %>
+      <%= content_tag("td", input("user",
+                                  :email)) %>
+    </tr>
+</table>

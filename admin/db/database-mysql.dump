@@ -1,0 +1,593 @@
+-- MySQL dump 10.10
+--
+-- Host: localhost    Database: test
+-- ------------------------------------------------------
+-- Server version	5.0.24a-standard-log
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `array_designs`
+--
+
+DROP TABLE IF EXISTS `array_designs`;
+CREATE TABLE `array_designs` (
+  `id` int(11) NOT NULL auto_increment,
+  `miamexpress_subid` int(11) default NULL,
+  `accession` char(15) default NULL,
+  `name` varchar(255) default NULL,
+  `miamexpress_login` varchar(50) default NULL,
+  `status` varchar(50) default NULL,
+  `data_warehouse_ready` char(15) default NULL,
+  `date_last_processed` datetime default NULL,
+  `comment` text,
+  `is_deleted` int(11) NOT NULL,
+  `miame_score` int(11) default NULL,
+  `in_data_warehouse` int(11) default NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `miamexpress_subid` (`miamexpress_subid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `array_designs`
+--
+
+LOCK TABLES `array_designs` WRITE;
+/*!40000 ALTER TABLE `array_designs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `array_designs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `categories`
+--
+
+DROP TABLE IF EXISTS `categories`;
+CREATE TABLE `categories` (
+  `id` int(11) NOT NULL auto_increment,
+  `ontology_term` varchar(50) default NULL,
+  `display_label` varchar(50) default NULL,
+  `is_common` int(11) default NULL,
+  `is_bmc` int(11) default NULL,
+  `is_fv` int(11) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `categories`
+--
+
+LOCK TABLES `categories` WRITE;
+/*!40000 ALTER TABLE `categories` DISABLE KEYS */;
+INSERT INTO `categories` VALUES (1,'Age','Age',NULL,1,1,0),(2,'OrganismPart','Organism part',NULL,1,1,0),(3,'DiseaseState','Disease state',NULL,1,1,0),(4,'CellLine','Cell line',NULL,1,1,0),(5,'CellType','Cell type',NULL,1,1,0),(6,'DevelopmentalStage','Developmental stage',NULL,1,1,0),(7,'DiseaseStaging','Disease staging',NULL,1,1,0),(8,'EnvironmentalHistory','Environmental history',NULL,1,1,0),(9,'GeneticModification','Genetic modification',NULL,1,1,0),(10,'Histology','Histology',NULL,1,1,0),(11,'Individual','Individual',NULL,1,1,0),(12,'Genotype','Genotype',NULL,1,1,0),(13,'OrganismStatus','Alive or dead?',NULL,1,1,0),(14,'Phenotype','Phenotype',NULL,1,1,0),(15,'Sex','Sex',NULL,1,1,0),(16,'StrainOrLine','Strain or line',NULL,1,1,0),(17,'TargetedCellType','Targeted cell type',NULL,1,1,0),(18,'TumorGrading','Tumor grading',NULL,1,1,0),(19,'Ecotype','Ecotype',NULL,1,1,0),(20,'ClinicalHistory','Clinical history',NULL,1,1,0),(21,'Time','Time',NULL,1,1,0),(22,'Compound','Compound',NULL,NULL,1,0),(23,'Dose','Dose',NULL,NULL,1,0),(24,'Organism','Species',1,1,1,0),(25,'TimeUnit','Time Units',NULL,1,1,0),(26,'InitialTimePoint','Initial Time Point',NULL,1,1,0),(27,'BioSourceProvider','BioSource Provider',1,1,1,0),(28,'BioSourceType','BioSource Type',1,1,1,0),(29,'Fraction','fraction',0,1,1,0);
+/*!40000 ALTER TABLE `categories` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `categories_designs`
+--
+
+DROP TABLE IF EXISTS `categories_designs`;
+CREATE TABLE `categories_designs` (
+  `category_id` int(11) NOT NULL,
+  `design_id` int(11) NOT NULL,
+  KEY `category_id` (`category_id`),
+  KEY `design_id` (`design_id`),
+  CONSTRAINT `categories_designs_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `categories_designs_ibfk_2` FOREIGN KEY (`design_id`) REFERENCES `designs` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `categories_designs`
+--
+
+LOCK TABLES `categories_designs` WRITE;
+/*!40000 ALTER TABLE `categories_designs` DISABLE KEYS */;
+INSERT INTO `categories_designs` VALUES (3,1),(8,3),(12,3),(16,2),(5,4),(6,5),(12,6),(9,7),(12,7),(2,8),(15,9),(16,10),(20,11),(22,13),(23,13),(21,12),(23,18),(3,2),(24,2),(12,21),(24,22),(1,5),(25,12),(29,33);
+/*!40000 ALTER TABLE `categories_designs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `categories_materials`
+--
+
+DROP TABLE IF EXISTS `categories_materials`;
+CREATE TABLE `categories_materials` (
+  `category_id` int(11) NOT NULL,
+  `material_id` int(11) NOT NULL,
+  KEY `category_id` (`category_id`),
+  KEY `material_id` (`material_id`),
+  CONSTRAINT `categories_materials_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `categories_materials_ibfk_2` FOREIGN KEY (`material_id`) REFERENCES `materials` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `categories_materials`
+--
+
+LOCK TABLES `categories_materials` WRITE;
+/*!40000 ALTER TABLE `categories_materials` DISABLE KEYS */;
+INSERT INTO `categories_materials` VALUES (2,1),(4,2),(5,2),(1,3),(11,3),(15,3);
+/*!40000 ALTER TABLE `categories_materials` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `categories_taxons`
+--
+
+DROP TABLE IF EXISTS `categories_taxons`;
+CREATE TABLE `categories_taxons` (
+  `category_id` int(11) NOT NULL,
+  `taxon_id` int(11) NOT NULL,
+  KEY `category_id` (`category_id`),
+  KEY `taxon_id` (`taxon_id`),
+  CONSTRAINT `categories_taxons_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `categories_taxons_ibfk_2` FOREIGN KEY (`taxon_id`) REFERENCES `taxons` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `categories_taxons`
+--
+
+LOCK TABLES `categories_taxons` WRITE;
+/*!40000 ALTER TABLE `categories_taxons` DISABLE KEYS */;
+INSERT INTO `categories_taxons` VALUES (1,1),(15,1),(12,2),(15,2),(16,2),(12,6),(16,6),(6,5),(12,5),(16,5),(16,3),(6,4),(2,4),(7,5),(25,1),(26,1),(6,7),(12,7),(16,7),(1,8),(6,8),(14,8),(15,8),(16,8),(27,8),(28,8),(1,9),(2,9),(6,9),(8,9),(15,9),(16,9),(24,9),(12,8);
+/*!40000 ALTER TABLE `categories_taxons` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `data_files`
+--
+
+DROP TABLE IF EXISTS `data_files`;
+CREATE TABLE `data_files` (
+  `id` int(11) NOT NULL auto_increment,
+  `experiment_id` int(11) NOT NULL,
+  `name` varchar(255) default NULL,
+  `is_unpacked` int(11) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `data_files_ibfk_1` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `data_files`
+--
+
+LOCK TABLES `data_files` WRITE;
+/*!40000 ALTER TABLE `data_files` DISABLE KEYS */;
+/*!40000 ALTER TABLE `data_files` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `design_instances`
+--
+
+DROP TABLE IF EXISTS `design_instances`;
+CREATE TABLE `design_instances` (
+  `id` int(11) NOT NULL auto_increment,
+  `design_id` int(11) NOT NULL,
+  `experiment_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `design_id` (`design_id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `design_instances_ibfk_1` FOREIGN KEY (`design_id`) REFERENCES `designs` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `design_instances_ibfk_2` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `design_instances`
+--
+
+LOCK TABLES `design_instances` WRITE;
+/*!40000 ALTER TABLE `design_instances` DISABLE KEYS */;
+/*!40000 ALTER TABLE `design_instances` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `designs`
+--
+
+DROP TABLE IF EXISTS `designs`;
+CREATE TABLE `designs` (
+  `id` int(11) NOT NULL auto_increment,
+  `display_label` varchar(50) default NULL,
+  `ontology_category` varchar(50) default NULL,
+  `ontology_value` varchar(50) default NULL,
+  `design_type` char(15) NOT NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `designs`
+--
+
+LOCK TABLES `designs` WRITE;
+/*!40000 ALTER TABLE `designs` DISABLE KEYS */;
+INSERT INTO `designs` VALUES (1,'Disease state','ExperimentalDesignType','disease_state_design','biological',0),(2,'CGH','ExperimentalDesignType','comparative_genome_hybridization_design','technological',0),(3,'Behavior','ExperimentalDesignType','innate_behavior_design','biological',0),(4,'Cell type comparison','ExperimentalDesignType','cell_type_comparison_design','biological',0),(5,'Development or differentiation','ExperimentalDesignType','development_or_differentiation_design','biological',0),(6,'Genetic characteristics','ExperimentalDesignType','individual_genetic_characteristics_design','biological',0),(7,'Genetic modification','ExperimentalDesignType','genetic_modification_design','biological',0),(8,'Organism part comparison','ExperimentalDesignType','organism_part_comparison_design','biological',0),(9,'Sex','ExperimentalDesignType','sex_design','biological',0),(10,'Strain or line','ExperimentalDesignType','strain_or_line_design','biological',0),(11,'Clinical history','ExperimentalDesignType','clinical_history_design','biological',0),(12,'Time series','ExperimentalDesignType','time_series_design','biological',0),(13,'Compound treatment','ExperimentalDesignType','compound_treatment_design','biological',0),(14,'Dye swap','MethodologicalDesignType','dye_swap_design','methodological',0),(15,'Reference','MethodologicalDesignType','reference_design','methodological',0),(16,'Chromatin immunoprecipitation','ExperimentalDesignType','binding_site_identification_design','technological',0),(17,'Transcription profiling','ExperimentalDesignType','co-expression_design','technological',0),(18,'Dose response','ExperimentalDesignType','dose_response_design','biological',0),(19,'Tiling path design','MethodologicalDesignType','tiling_path_design','technological',0),(20,'RNAi','PerturbationalDesign','cellular_modification_design','biological',0),(21,'SNP profiling','BioMolecularAnnotation','genotyping_design','technological',0),(22,'Species','BiologicalProperty','species_design','biological',0),(23,'All pairs','MethodologicalDesignType','all_pairs','methodological',0),(24,'Array platform comparison','MethodologicalDesignType','array_platform_comparison_design','methodological',0),(25,'Loop','MethodologicalDesignType','loop_design','methodological',0),(26,'Normalization testing','MethodologicalDesignType','normalization_testing_design','methodological',0),(27,'Quality control testing','MethodologicalDesignType','quality_control_testing_design','methodological',0),(28,'Replicate','MethodologicalDesignType','replicate_design','methodological',0),(29,'Software variation','MethodologicalDesignType','software_variation_design','methodological',0),(30,'In vitro','ExperimentalDesignType','in_vitro_design','methodological',0),(31,'In vivo','ExperimentalDesignType','in_vivo_design','methodological',0),(32,'Ex vivo','ExperimentalDesignType','ex_vivo_design','methodological',0),(33,'Translational design','ExperimentDesignType','translational_design','biological',0);
+/*!40000 ALTER TABLE `designs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `experiments`
+--
+
+DROP TABLE IF EXISTS `experiments`;
+CREATE TABLE `experiments` (
+  `id` int(11) NOT NULL auto_increment,
+  `accession` char(15) default NULL,
+  `name` varchar(255) default NULL,
+  `user_id` int(11) default NULL,
+  `checker_score` int(11) default NULL,
+  `software` varchar(100) default NULL,
+  `status` varchar(50) default NULL,
+  `data_warehouse_ready` int(11) default NULL,
+  `date_last_edited` datetime default NULL,
+  `date_submitted` datetime default NULL,
+  `date_last_processed` datetime default NULL,
+  `in_curation` int(11) default NULL,
+  `curator` char(30) default NULL,
+  `comment` text,
+  `experiment_type` char(30) default NULL,
+  `miamexpress_login` char(30) default NULL,
+  `miamexpress_subid` int(11) default NULL,
+  `is_affymetrix` int(11) default NULL,
+  `is_mx_batchloader` int(11) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  `miame_score` int(11) default NULL,
+  `in_data_warehouse` int(11) default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `experiments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `experiments`
+--
+
+LOCK TABLES `experiments` WRITE;
+/*!40000 ALTER TABLE `experiments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `experiments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `material_instances`
+--
+
+DROP TABLE IF EXISTS `material_instances`;
+CREATE TABLE `material_instances` (
+  `id` int(11) NOT NULL auto_increment,
+  `material_id` int(11) NOT NULL,
+  `experiment_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `material_id` (`material_id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `material_instances_ibfk_1` FOREIGN KEY (`material_id`) REFERENCES `materials` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `material_instances_ibfk_2` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `material_instances`
+--
+
+LOCK TABLES `material_instances` WRITE;
+/*!40000 ALTER TABLE `material_instances` DISABLE KEYS */;
+/*!40000 ALTER TABLE `material_instances` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `materials`
+--
+
+DROP TABLE IF EXISTS `materials`;
+CREATE TABLE `materials` (
+  `id` int(11) NOT NULL auto_increment,
+  `display_label` varchar(50) default NULL,
+  `ontology_category` varchar(50) default NULL,
+  `ontology_value` varchar(50) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `materials`
+--
+
+LOCK TABLES `materials` WRITE;
+/*!40000 ALTER TABLE `materials` DISABLE KEYS */;
+INSERT INTO `materials` VALUES (1,'Organism part','MaterialType','organism_part',0),(2,'Cell culture','MaterialType','cell',0),(3,'Whole organism','MaterialType','whole_organism',0);
+/*!40000 ALTER TABLE `materials` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `meta`
+--
+
+DROP TABLE IF EXISTS `meta`;
+CREATE TABLE `meta` (
+  `name` varchar(128) NOT NULL default '',
+  `value` varchar(128) NOT NULL default '',
+  PRIMARY KEY  (`name`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `meta`
+--
+
+LOCK TABLES `meta` WRITE;
+/*!40000 ALTER TABLE `meta` DISABLE KEYS */;
+INSERT INTO `meta` VALUES ('serializer','Storable'),('index_subfeatures','1'),('autoindex','1');
+/*!40000 ALTER TABLE `meta` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `organism_instances`
+--
+
+DROP TABLE IF EXISTS `organism_instances`;
+CREATE TABLE `organism_instances` (
+  `id` int(11) NOT NULL auto_increment,
+  `organism_id` int(11) NOT NULL,
+  `experiment_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `organism_id` (`organism_id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `organism_instances_ibfk_1` FOREIGN KEY (`organism_id`) REFERENCES `organisms` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `organism_instances_ibfk_2` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `organism_instances`
+--
+
+LOCK TABLES `organism_instances` WRITE;
+/*!40000 ALTER TABLE `organism_instances` DISABLE KEYS */;
+/*!40000 ALTER TABLE `organism_instances` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `organisms`
+--
+
+DROP TABLE IF EXISTS `organisms`;
+CREATE TABLE `organisms` (
+  `id` int(11) NOT NULL auto_increment,
+  `scientific_name` varchar(50) default NULL,
+  `common_name` varchar(50) default NULL,
+  `accession` int(11) default NULL,
+  `taxon_id` int(11) NOT NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `taxon_id` (`taxon_id`),
+  CONSTRAINT `organisms_ibfk_1` FOREIGN KEY (`taxon_id`) REFERENCES `taxons` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `organisms`
+--
+
+LOCK TABLES `organisms` WRITE;
+/*!40000 ALTER TABLE `organisms` DISABLE KEYS */;
+INSERT INTO `organisms` VALUES (1,'Homo sapiens','Human',9606,1,0),(2,'Saccharomyces cerevisiae','Baker\'s yeast',4932,2,0),(3,'Schizosaccharomyces pombe','Fission yeast',4896,2,0),(4,'Mus musculus','House mouse',10090,3,0),(5,'Escherichia coli','E. coli',562,6,0),(6,'Arabidopsis thaliana','Thale cress',3702,4,0),(7,'Rattus norvegicus','Norway rat',10116,3,0),(8,'Pan troglodytes','Chimpanzee',9598,1,0),(9,'Apis mellifera','Honey bee',7460,5,0),(11,'Plasmodium falciparum','Malaria parasite P. falciparum',5833,7,0),(12,'Macaca fascicularis','crab-eating macaque',9541,1,0),(13,'Macaca fascicularis','Crab-eating macaque',9541,1,1),(14,'Anopheles gambiae','African malaria mosquito',7165,5,0),(15,'Aedes aegypti','yellow fever mosquito',7159,5,0),(16,'Macaca mulatta','rhesus monkey',9544,1,0),(17,'Streptococcus pneumoniae','Streptococcus pneumoniae',1313,6,0),(18,'Caenorhabditis elegans','C.elegans',6239,8,0),(19,'Physcomitrella patens','Moss',3218,4,0),(20,'Streptococcus agalactiae','Streptococcus agalactiae',1311,6,0),(21,'Drosophila melanogaster','fruit fly',7227,5,0),(22,'Hordeum vulgare','Hordeum vulgare',4513,4,0),(23,'Rhizobium leguminosarum','Rhizobium leguminosarum',384,6,0),(24,'Streptococcus mutans UA159','Streptococcus mutans UA159',210007,6,0),(25,'Veionella parvula','Veionella parvula',0,6,0),(26,'Herdmania momus','Brown sea squirt',7733,9,0),(27,'Clostridium botulinum','Clostridium botulinum',1491,6,0),(28,'Clostridium sporogenes','Clostridium sporogenes',1509,6,0);
+/*!40000 ALTER TABLE `organisms` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `permissions`
+--
+
+DROP TABLE IF EXISTS `permissions`;
+CREATE TABLE `permissions` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(40) NOT NULL,
+  `info` varchar(80) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `permissions`
+--
+
+LOCK TABLES `permissions` WRITE;
+/*!40000 ALTER TABLE `permissions` DISABLE KEYS */;
+INSERT INTO `permissions` VALUES (1,'.*/.*','Access All Areas',0),(2,'experiments/.*','Full experiment access',0),(4,'array_designs/.*','Full MIAMExpress array access',0),(5,'protocols/.*','Full Tab2MAGE protocol access',0),(6,'tab2mages/.*','Full Tab2MAGE experiment access',0),(7,'miamexps/.*','Full MIAMExpress experiment access',0),(8,'design/.*','Full designs access',0),(9,'material/.*','Full materials access',0),(10,'organism/.*','Full organisms access',0),(11,'taxon/.*','Full taxons access',0),(12,'category/.*','Full categories access',0);
+/*!40000 ALTER TABLE `permissions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `permissions_roles`
+--
+
+DROP TABLE IF EXISTS `permissions_roles`;
+CREATE TABLE `permissions_roles` (
+  `role_id` int(11) NOT NULL,
+  `permission_id` int(11) NOT NULL,
+  KEY `role_id` (`role_id`),
+  KEY `permission_id` (`permission_id`),
+  CONSTRAINT `permissions_roles_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `permissions_roles_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `permissions_roles`
+--
+
+LOCK TABLES `permissions_roles` WRITE;
+/*!40000 ALTER TABLE `permissions_roles` DISABLE KEYS */;
+INSERT INTO `permissions_roles` VALUES (1,1),(2,4),(2,5),(2,6),(2,7),(2,8),(2,9),(2,10),(2,11),(2,12);
+/*!40000 ALTER TABLE `permissions_roles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `protocols`
+--
+
+DROP TABLE IF EXISTS `protocols`;
+CREATE TABLE `protocols` (
+  `id` int(11) NOT NULL auto_increment,
+  `accession` char(15) default NULL,
+  `user_accession` varchar(100) default NULL,
+  `expt_accession` char(15) default NULL,
+  `name` varchar(255) default NULL,
+  `date_last_processed` datetime default NULL,
+  `comment` text,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `accession` (`accession`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `protocols`
+--
+
+LOCK TABLES `protocols` WRITE;
+/*!40000 ALTER TABLE `protocols` DISABLE KEYS */;
+/*!40000 ALTER TABLE `protocols` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `roles`
+--
+
+DROP TABLE IF EXISTS `roles`;
+CREATE TABLE `roles` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(40) NOT NULL,
+  `info` varchar(80) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `roles`
+--
+
+LOCK TABLES `roles` WRITE;
+/*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+INSERT INTO `roles` VALUES (1,'admin','System superuser',0),(2,'curator','Annotation and automation access',0),(3,'submitter','Low-privilege user',0);
+/*!40000 ALTER TABLE `roles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `roles_users`
+--
+
+DROP TABLE IF EXISTS `roles_users`;
+CREATE TABLE `roles_users` (
+  `user_id` int(11) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  KEY `user_id` (`user_id`),
+  KEY `role_id` (`role_id`),
+  CONSTRAINT `roles_users_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `roles_users_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `roles_users`
+--
+
+LOCK TABLES `roles_users` WRITE;
+/*!40000 ALTER TABLE `roles_users` DISABLE KEYS */;
+INSERT INTO `roles_users` VALUES (1,1),(2,1),(2,2),(3,3);
+/*!40000 ALTER TABLE `roles_users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `spreadsheets`
+--
+
+DROP TABLE IF EXISTS `spreadsheets`;
+CREATE TABLE `spreadsheets` (
+  `id` int(11) NOT NULL auto_increment,
+  `experiment_id` int(11) NOT NULL,
+  `name` varchar(255) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `spreadsheets_ibfk_1` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `spreadsheets`
+--
+
+LOCK TABLES `spreadsheets` WRITE;
+/*!40000 ALTER TABLE `spreadsheets` DISABLE KEYS */;
+/*!40000 ALTER TABLE `spreadsheets` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `taxons`
+--
+
+DROP TABLE IF EXISTS `taxons`;
+CREATE TABLE `taxons` (
+  `id` int(11) NOT NULL auto_increment,
+  `scientific_name` varchar(50) default NULL,
+  `common_name` varchar(50) default NULL,
+  `accession` int(11) default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `taxons`
+--
+
+LOCK TABLES `taxons` WRITE;
+/*!40000 ALTER TABLE `taxons` DISABLE KEYS */;
+INSERT INTO `taxons` VALUES (1,'Primates','Primates',9443,0),(2,'Ascomycota','Yeasts',4890,0),(3,'Rodentia','Rodents',9989,0),(4,'Viridiplantae','Green plants',33090,0),(5,'Insecta','True insects',50557,0),(6,'Bacteria','Eubacteria',2,0),(7,'Plasmodium','Plasmodium',5820,0),(8,'Nematoda','Nematodes',6231,0),(9,'Metazoa','Metazoans',33208,0);
+/*!40000 ALTER TABLE `taxons` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL auto_increment,
+  `login` varchar(40) NOT NULL,
+  `name` varchar(40) default NULL,
+  `password` varchar(40) NOT NULL,
+  `email` varchar(100) default NULL,
+  `modified_at` datetime default NULL,
+  `created_at` datetime default NULL,
+  `access` datetime default NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `login` (`login`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'admin','Administrator','admin','noreply@ebi.ac.uk',NULL,NULL,NULL,0),(2,'curator','Curator','curator','noreply@ebi.ac.uk',NULL,NULL,NULL,0),(3,'test','Test submitter','test','noreply@ebi.ac.uk',NULL,NULL,NULL,0);
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2007-04-27 10:56:28

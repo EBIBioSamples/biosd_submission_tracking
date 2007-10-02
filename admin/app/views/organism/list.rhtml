@@ -1,0 +1,43 @@
+<%= render_partial "title" %>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+      <%= content_tag("th", "Scientific name") %>
+      <%= content_tag("th", "Common name") %>
+      <%= content_tag("th", "Accession") %>
+      <%= content_tag("th", "Taxon") %>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+    </tr>
+
+    <% @organisms.each do |o| %>
+      <tr>
+	<td>
+	<%= link_to "Edit", :action => "edit", 
+                            :id     => o.id %>
+        </td>
+        <%= content_tag("td", o.scientific_name) %>
+        <%= content_tag("td", o.common_name) %>
+        <%= content_tag("td", o.accession) %>
+        <%= content_tag("td", o.taxon.scientific_name) %>
+	<td>
+        <%= link_to "Delete", {:action  => "deprecate", 
+                               :id      => o.id},
+                               :confirm => "Really delete organism \"#{o.scientific_name}\"?" %>
+        </td>
+      </tr> 
+    <% end %>
+  </table>
+
+  <p class="footer">
+    <%= link_to 'Previous', { :page => @organism_pages.current.previous } if @organism_pages.current.previous %>
+    <%= pagination_links( @organism_pages, options={:window_size => 3} ) %>
+    <%= link_to 'Next', { :page => @organism_pages.current.next } if @organism_pages.current.next %>
+  </p>
+
+  <%= content_tag("p", link_to("Add new organism", 
+                        :controller => "organism", 
+                        :action     => "new"), { :class => 'footer' } ) %>
+
+</div>
