@@ -100,6 +100,7 @@ my $creator = ArrayExpress::AutoSubmission::Creator->new({
     data_files      => [ @sdrfs, @ARGV ],
     accession       => $accession,
     experiment_type => 'MAGE-TAB',
+    comment         => 'Submission inserted manually',
     clobber         => 0,
 });
 

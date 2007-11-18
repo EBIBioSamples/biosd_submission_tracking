@@ -35,6 +35,7 @@ sub reset_accession_cache {
         = ArrayExpress::AutoSubmission::DB::Experiment->search_like(
 	    id              => $id,
 	    experiment_type => $expt_type,
+	    is_deleted      => 0,
 	);
 
     if ( scalar @experiments == 1 ) {

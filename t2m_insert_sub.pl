@@ -56,6 +56,7 @@ my $creator = ArrayExpress::AutoSubmission::Creator->new({
     data_files      => \@ARGV,
     accession       => $accession,
     experiment_type => 'Tab2MAGE',
+    comment         => 'Submission inserted manually',
     clobber         => 0,
 });
 

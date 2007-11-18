@@ -90,6 +90,7 @@ sub reset_accession_cache {
         = ArrayExpress::AutoSubmission::DB::Experiment->retrieve(
 	    miamexpress_subid => $subid,
 	    experiment_type   => $EXPT_TYPE,
+	    is_deleted        => 0,
 	);
 
     if ( $experiment ) {
