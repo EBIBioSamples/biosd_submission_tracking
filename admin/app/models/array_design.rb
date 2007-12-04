@@ -1,5 +1,8 @@
 class ArrayDesign < ActiveRecord::Base
 
+  has_and_belongs_to_many :organisms
+  has_many :events
+
   validates_presence_of :miamexpress_subid
   validates_uniqueness_of :miamexpress_subid
 

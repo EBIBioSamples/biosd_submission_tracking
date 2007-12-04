@@ -1,0 +1,2 @@
+module FactorHelper
+end

@@ -10,8 +10,13 @@ class Experiment < ActiveRecord::Base
   has_many   :organism_instances, :dependent => :destroy
   has_many   :organisms,          :through   => :organism_instances
 
+  has_and_belongs_to_many :factors
+  has_and_belongs_to_many :quantitation_types
+
   has_many   :spreadsheets
   has_many   :data_files
+
+  has_many   :events
 
   belongs_to :user
 
