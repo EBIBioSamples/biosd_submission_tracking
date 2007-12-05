@@ -719,6 +719,8 @@ ALTER TABLE array_designs ADD COLUMN (
 -- otherwise auto-inserting new organisms gets ugly.
 -- ###############################################################
 ALTER TABLE organisms MODIFY COLUMN taxon_id int(11) DEFAULT NULL;
+ALTER TABLE array_designs MODIFY COLUMN accession varchar(255) DEFAULT NULL;
+ALTER TABLE experiments MODIFY COLUMN accession varchar(255) DEFAULT NULL;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

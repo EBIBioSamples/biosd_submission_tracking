@@ -36,15 +36,16 @@ package AEDB;
 
 use Class::Std;
 use Carp;
+use Date::Manip qw(ParseDate UnixDate);
 
 use ArrayExpress::Curator::Database qw(
     get_ae_dbh
     get_aedw_dbh
 );
 
-my %ae_dbh          : ATTR( :name<ae_dbh>,          :default<undef> );
-my %aedw_dbh        : ATTR( :name<aedw_dbh>,        :default<undef> );
-my %event_cache     : ATTR( :name<event_cache>,     :default<{}>    );
+my %ae_dbhandle     : ATTR( :name<ae_dbhandle>,     :default<undef>     );
+my %aedw_dbhandle   : ATTR( :name<aedw_dbhandle>,   :default<undef>     );
+my %event_cache     : ATTR( :name<event_cache>,     :default<{}>        );
 my %aerep_db        : ATTR( :name<aerep_db>,        :default<'AEPUB1'>  );
 my %aedw_db         : ATTR( :name<aedw_db>,         :default<'AEDWDEV'> );
 my %last_jobid      : ATTR( :name<last_jobid>,      :default<0>         );
@@ -54,11 +55,17 @@ sub BUILD {
 
     my ( $self, $id, $args ) = @_;
 
-    $ae_dbh{ident $self} = get_ae_dbh()
+    $ae_dbhandle{ident $self} = get_ae_dbh()
 	or croak("Error: Unable to connect to AE repository DB.");
 
-    $aedw_dbh{ident $self} = get_aedw_dbh()
+    $aedw_dbhandle{ident $self} = get_aedw_dbh()
 	or croak("Error: Unable to connect to AE warehouse DB.");
+
+    # Long values are trimmed at 1000 chars.
+    $ae_dbhandle{ident $self}->{LongReadLen} = 1000;
+    $ae_dbhandle{ident $self}->{LongTruncOk} = 1;
+    $aedw_dbhandle{ident $self}->{LongReadLen} = 1000;
+    $aedw_dbhandle{ident $self}->{LongTruncOk} = 1;
 }
 
 sub START {
@@ -77,9 +84,11 @@ sub cache_statement_handles : PRIVATE {
 
     my ( $self ) = @_;
 
-    my $dbh = $self->get_ae_dbh();
+    print STDOUT "Caching statement handles...\n";
+
+    my $dbh = $self->get_ae_dbhandle();
     
-    $cached_sth{expt_species} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{expt_species} = $dbh->prepare(<<"QUERY");
 select unique o.value
 from tt_experiment e,
 tt_biomaterials_experiments eb,
@@ -97,7 +106,7 @@ and bso.characteristics_id = o.id
 and lower(o.category) = 'organism'
 QUERY
 
-    $cached_sth{array_species} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{array_species} = $dbh->prepare(<<"QUERY");
 select unique oe.value
 from tt_arraydesign ad,
 tt_reportergro_t_arraydesi rg,
@@ -112,7 +121,7 @@ and de.species_id = oe.id
 and lower(oe.category) = 'organism'
 QUERY
 
-    $cached_sth{expt_arrays} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{expt_arrays} = $dbh->prepare(<<"QUERY");
 select unique iden.identifier
 from tt_bioassays_t_experiment bt,
 tt_poly_bioassay poly_b,
@@ -120,7 +129,7 @@ tt_physicalbioassay pba,
 tt_bioassaycreation bc,
 tt_array ar,
 tt_arraydesign ard,
-tt_identifiable iden
+tt_identifiable iden,
 tt_identifiable i
 where i.identifier = ?
 and i.id = bt.t_experiment_id
@@ -132,7 +141,7 @@ and ar.arraydesign_id = ard.id
 and ard.id = iden.id
 QUERY
 
-    $cached_sth{num_samples} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{num_samples} = $dbh->prepare(<<"QUERY");
 select count (unique pb.t_biosource_id) as samples
 from tt_biomaterials_experiments be,
 tt_biomaterial bm,
@@ -145,7 +154,7 @@ and be.biomaterials_id = bm.id
 and bm.id = pb.t_biosource_id
 QUERY
 
-    $cached_sth{num_hybridizations} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{num_hybridizations} = $dbh->prepare(<<"QUERY");
 select count( cp.t_hybridization_id ) as hybs
 from tt_experiment e,
 tt_bioassays_t_experiment eb,
@@ -162,7 +171,7 @@ and pba.bioassaycreation_id = cp.id
 and cp.t_hybridization_id is not null
 QUERY
 
-    $cached_sth{expt_factors} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{expt_factors} = $dbh->prepare(<<"QUERY");
 select oe.value as value
 from tt_experimentdesign ed,
 tt_experimentalfactor ef,
@@ -174,7 +183,7 @@ and ef.t_experimentdesign_id = ed.id
 and oe.id = ef.category_id
 QUERY
 
-    $cached_sth{expt_qts} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{expt_qts} = $dbh->prepare(<<"QUERY");
 select unique iden.name as name
 from tt_bioassaydata_t_experimen bte,
 tt_bioassaydata ba,
@@ -192,7 +201,7 @@ and qt.id = qtq.quantitationtypes_id
 and iden.id = qt.id
 QUERY
 
-    $cached_sth{is_released} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{is_released} = $dbh->prepare(<<"QUERY");
 select usr.name
 from pl_visibility vi,
 pl_label la,
@@ -205,7 +214,7 @@ and vi.user_id = usr.id
 and usr.name = 'guest'
 QUERY
 
-    $cached_sth{release_date} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{release_date} = $dbh->prepare(<<"QUERY");
 select nvt.value
 from tt_namevaluetype nvt,
 tt_identifiable i
@@ -214,7 +223,7 @@ and nvt.t_extendable_id = i.id
 and nvt.name ='ArrayExpressReleaseDate'
 QUERY
 
-    $cached_sth{ae_miame_score} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{ae_miame_score} = $dbh->prepare(<<"QUERY");
 select nvt.value
 from tt_namevaluetype nvt,
 tt_identifiable i
@@ -223,7 +232,7 @@ and nvt.t_extendable_id = i.id
 and nvt.name ='AEMIAMESCORE'
 QUERY
 
-    $cached_sth{curated_name} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{curated_name} = $dbh->prepare(<<"QUERY");
 select nvt.value
 from tt_namevaluetype nvt,
 tt_identifiable i
@@ -232,7 +241,7 @@ and nvt.t_extendable_id = i.id
 and nvt.name ='AEExperimentDisplayName'
 QUERY
 
-    $cached_sth{submitter_description} = $dbh->prepare(<<"QUERY");
+    $cached_sth{ident $self}{submitter_description} = $dbh->prepare(<<"QUERY");
 select d.text
 from tt_description d,
 tt_identifiable i
@@ -249,7 +258,7 @@ sub get_experiments {
     my ( $self ) = @_;
 
     # FIXME we might want to extend this to include the AEDW.
-    my $dbh = $self->get_ae_dbh();
+    my $dbh = $self->get_ae_dbhandle();
 
     my $sth = $dbh->prepare(<<"QUERY");
 select i.identifier
@@ -270,7 +279,7 @@ sub get_array_designs {
     # FIXME we might want to extend this to include the AEDW.
     my ( $self ) = @_;
 
-    my $dbh = $self->get_ae_dbh();
+    my $dbh = $self->get_ae_dbhandle();
 
     my $sth = $dbh->prepare(<<"QUERY");
 select i.identifier
@@ -469,7 +478,9 @@ sub cache_aerep_events : PRIVATE {
 
     my ( $self ) = @_;
 
-    my $dbh = $self->get_ae_dbh();
+    print STDOUT "Caching AE repository events...\n";
+
+    my $dbh = $self->get_ae_dbhandle();
 
     $self->cache_events( $dbh, $self->get_aerep_db() );
 }
@@ -478,7 +489,9 @@ sub cache_aedw_events : PRIVATE {
 
     my ( $self ) = @_;
 
-    my $dbh = $self->get_aedw_dbh();
+    print STDOUT "Caching AE warehouse events...\n";
+
+    my $dbh = $self->get_aedw_dbhandle();
 
     $self->cache_events( $dbh, $self->get_aedw_db() );
 }
@@ -492,7 +505,7 @@ sub cache_events : PRIVATE {
     # this if these schemas change.
     
     # Populate the event_cache with AEDB::Event objects here.
-    my $sth = $self->get_ae_dbh()->prepare(<<"QUERY");
+    my $sth = $self->get_ae_dbhandle()->prepare(<<"QUERY");
 select ID, USERNAME, DIRNAME, JOBTYPE, STARTTIME, ENDTIME, PHASE
 from jobregister
 where id > ?
@@ -527,8 +540,12 @@ sub make_event_object : PRIVATE {
     # versions of this method if that ever changes.
 
     # Here we map the AEREP column names to our events. Attributes not
-    # set: source_db, machine, log_file, comment. FIXME we may need to
+    # set: source_db, machine, log_file, comment. Note that we need to
     # parse the returned date format here.
+    foreach my $key qw(STARTTIME ENDTIME) {
+	my $date = ParseDate($hashref->{$key});
+	$hashref->{$key} = UnixDate($date, "%Y-%m-%d %T");
+    }
     my $obj = AEDB::Event->new({
 	event_type       => $hashref->{'JOBTYPE'},
 	success          => ( ( $hashref->{'PHASE'} eq 'finished' ) ? 1 : 0 ),
@@ -547,8 +564,49 @@ package main;
 
 use Getopt::Long;
 use Carp;
+use List::Util qw(first);
 
 use ArrayExpress::AutoSubmission::DB;
+
+sub update_toplevel_objects {
+
+    my ( $aedb ) = @_;
+
+    print STDOUT "Inserting new experiment records...\n";
+    my $ae_experiments = $aedb->get_experiments();
+    my @prev_expts = ArrayExpress::AutoSubmission::DB::Experiment->search(
+	is_deleted => 0,
+    );
+    my @prev_expt_accns = map { $_->accession() } @prev_expts;
+    foreach my $accession ( @$ae_experiments ) {
+	unless ( first { $_ eq $accession } @prev_expt_accns ) {
+	    my $expt = ArrayExpress::AutoSubmission::DB::Experiment->find_or_create({
+		accession  => $accession,
+		is_deleted => 0,
+	    });
+	    unless ( $expt->experiment_type() ) {
+		$expt->set(
+		    experiment_type => 'Unknown',
+		);
+		$expt->update();
+	    }
+	}
+    }
+    print STDOUT "Inserting new array design records...\n";
+    my $ae_arrays = $aedb->get_array_designs();
+    my @prev_arrays = ArrayExpress::AutoSubmission::DB::ArrayDesign->search(
+	is_deleted => 0,
+    );
+    my @prev_array_accns = map { $_->accession() } @prev_arrays;
+    foreach my $accession ( @$ae_arrays ) {
+	unless ( first { $_ eq $accession } @prev_array_accns ) {
+	    ArrayExpress::AutoSubmission::DB::ArrayDesign->find_or_create({
+		accession  => $accession,
+		is_deleted => 0,
+	    });
+	}
+    }
+}
 
 sub delete_cached_data {
 
@@ -630,7 +688,7 @@ sub update_events {
 	croak("Error: update_events called with an invalid experiment object (no accession).");
     }
 
-    my $events = $aedb->get_event_data( $object->accession() );
+    my $events = $aedb->get_events( $object->accession() );
 
     foreach my $event ( @{ $events } ) {
 	$object->add_to_events({
@@ -662,49 +720,52 @@ sub update_expt_metadata {
 	croak("Error: update_expt_metadata called with an invalid experiment object (no accession).");
     }
 
-    unless ( $expt->submitter_description() ) {
+    unless ( defined ($expt->submitter_description()) ) {
 	$expt->set(
 	    submitter_description => $aedb->get_submitter_description($acc),
 	);
     }
-    unless ( $expt->curated_name() ) {
+    unless ( defined ($expt->curated_name()) ) {
 	$expt->set(
 	    curated_name => $aedb->get_curated_name($acc),
 	);
     }
-    unless ( $expt->num_samples() ) {
+    unless ( defined ($expt->num_samples()) ) {
 	$expt->set(
 	    num_samples => $aedb->get_num_samples($acc),
 	);
     }
-    unless ( $expt->num_hybridizations() ) {
+    unless ( defined ($expt->num_hybridizations()) ) {
 	$expt->set(
 	    num_hybridizations => $aedb->get_num_hybridizations($acc),
 	);
     }
-    unless ( $expt->release_date() ) {
+    unless ( defined ($expt->release_date()) ) {
 	$expt->set(
 	    release_date => $aedb->get_release_date($acc),
 	);
     }
-    unless ( $expt->is_released() ) {
+    unless ( defined ($expt->is_released()) ) {
 	$expt->set(
 	    is_released => $aedb->get_is_released($acc),
 	);
     }
-    unless ( $expt->ae_miame_score() ) {
+    unless ( defined ($expt->ae_miame_score()) ) {
 	$expt->set(
 	    ae_miame_score => $aedb->get_ae_miame_score($acc),
 	);
     }
-    unless ( $expt->ae_data_warehouse_score() ) {
-	$expt->set(
-	    ae_data_warehouse_score => $aedb->get_ae_data_warehouse_score($acc),
-	);
-    }
+
+    # FIXME where do we even get this from?
+#    unless ( defined ($expt->ae_data_warehouse_score()) ) {
+#	$expt->set(
+#	    ae_data_warehouse_score => $aedb->get_ae_data_warehouse_score($acc),
+#	);
+#    }
     unless ( scalar ($expt->organisms()) ) {
 	my $species_list = $aedb->get_expt_species($acc);
 	foreach my $species ( @$species_list ) {
+	    next unless defined ( $species );
 	    my $organism = ArrayExpress::AutoSubmission::DB::Organism->find_or_create({
 		scientific_name => $species,
 		is_deleted      => 0,
@@ -718,6 +779,7 @@ sub update_expt_metadata {
     unless ( scalar ($expt->factors()) ) {
 	my $factor_list = $aedb->get_expt_factors($acc);
 	foreach my $factor_name ( @$factor_list ) {
+	    next unless defined ( $factor_name );
 	    my $factor = ArrayExpress::AutoSubmission::DB::Factor->find_or_create({
 		name       => $factor_name,
 		is_deleted => 0,
@@ -731,6 +793,7 @@ sub update_expt_metadata {
     unless ( scalar ($expt->quantitation_types()) ) {
 	my $qt_list = $aedb->get_expt_qts($acc);
 	foreach my $qt_name ( @$qt_list ) {
+	    next unless defined ( $qt_name );
 	    my $qt = ArrayExpress::AutoSubmission::DB::QuantitationType->find_or_create({
 		name       => $qt_name,
 		is_deleted => 0,
@@ -744,6 +807,7 @@ sub update_expt_metadata {
     unless ( scalar ($expt->array_designs()) ) {
 	my $array_list = $aedb->get_expt_arrays($acc);
 	foreach my $array_acc ( @$array_list ) {
+	    next unless defined ( $array_acc );
 	    my $array_design = ArrayExpress::AutoSubmission::DB::ArrayDesign->find_or_create({
 		accession  => $array_acc,
 		is_deleted => 0,
@@ -771,12 +835,12 @@ sub update_array_metadata {
 	croak("Error: update_array_metadata called with an invalid array design object (no accession).");
     }
 
-    unless ( $array->release_date() ) {
+    unless ( defined ($array->release_date()) ) {
 	$array->set(
 	    release_date => $aedb->get_release_date($acc),
 	);
     }
-    unless ( $array->is_released() ) {
+    unless ( defined ($array->is_released()) ) {
 	$array->set(
 	    is_released => $aedb->get_is_released($acc),
 	);
@@ -799,9 +863,9 @@ sub update_array_metadata {
     $array->update();
 }
 
-sub max_jobid {
+sub max_job_dbid {
 
-    return ArrayExpress::AutoSubmission::DB::Event->maximum_value_of('jobregister_dbid');
+    return ArrayExpress::AutoSubmission::DB::Event->maximum_value_of('jobregister_dbid') || 0;
 }    
 
 # Separate autosubs DB queries from AE/AEDW queries. Transparently
@@ -850,26 +914,7 @@ my $aedb = AEDB->new({
 
 # The first thing to do is to make sure we have a full list of
 # every experiment and array design in the AE databases.
-my $ae_experiments = $aedb->get_experiments();
-my $ae_arrays      = $aedb->get_array_designs();
-foreach my $accession ( @$ae_experiments ) {
-    my $expt = ArrayExpress::AutoSubmission::DB::Experiment->find_or_create({
-	accession  => $accession,
-	is_deleted => 0,
-    });
-    unless ( $expt->experiment_type() ) {
-	$expt->set(
-	    experiment_type => 'Unknown',
-	);
-	$expt->update();
-    }
-}
-foreach my $accession ( @$ae_arrays ) {
-    ArrayExpress::AutoSubmission::DB::ArrayDesign->find_or_create({
-	accession  => $accession,
-	is_deleted => 0,
-    });
-}
+update_toplevel_objects( $aedb );
 
 # If we want a full repopulation we delete the old cached data here.
 if ( $repopulating ) {
@@ -898,6 +943,8 @@ while ( my $expt = $expt_iterator->next() ) {
     # Skip experiments without assigned accessions.
     next EXPT unless $expt->accession();
 
+    printf STDOUT ("Updating experiment %s...\n", $expt->accession());
+
     update_expt_metadata( $expt, $aedb );
     update_events( $expt, $aedb );
 }
@@ -912,6 +959,8 @@ while ( my $array_design = $array_iterator->next() ) {
 
     # Skip experiments without assigned accessions.
     next ARRAY_DESIGN unless $array_design->accession();
+
+    printf STDOUT ("Updating array design %s...", $array_design->accession());
 
     update_array_metadata( $array_design, $aedb );
     update_events( $array_design, $aedb );
