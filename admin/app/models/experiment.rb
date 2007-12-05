@@ -35,6 +35,8 @@ class Experiment < ActiveRecord::Base
   # Allow nulls but no other duplicated values
   validates_uniqueness_of :accession, :if => Proc.new{ |expt| expt.accession !~ /^(unknown)?$/ }
 
+  validates_associated :organism
+
   # Annotation mixin
   include Annotation
 end

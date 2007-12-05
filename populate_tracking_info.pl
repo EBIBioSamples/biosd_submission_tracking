@@ -48,6 +48,7 @@ my %event_cache     : ATTR( :name<event_cache>,     :default<{}>    );
 my %aerep_db        : ATTR( :name<aerep_db>,        :default<'AEPUB1'>  );
 my %aedw_db         : ATTR( :name<aedw_db>,         :default<'AEDWDEV'> );
 my %last_jobid      : ATTR( :name<last_jobid>,      :default<0>         );
+my %cached_sth      : ATTR( :name<cached_sth>,      :default<{}>        );
 
 sub BUILD {
 
@@ -67,6 +68,394 @@ sub START {
     # Cache our jobregister events.
     $self->cache_aerep_events();
     $self->cache_aedw_events();
+
+    # Create our cached statement handles.
+    $self->cache_statement_handles();
+}
+
+sub cache_statement_handles : PRIVATE {
+
+    my ( $self ) = @_;
+
+    my $dbh = $self->get_ae_dbh();
+    
+    $cached_sth{expt_species} = $dbh->prepare(<<"QUERY");
+select unique o.value
+from tt_experiment e,
+tt_biomaterials_experiments eb,
+tt_poly_biomaterial pb,
+tt_characteris_t_biomateri bso,
+tt_ontologyentry o,
+tt_identifiable i
+where i.identifier = ?
+and e.id = eb.experiments_id
+and i.id = eb.experiments_id
+and eb.biomaterials_id = pb.id
+and pb.t_biosource_id is not null
+and pb.t_biosource_id = bso.t_biomaterial_id
+and bso.characteristics_id = o.id
+and lower(o.category) = 'organism'
+QUERY
+
+    $cached_sth{array_species} = $dbh->prepare(<<"QUERY");
+select unique oe.value
+from tt_arraydesign ad,
+tt_reportergro_t_arraydesi rg,
+tt_designelementgroup de,
+tt_ontologyentry oe,
+tt_identifiable i
+where i.identifier = ?
+and ad.id = i.id
+and rg.t_arraydesign_id = ad.id
+and de.id = rg.reportergroups_id
+and de.species_id = oe.id
+and lower(oe.category) = 'organism'
+QUERY
+
+    $cached_sth{expt_arrays} = $dbh->prepare(<<"QUERY");
+select unique iden.identifier
+from tt_bioassays_t_experiment bt,
+tt_poly_bioassay poly_b,
+tt_physicalbioassay pba,
+tt_bioassaycreation bc,
+tt_array ar,
+tt_arraydesign ard,
+tt_identifiable iden
+tt_identifiable i
+where i.identifier = ?
+and i.id = bt.t_experiment_id
+and poly_b.t_physicalbioassay_id = bt.bioassays_id
+and pba.id = poly_b.t_physicalbioassay_id
+and pba.bioassaycreation_id = bc.id
+and bc.array_id = ar.id
+and ar.arraydesign_id = ard.id
+and ard.id = iden.id
+QUERY
+
+    $cached_sth{num_samples} = $dbh->prepare(<<"QUERY");
+select count (unique pb.t_biosource_id) as samples
+from tt_biomaterials_experiments be,
+tt_biomaterial bm,
+tt_poly_biomaterial pb,
+tt_biosample bs,
+tt_identifiable i
+where i.identifier = ?
+and be.experiments_id = i.id
+and be.biomaterials_id = bm.id
+and bm.id = pb.t_biosource_id
+QUERY
+
+    $cached_sth{num_hybridizations} = $dbh->prepare(<<"QUERY");
+select count( cp.t_hybridization_id ) as hybs
+from tt_experiment e,
+tt_bioassays_t_experiment eb,
+tt_poly_bioassay bp,
+tt_physicalbioassay pba,
+tt_poly_bioassaycreation cp,
+tt_identifiable i
+where i.identifier = ?
+and e.id = i.id
+and e.id = eb.t_experiment_id
+and eb.bioassays_id = bp.t_physicalbioassay_id
+and bp.t_physicalbioassay_id = pba.id
+and pba.bioassaycreation_id = cp.id
+and cp.t_hybridization_id is not null
+QUERY
+
+    $cached_sth{expt_factors} = $dbh->prepare(<<"QUERY");
+select oe.value as value
+from tt_experimentdesign ed,
+tt_experimentalfactor ef,
+tt_ontologyentry oe,
+tt_identifiable i
+where i.identifier = ?
+and ed.t_experiment_id = i.id
+and ef.t_experimentdesign_id = ed.id
+and oe.id = ef.category_id
+QUERY
+
+    $cached_sth{expt_qts} = $dbh->prepare(<<"QUERY");
+select unique iden.name as name
+from tt_bioassaydata_t_experimen bte,
+tt_bioassaydata ba,
+tt_quantitationtypedimension qtd,
+tt_quantitatio_t_quantitat qtq,
+tt_quantitationtype qt,
+tt_identifiable iden,
+tt_identifiable i
+where i.identifier = ?
+and bte.t_experiment_id = i.id
+and ba.id = bte.bioassaydata_id
+and qtd.id = ba.quantitationtypedimension_id
+and qtq.t_quantitationtypedimension_id = ba.quantitationtypedimension_id
+and qt.id = qtq.quantitationtypes_id
+and iden.id = qt.id
+QUERY
+
+    $cached_sth{is_released} = $dbh->prepare(<<"QUERY");
+select usr.name
+from pl_visibility vi,
+pl_label la,
+tt_identifiable i,
+pl_user usr
+where i.identifier = ?
+and i.identifier = la.mainobj_name
+and la.id = vi.label_id
+and vi.user_id = usr.id
+and usr.name = 'guest'
+QUERY
+
+    $cached_sth{release_date} = $dbh->prepare(<<"QUERY");
+select nvt.value
+from tt_namevaluetype nvt,
+tt_identifiable i
+where i.identifier = ?
+and nvt.t_extendable_id = i.id
+and nvt.name ='ArrayExpressReleaseDate'
+QUERY
+
+    $cached_sth{ae_miame_score} = $dbh->prepare(<<"QUERY");
+select nvt.value
+from tt_namevaluetype nvt,
+tt_identifiable i
+where i.identifier = ?
+and nvt.t_extendable_id = i.id
+and nvt.name ='AEMIAMESCORE'
+QUERY
+
+    $cached_sth{curated_name} = $dbh->prepare(<<"QUERY");
+select nvt.value
+from tt_namevaluetype nvt,
+tt_identifiable i
+where i.identifier = ?
+and nvt.t_extendable_id = i.id
+and nvt.name ='AEExperimentDisplayName'
+QUERY
+
+    $cached_sth{submitter_description} = $dbh->prepare(<<"QUERY");
+select d.text
+from tt_description d,
+tt_identifiable i
+where i.identifier = ?
+and d.t_describable_id = i.id
+and d.text not like '(Generated description)%'
+and length(d.text) > 0
+QUERY
+    
+}
+
+sub get_experiments {
+
+    my ( $self ) = @_;
+
+    # FIXME we might want to extend this to include the AEDW.
+    my $dbh = $self->get_ae_dbh();
+
+    my $sth = $dbh->prepare(<<"QUERY");
+select i.identifier
+from tt_identifiable i,
+tt_experiment e
+where e.id = i.id
+QUERY
+
+    $sth->execute() or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return [ map { $_->[0] } @{ $results } ];
+}
+
+sub get_array_designs {
+
+    # FIXME we might want to extend this to include the AEDW.
+    my ( $self ) = @_;
+
+    my $dbh = $self->get_ae_dbh();
+
+    my $sth = $dbh->prepare(<<"QUERY");
+select i.identifier
+from tt_identifiable i,
+tt_physicalarraydesign a
+where a.id = i.id
+QUERY
+
+    $sth->execute() or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return [ map { $_->[0] } @{ $results } ];
+}
+
+sub get_expt_species {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns Organism OE values.
+    my $sth = $self->get_cached_sth()->{expt_species}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+
+    my $results = $sth->fetchall_arrayref();
+
+    return [ map { $_->[0] } @{ $results } ];
+}
+
+sub get_expt_arrays {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns array accessions.
+    my $sth = $self->get_cached_sth()->{expt_arrays}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return [ map { $_->[0] } @{ $results } ];
+}
+
+sub get_expt_factors {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns ExperimentalFactorCategory OE values.
+    my $sth = $self->get_cached_sth()->{expt_factors}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return [ map { $_->[0] } @{ $results } ];
+}
+
+sub get_expt_qts {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns QT names.
+    my $sth = $self->get_cached_sth()->{expt_qts}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return [ map { $_->[0] } @{ $results } ];
+}
+
+sub get_submitter_description {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns Description texts.
+    my $sth = $self->get_cached_sth()->{submitter_description}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return $results->[0][0];
+}
+
+sub get_curated_name {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns the curated name (AEExperimentDisplayName NVT).
+    my $sth = $self->get_cached_sth()->{curated_name}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return $results->[0][0];
+}
+
+sub get_num_samples {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns count of samples.
+    my $sth = $self->get_cached_sth()->{num_samples}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return $results->[0][0];
+}
+
+sub get_num_hybridizations {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns count of samples.
+    my $sth = $self->get_cached_sth()->{num_hybridizations}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return $results->[0][0];
+}
+
+sub get_release_date {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns the release date (ArrayExpressReleaseDate NVT).
+    my $sth = $self->get_cached_sth()->{release_date}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return $results->[0][0];
+}
+
+sub get_is_released {
+
+    my ( $self, $accession ) = @_;
+
+    # If query returns anything, object is public.
+    my $sth = $self->get_cached_sth()->{is_released}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return scalar @{ $results } ? 1 : 0;
+}
+
+sub get_ae_miame_score {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns the AE-computed MIAME score (AEMIAMESCORE NVT).
+    my $sth = $self->get_cached_sth()->{ae_miame_score}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return $results->[0][0];
+}
+
+sub get_ae_data_warehouse_score {
+
+    my ( $self, $accession ) = @_;
+
+    confess("Not implemented yet"); # FIXME once this has been implemented in AE.
 }
 
 sub get_events {
@@ -82,7 +471,7 @@ sub cache_aerep_events : PRIVATE {
 
     my $dbh = $self->get_ae_dbh();
 
-    $self->cache_events( $dbh );
+    $self->cache_events( $dbh, $self->get_aerep_db() );
 }
 
 sub cache_aedw_events : PRIVATE {
@@ -91,12 +480,12 @@ sub cache_aedw_events : PRIVATE {
 
     my $dbh = $self->get_aedw_dbh();
 
-    $self->cache_events( $dbh );
+    $self->cache_events( $dbh, $self->get_aedw_db() );
 }
 
 sub cache_events : PRIVATE {
 
-    my ( $self, $dbh ) = @_;
+    my ( $self, $dbh, $instance ) = @_;
 
     # Note that currently the AEDW and AEREP jobregister schemas are
     # identical, so we use this code for both. We may need to change
@@ -122,7 +511,7 @@ QUERY
 	    = ( $hashref->{'DIRNAME'} =~ m/\/([AE]-[A-Z]{4}-[0-9]+)/ );
 	next JOB unless $accession;
 
-	my $obj = $self->make_event_object( $hashref );
+	my $obj = $self->make_event_object( $hashref, $instance );
 	push( @{ $event->{$accession} }, $obj );
     }
 
@@ -131,18 +520,19 @@ QUERY
 
 sub make_event_object : PRIVATE {
 
-    my ( $self, $hashref ) = @_;
+    my ( $self, $hashref, $instance ) = @_;
 
     # N.B. currently the AEREP and AEDW jobregister tables have
     # identical columns; we may need to make database-specific
     # versions of this method if that ever changes.
 
     # Here we map the AEREP column names to our events. Attributes not
-    # set: source_db, machine, log_file, comment.
+    # set: source_db, machine, log_file, comment. FIXME we may need to
+    # parse the returned date format here.
     my $obj = AEDB::Event->new({
 	event_type       => $hashref->{'JOBTYPE'},
 	success          => ( ( $hashref->{'PHASE'} eq 'finished' ) ? 1 : 0 ),
-	target_db        => $self->get_aerep_db(),
+	target_db        => $instance,
 	starttime        => $hashref->{'STARTTIME'},
 	endtime          => $hashref->{'ENDTIME'},
 	operator         => $hashref->{'USERNAME'},
@@ -167,8 +557,67 @@ sub delete_cached_data {
     # The aedb query object contains information on what *can* be
     # repopulated - and therefore deleted here.
 
-    die"FIXME not implemented.";
+    # Delete all events associated with the database instances of interest.
+    foreach my $instance ( $aedb->get_aerep_db(), $aedb->get_aedw_db() ) {
+	ArrayExpress::AutoSubmission::DB::Event->search(
+	    target_db => $instance,
+	)->delete_all();
+    }
 
+    # Don't delete expt species (or anything else) for experiments not
+    # loaded... but then how to mark these as being updateable upon
+    # loading?
+
+    # Experiments.
+    my $ae_experiments = $aedb->get_experiments();
+    
+    my $expt_iterator = ArrayExpress::AutoSubmission::DB::Experiment->search(
+	is_deleted => 0,
+    );
+
+    EXPT:
+    while ( my $expt = $expt_iterator->next() ) {
+	next EXPT unless ( first { $_ eq $expt->accession() } @$ae_experiments );
+
+	$expt->set(
+	    submitter_description   => undef,
+	    curated_name            => undef,
+	    num_samples             => undef,
+	    num_hybridizations      => undef,
+	    release_date            => undef,
+	    is_released             => undef,
+	    ae_miame_score          => undef,
+	    ae_data_warehouse_score => undef,
+	);
+
+	$expt->array_design_instances()->delete_all();
+	$expt->organism_instances()->delete_all();
+	$expt->factor_instances()->delete_all();
+	$expt->quantitation_type_instances()->delete_all();
+	
+	$expt->update();
+    }
+
+    # Array Designs.
+    my $ae_arrays = $aedb->get_array_designs();
+    
+    my $array_iterator = ArrayExpress::AutoSubmission::DB::ArrayDesign->search(
+	is_deleted => 0,
+    );
+
+    EXPT:
+    while ( my $array = $array_iterator->next() ) {
+	next EXPT unless ( first { $_ eq $array->accession() } @$ae_arrays );
+
+	$array->set(
+	    release_date            => undef,
+	    is_released             => undef,
+	);
+
+	$array->organism_instances()->delete_all();
+	
+	$array->update();
+    }
 }
 
 sub update_events {
@@ -203,20 +652,156 @@ sub update_events {
 
 sub update_expt_metadata {
 
-    die"FIXME not implemented.";
+    my ( $expt, $aedb ) = @_;
 
+    # FIXME not implemented: ae_data_warehouse_score.
+
+    my $acc = $expt->accession();
+
+    unless ( $acc ) {
+	croak("Error: update_expt_metadata called with an invalid experiment object (no accession).");
+    }
+
+    unless ( $expt->submitter_description() ) {
+	$expt->set(
+	    submitter_description => $aedb->get_submitter_description($acc),
+	);
+    }
+    unless ( $expt->curated_name() ) {
+	$expt->set(
+	    curated_name => $aedb->get_curated_name($acc),
+	);
+    }
+    unless ( $expt->num_samples() ) {
+	$expt->set(
+	    num_samples => $aedb->get_num_samples($acc),
+	);
+    }
+    unless ( $expt->num_hybridizations() ) {
+	$expt->set(
+	    num_hybridizations => $aedb->get_num_hybridizations($acc),
+	);
+    }
+    unless ( $expt->release_date() ) {
+	$expt->set(
+	    release_date => $aedb->get_release_date($acc),
+	);
+    }
+    unless ( $expt->is_released() ) {
+	$expt->set(
+	    is_released => $aedb->get_is_released($acc),
+	);
+    }
+    unless ( $expt->ae_miame_score() ) {
+	$expt->set(
+	    ae_miame_score => $aedb->get_ae_miame_score($acc),
+	);
+    }
+    unless ( $expt->ae_data_warehouse_score() ) {
+	$expt->set(
+	    ae_data_warehouse_score => $aedb->get_ae_data_warehouse_score($acc),
+	);
+    }
+    unless ( scalar ($expt->organisms()) ) {
+	my $species_list = $aedb->get_expt_species($acc);
+	foreach my $species ( @$species_list ) {
+	    my $organism = ArrayExpress::AutoSubmission::DB::Organism->find_or_create({
+		scientific_name => $species,
+		is_deleted      => 0,
+	    });
+	    $expt->add_to_organism_instances({
+		experiment_id => $expt,
+		organism_id   => $organism,
+	    });
+	}
+    }
+    unless ( scalar ($expt->factors()) ) {
+	my $factor_list = $aedb->get_expt_factors($acc);
+	foreach my $factor_name ( @$factor_list ) {
+	    my $factor = ArrayExpress::AutoSubmission::DB::Factor->find_or_create({
+		name       => $factor_name,
+		is_deleted => 0,
+	    });
+	    $expt->add_to_factor_instances({
+		experiment_id => $expt,
+		factor_id     => $factor,
+	    });
+	}
+    }
+    unless ( scalar ($expt->quantitation_types()) ) {
+	my $qt_list = $aedb->get_expt_qts($acc);
+	foreach my $qt_name ( @$qt_list ) {
+	    my $qt = ArrayExpress::AutoSubmission::DB::QuantitationType->find_or_create({
+		name       => $qt_name,
+		is_deleted => 0,
+	    });
+	    $expt->add_to_quantitation_type_instances({
+		experiment_id        => $expt,
+		quantitation_type_id => $qt,
+	    });
+	}
+    }
+    unless ( scalar ($expt->array_designs()) ) {
+	my $array_list = $aedb->get_expt_arrays($acc);
+	foreach my $array_acc ( @$array_list ) {
+	    my $array_design = ArrayExpress::AutoSubmission::DB::ArrayDesign->find_or_create({
+		accession  => $array_acc,
+		is_deleted => 0,
+	    });
+	    $expt->add_to_array_design_instances({
+		experiment_id   => $expt,
+		array_design_id => $array_design,
+	    });
+	}
+    }
+
+    # Save any changes.
+    $expt->update();
 }
 
 sub update_array_metadata {
 
-    die"FIXME not implemented.";
+    my ( $array, $aedb ) = @_;
 
+    # FIXME not implemented: annotation_source, annotation_version, biomart_table_name.
+
+    my $acc = $array->accession();
+
+    unless ( $acc ) {
+	croak("Error: update_array_metadata called with an invalid array design object (no accession).");
+    }
+
+    unless ( $array->release_date() ) {
+	$array->set(
+	    release_date => $aedb->get_release_date($acc),
+	);
+    }
+    unless ( $array->is_released() ) {
+	$array->set(
+	    is_released => $aedb->get_is_released($acc),
+	);
+    }
+    unless ( scalar ($array->organisms()) ) {
+	my $species_list = $aedb->get_array_species($acc);
+	foreach my $species ( @$species_list ) {
+	    my $organism = ArrayExpress::AutoSubmission::DB::Organism->find_or_create({
+		scientific_name => $species,
+		is_deleted      => 0,
+	    });
+	    $array->add_to_organism_instances({
+		experiment_id => $array,
+		organism_id   => $organism,
+	    });
+	}
+    }
+
+    # Save any changes.
+    $array->update();
 }
 
 sub max_jobid {
 
     return ArrayExpress::AutoSubmission::DB::Event->maximum_value_of('jobregister_dbid');
-
 }    
 
 # Separate autosubs DB queries from AE/AEDW queries. Transparently
@@ -252,7 +837,7 @@ USAGE
 }
 
 # One single AEDB query object used throughout. This may turn out to
-# be a bit memory-hungry; we'll see when we come to test it. FIXME we
+# be a bit memory-hungry; we'll see when we come to test it. We
 # want to use the largest jobregister_dbid as last_jobid here so that
 # updates work correctly.
 my $last_jobid = 0;
@@ -263,11 +848,34 @@ my $aedb = AEDB->new({
     last_jobid => $last_jobid,
 });
 
+# The first thing to do is to make sure we have a full list of
+# every experiment and array design in the AE databases.
+my $ae_experiments = $aedb->get_experiments();
+my $ae_arrays      = $aedb->get_array_designs();
+foreach my $accession ( @$ae_experiments ) {
+    my $expt = ArrayExpress::AutoSubmission::DB::Experiment->find_or_create({
+	accession  => $accession,
+	is_deleted => 0,
+    });
+    unless ( $expt->experiment_type() ) {
+	$expt->set(
+	    experiment_type => 'Unknown',
+	);
+	$expt->update();
+    }
+}
+foreach my $accession ( @$ae_arrays ) {
+    ArrayExpress::AutoSubmission::DB::ArrayDesign->find_or_create({
+	accession  => $accession,
+	is_deleted => 0,
+    });
+}
+
 # If we want a full repopulation we delete the old cached data here.
 if ( $repopulating ) {
 
     print("WARNING: You have chosen to delete the event tracking data and "
-	. "experiment/array design metadata and repopulate the database. Proceed (Y/N)? ");
+	. "experiment/array design metadata, and repopulate the database. Proceed (Y/N)? ");
 
     chomp( my $choice = <STDIN> );
 

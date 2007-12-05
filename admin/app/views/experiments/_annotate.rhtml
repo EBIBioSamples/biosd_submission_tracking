@@ -36,7 +36,7 @@
 </td>
 <td valign="top">
 <table>
-  <% Organism.find(:all, :conditions => "is_deleted=0").sort_by { |d| d.scientific_name }.each do |organism| %>
+  <% Organism.find(:all, :conditions => "is_deleted=0 and taxon_id is not null").sort_by { |d| d.scientific_name }.each do |organism| %>
     <tr>
       <td>
         <%= check_box_tag("annotation[organism_ids][]",

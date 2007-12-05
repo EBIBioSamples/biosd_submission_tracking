@@ -714,6 +714,12 @@ ALTER TABLE array_designs ADD COLUMN (
   `is_released` int(11) default NULL               -- REDUNDANT
 );
 
+-- ###############################################################
+-- We need to relax the requirement that all organisms have taxon;
+-- otherwise auto-inserting new organisms gets ugly.
+-- ###############################################################
+ALTER TABLE organisms MODIFY COLUMN taxon_id int(11) DEFAULT NULL;
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
