@@ -503,10 +503,10 @@ sub cache_events : PRIVATE {
     # Note that currently the AEDW and AEREP jobregister schemas are
     # identical, so we use this code for both. We may need to change
     # this if these schemas change.
-    
+
     # Populate the event_cache with AEDB::Event objects here.
-    my $sth = $self->get_ae_dbhandle()->prepare(<<"QUERY");
-select ID, USERNAME, DIRNAME, JOBTYPE, STARTTIME, ENDTIME, PHASE
+    my $sth = $dbh->prepare(<<"QUERY");
+select distinct ID, USERNAME, DIRNAME, JOBTYPE, STARTTIME, ENDTIME, PHASE
 from jobregister
 where id > ?
 and endtime is not null
