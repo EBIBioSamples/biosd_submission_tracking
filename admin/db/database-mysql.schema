@@ -576,19 +576,19 @@ UNLOCK TABLES;
 -- #####################################################################
 
 --
--- Table structure for table `array_designs_experiments`
+-- Table structure for table `array_designs_organisms`
 --
 
-DROP TABLE IF EXISTS `array_designs_experiments`;
-CREATE TABLE `array_designs_experiments` (
+DROP TABLE IF EXISTS `array_designs_organisms`;
+CREATE TABLE `array_designs_organisms` (
   `id` int(11) NOT NULL auto_increment,
   `organism_id` int(11) NOT NULL,
   `array_design_id` int(11) NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `organism_id` (`organism_id`),
   KEY `array_design_id` (`array_design_id`),
-  CONSTRAINT `array_designs_experiments_ibfk_1` FOREIGN KEY (`organism_id`) REFERENCES `organisms` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `array_designs_experiments_ibfk_2` FOREIGN KEY (`array_design_id`) REFERENCES `array_designs` (`id`) ON DELETE CASCADE
+  CONSTRAINT `array_designs_organisms_ibfk_1` FOREIGN KEY (`organism_id`) REFERENCES `organisms` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `array_designs_organisms_ibfk_2` FOREIGN KEY (`array_design_id`) REFERENCES `array_designs` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --

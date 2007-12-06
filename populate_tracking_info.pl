@@ -295,6 +295,21 @@ QUERY
     return [ map { $_->[0] } @{ $results } ];
 }
 
+sub get_array_species {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns Organism OE values.
+    my $sth = $self->get_cached_sth()->{array_species}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+
+    my $results = $sth->fetchall_arrayref();
+
+    return [ map { $_->[0] } @{ $results } ];
+}
+
 sub get_expt_species {
 
     my ( $self, $accession ) = @_;
@@ -853,8 +868,8 @@ sub update_array_metadata {
 		is_deleted      => 0,
 	    });
 	    $array->add_to_organism_instances({
-		experiment_id => $array,
-		organism_id   => $organism,
+		array_design_id => $array,
+		organism_id     => $organism,
 	    });
 	}
     }
@@ -932,6 +947,8 @@ if ( $repopulating ) {
     delete_cached_data( $aedb );
 }
 
+=begin comment
+
 # Update experiments here.
 my $expt_iterator = ArrayExpress::AutoSubmission::DB::Experiment->search(
     is_deleted => 0,
@@ -960,7 +977,7 @@ while ( my $array_design = $array_iterator->next() ) {
     # Skip experiments without assigned accessions.
     next ARRAY_DESIGN unless $array_design->accession();
 
-    printf STDOUT ("Updating array design %s...", $array_design->accession());
+    printf STDOUT ("Updating array design %s...\n", $array_design->accession());
 
     update_array_metadata( $array_design, $aedb );
     update_events( $array_design, $aedb );
