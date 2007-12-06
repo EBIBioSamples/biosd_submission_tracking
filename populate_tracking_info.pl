@@ -72,10 +72,6 @@ sub START {
 
     my ( $self, $id, $args ) = @_;
 
-    # Cache our jobregister events.
-    $self->cache_aerep_events();
-    $self->cache_aedw_events();
-
     # Create our cached statement handles.
     $self->cache_statement_handles();
 }
@@ -486,6 +482,15 @@ sub get_events {
 
     my ( $self, $accession ) = @_;
 
+    my $events = $self->get_event_cache();
+
+    unless ( scalar( grep defined, values %$events ) ) {
+
+	# Cache our jobregister events.
+	$self->cache_aerep_events();
+	$self->cache_aedw_events();
+    }
+
     return $self->get_event_cache()->{ $accession } || [];
 }
 
@@ -625,17 +630,34 @@ sub update_toplevel_objects {
 
 sub delete_cached_data {
 
-    my ( $aedb ) = @_;
+    my ( $aedb, $todo ) = @_;
 
     # The aedb query object contains information on what *can* be
     # repopulated - and therefore deleted here.
 
     # Delete all events associated with the database instances of interest.
-    foreach my $instance ( $aedb->get_aerep_db(), $aedb->get_aedw_db() ) {
-	ArrayExpress::AutoSubmission::DB::Event->search(
-	    target_db => $instance,
-	)->delete_all();
+    if ( $todo->{events} ) {
+	foreach my $instance ( $aedb->get_aerep_db(), $aedb->get_aedw_db() ) {
+	    print STDOUT ("Deleting old event data imported from $instance...\n");
+
+	    # FIXME consider trying this without using the iterator
+	    # approach? It might be faster.
+	    ArrayExpress::AutoSubmission::DB::Event->search(
+		target_db => $instance,
+	    )->delete_all();
+	}
     }
+
+    # Delete metadata associated with experiments, array designs.
+    if ( $todo->{metadata} ) {
+
+	delete_cached_metadata( $aedb );
+    }
+}
+
+sub delete_cached_metadata {
+
+    my ( $aedb ) = @_;
 
     # Don't delete expt species (or anything else) for experiments not
     # loaded... but then how to mark these as being updateable upon
@@ -643,7 +665,7 @@ sub delete_cached_data {
 
     # Experiments.
     my $ae_experiments = $aedb->get_experiments();
-    
+
     my $expt_iterator = ArrayExpress::AutoSubmission::DB::Experiment->search(
 	is_deleted => 0,
     );
@@ -651,6 +673,8 @@ sub delete_cached_data {
     EXPT:
     while ( my $expt = $expt_iterator->next() ) {
 	next EXPT unless ( first { $_ eq $expt->accession() } @$ae_experiments );
+
+	printf STDOUT ("Deleting metadata for %s...\n", $expt->accession());
 
 	$expt->set(
 	    submitter_description   => undef,
@@ -673,7 +697,7 @@ sub delete_cached_data {
 
     # Array Designs.
     my $ae_arrays = $aedb->get_array_designs();
-    
+
     my $array_iterator = ArrayExpress::AutoSubmission::DB::ArrayDesign->search(
 	is_deleted => 0,
     );
@@ -681,6 +705,8 @@ sub delete_cached_data {
     EXPT:
     while ( my $array = $array_iterator->next() ) {
 	next EXPT unless ( first { $_ eq $array->accession() } @$ae_arrays );
+
+	printf STDOUT ("Deleting metadata for %s...\n", $array->accession());
 
 	$array->set(
 	    release_date            => undef,
@@ -892,11 +918,13 @@ sub max_job_dbid {
 # Iterate over experiments, array designs and query the cached AE data
 # for results.
 
-my ( $repopulating, $want_help );
+my ( $repopulating, $event_only, $metadata_only, $want_help );
 
 GetOptions(
-    "R|repopulate" => \$repopulating,
-    "h|help"       => \$want_help,
+    "R|repopulate"    => \$repopulating,
+    "E|event-only"    => \$event_only,
+    "M|metadata-only" => \$metadata_only,
+    "h|help"          => \$want_help,
 );
 
 if ( $want_help ) {
@@ -914,6 +942,13 @@ USAGE
 
     exit 255;
 }
+
+# This hash is inspected to figure out which operations need to be
+# performed.
+my %todo = (  # N.B. careful about how you add entries to this hash.
+    events   => (not $metadata_only),
+    metadata => (not $event_only),
+);
 
 # One single AEDB query object used throughout. This may turn out to
 # be a bit memory-hungry; we'll see when we come to test it. We
@@ -934,8 +969,8 @@ update_toplevel_objects( $aedb );
 # If we want a full repopulation we delete the old cached data here.
 if ( $repopulating ) {
 
-    print("WARNING: You have chosen to delete the event tracking data and "
-	. "experiment/array design metadata, and repopulate the database. Proceed (Y/N)? ");
+    print("WARNING: You have chosen to delete the following information, and repopulate from the AE databases:\n\n");
+    print("    " . join("; ", grep { $todo{$_} } keys %todo) . "\n\nProceed (Y/N)? ");
 
     chomp( my $choice = <STDIN> );
 
@@ -944,10 +979,8 @@ if ( $repopulating ) {
 	exit 255;
     }
 
-    delete_cached_data( $aedb );
+    delete_cached_data( $aedb, \%todo );
 }
-
-=begin comment
 
 # Update experiments here.
 my $expt_iterator = ArrayExpress::AutoSubmission::DB::Experiment->search(
@@ -962,8 +995,8 @@ while ( my $expt = $expt_iterator->next() ) {
 
     printf STDOUT ("Updating experiment %s...\n", $expt->accession());
 
-    update_expt_metadata( $expt, $aedb );
-    update_events( $expt, $aedb );
+    update_expt_metadata( $expt, $aedb ) if $todo{metadata};
+    update_events( $expt, $aedb )        if $todo{events};
 }
 
 # Update array designs here.
@@ -979,6 +1012,6 @@ while ( my $array_design = $array_iterator->next() ) {
 
     printf STDOUT ("Updating array design %s...\n", $array_design->accession());
 
-    update_array_metadata( $array_design, $aedb );
-    update_events( $array_design, $aedb );
+    update_array_metadata( $array_design, $aedb ) if $todo{metadata};
+    update_events( $array_design, $aedb )         if $todo{events};
 }
