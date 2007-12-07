@@ -1152,5 +1152,5 @@ while ( my $array_design = $array_iterator->next() ) {
 }
 
 # Finally, update any previously-unfinished events.
-update_unfinished_events( $aedb );
+update_unfinished_events( $aedb ) if $todo{events};
 
