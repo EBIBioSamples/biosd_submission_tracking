@@ -701,6 +701,8 @@ ALTER TABLE experiments ADD COLUMN (
   `curated_name` varchar(255) default NULL,        -- REDUNDANT
   `num_samples` int(11) default NULL,              -- REDUNDANT
   `num_hybridizations` int(11) default NULL,       -- REDUNDANT
+  `has_raw_data` int(11) default NULL,             -- REDUNDANT
+  `has_processed_data` int(11) default NULL,       -- REDUNDANT
   `release_date` datetime default NULL,            -- REDUNDANT
   `is_released` int(11) default NULL,              -- REDUNDANT
   `ae_miame_score` int(11) default NULL,           -- REDUNDANT

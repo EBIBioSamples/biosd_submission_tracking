@@ -167,6 +167,30 @@ and pba.bioassaycreation_id = cp.id
 and cp.t_hybridization_id is not null
 QUERY
 
+    $cached_sth{ident $self}{has_raw_data} = $dbh->prepare(<<"QUERY");
+select count(*)
+from tt_identifiable i,
+tt_bioassaydatagroup bg,
+tt_bioassaydat_bioassaydat bb,
+tt_poly_bioassaydata pb
+where i.identifier = ?
+and i.id = bg.experiment_id
+and bg.id=bb.bioassaydatagroups_id
+and bb.bioassaydatas_id = pb.t_measuredbioassaydata_id
+QUERY
+
+    $cached_sth{ident $self}{has_processed_data} = $dbh->prepare(<<"QUERY");
+select count(*)
+from tt_identifiable i,
+tt_bioassaydatagroup bg,
+tt_bioassaydat_bioassaydat bb,
+tt_poly_bioassaydata pb
+where i.identifier = ?
+and i.id = bg.experiment_id
+and bg.id=bb.bioassaydatagroups_id
+and bb.bioassaydatas_id = pb.t_derivedbioassaydata_id
+QUERY
+
     $cached_sth{ident $self}{expt_factors} = $dbh->prepare(<<"QUERY");
 select oe.value as value
 from tt_experimentdesign ed,
@@ -181,7 +205,8 @@ QUERY
 
     $cached_sth{ident $self}{expt_qts} = $dbh->prepare(<<"QUERY");
 select unique iden.name as name
-from tt_bioassaydata_t_experimen bte,
+from tt_bioassaydatagroup bg,
+tt_bioassaydat_bioassaydat bb,
 tt_bioassaydata ba,
 tt_quantitationtypedimension qtd,
 tt_quantitatio_t_quantitat qtq,
@@ -189,8 +214,9 @@ tt_quantitationtype qt,
 tt_identifiable iden,
 tt_identifiable i
 where i.identifier = ?
-and bte.t_experiment_id = i.id
-and ba.id = bte.bioassaydata_id
+and bg.experiment_id = i.id
+and bg.id=bb.bioassaydatagroups_id
+and ba.id = bb.bioassaydatas_id
 and qtd.id = ba.quantitationtypedimension_id
 and qtq.t_quantitationtypedimension_id = ba.quantitationtypedimension_id
 and qt.id = qtq.quantitationtypes_id
@@ -424,6 +450,36 @@ sub get_num_hybridizations {
     my $results = $sth->fetchall_arrayref();
 
     return $results->[0][0];
+}
+
+sub get_has_raw_data {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns count of MBADatas.
+    my $sth = $self->get_cached_sth()->{has_raw_data}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return $results->[0][0] ? 1 : 0;
+}
+
+sub get_has_processed_data {
+
+    my ( $self, $accession ) = @_;
+
+    # Query returns count of DBADatas.
+    my $sth = $self->get_cached_sth()->{has_processed_data}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return $results->[0][0] ? 1 : 0;
 }
 
 sub get_release_date {
@@ -681,6 +737,8 @@ sub delete_cached_metadata {
 	    curated_name            => undef,
 	    num_samples             => undef,
 	    num_hybridizations      => undef,
+	    has_raw_data            => undef,
+	    has_processed_data      => undef,
 	    release_date            => undef,
 	    is_released             => undef,
 	    ae_miame_score          => undef,
@@ -779,6 +837,16 @@ sub update_expt_metadata {
     unless ( defined ($expt->num_hybridizations()) ) {
 	$expt->set(
 	    num_hybridizations => $aedb->get_num_hybridizations($acc),
+	);
+    }
+    unless ( defined ($expt->has_raw_data()) ) {
+	$expt->set(
+	    has_raw_data => $aedb->get_has_raw_data($acc),
+	);
+    }
+    unless ( defined ($expt->has_processed_data()) ) {
+	$expt->set(
+	    has_processed_data => $aedb->get_has_processed_data($acc),
 	);
     }
     unless ( defined ($expt->release_date()) ) {
