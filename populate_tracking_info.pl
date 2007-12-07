@@ -45,7 +45,7 @@ use ArrayExpress::Curator::Database qw(
 );
 
 my %dbhandle        : ATTR( :name<dbhandle>,        :default<{}>        );
-my %event_cache     : ATTR( :name<event_cache>,     :default<{}>        );
+my %event_cache     : ATTR( :name<event_cache>,     :default<undef>     );
 my %last_jobid      : ATTR( :name<last_jobid>,      :default<0>         );
 my %cached_sth      : ATTR( :name<cached_sth>,      :default<{}>        );
 
@@ -541,7 +541,7 @@ sub get_events {
 
     my $events = $self->get_event_cache();
 
-    unless ( scalar( grep defined, values %$events ) ) {
+    unless ( $events ) {
 
 	# Cache our jobregister events.
 	$self->cache_aerep_events();
@@ -562,6 +562,7 @@ sub get_updated_event_data {
 select ENDTIME, PHASE
 from jobregister
 where id = ?
+and starttime is not null
 QUERY
 
     $sth->execute( $dbid ) or die( $sth->errstr );
@@ -617,7 +618,7 @@ QUERY
 
     $sth->execute( $self->get_last_jobid() ) or die( $sth->errstr() );
 
-    my $event = $self->get_event_cache();
+    my $event = $self->get_event_cache() || {};
 
     JOB:
     while ( my $hashref = $sth->fetchrow_hashref() ) {
@@ -1022,9 +1023,9 @@ sub update_unfinished_events {
     my ( $aedb ) = @_;
 
     my $event_iterator = ArrayExpress::AutoSubmission::DB::Event->search(
-	success    => undef,
-	end_time   => undef,
-	is_deleted => 0,
+	was_successful => undef,
+	end_time       => undef,
+	is_deleted     => 0,
     );
 
     while ( my $event = $event_iterator->next() ) {
