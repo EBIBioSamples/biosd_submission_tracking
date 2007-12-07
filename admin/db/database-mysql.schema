@@ -696,6 +696,7 @@ CREATE TABLE `events` (
 -- #######################################
 
 ALTER TABLE experiments ADD COLUMN (
+  `num_submissions` int(11) default NULL,
   `submitter_description` text,                    -- REDUNDANT
   `curated_name` varchar(255) default NULL,        -- REDUNDANT
   `num_samples` int(11) default NULL,              -- REDUNDANT
