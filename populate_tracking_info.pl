@@ -37,35 +37,36 @@ package AEDB;
 use Class::Std;
 use Carp;
 use Date::Manip qw(ParseDate UnixDate);
+use Readonly;
 
 use ArrayExpress::Curator::Database qw(
     get_ae_dbh
     get_aedw_dbh
 );
 
-my %ae_dbhandle     : ATTR( :name<ae_dbhandle>,     :default<undef>     );
-my %aedw_dbhandle   : ATTR( :name<aedw_dbhandle>,   :default<undef>     );
+my %dbhandle        : ATTR( :name<dbhandle>,        :default<{}>        );
 my %event_cache     : ATTR( :name<event_cache>,     :default<{}>        );
-my %aerep_db        : ATTR( :name<aerep_db>,        :default<'AEPUB1'>  );
-my %aedw_db         : ATTR( :name<aedw_db>,         :default<'AEDWDEV'> );
 my %last_jobid      : ATTR( :name<last_jobid>,      :default<0>         );
 my %cached_sth      : ATTR( :name<cached_sth>,      :default<{}>        );
+
+Readonly my $AEREP_DB  => 'AEPUB1';
+Readonly my $AEDW_DB   => 'AEDWDEV';
 
 sub BUILD {
 
     my ( $self, $id, $args ) = @_;
 
-    $ae_dbhandle{ident $self} = get_ae_dbh()
+    $dbhandle{ident $self}{ $AEREP_DB } = get_ae_dbh()
 	or croak("Error: Unable to connect to AE repository DB.");
 
-    $aedw_dbhandle{ident $self} = get_aedw_dbh()
+    $dbhandle{ident $self}{ $AEDW_DB }  = get_aedw_dbh()
 	or croak("Error: Unable to connect to AE warehouse DB.");
 
     # Long values are trimmed at 1000 chars.
-    $ae_dbhandle{ident $self}->{LongReadLen} = 1000;
-    $ae_dbhandle{ident $self}->{LongTruncOk} = 1;
-    $aedw_dbhandle{ident $self}->{LongReadLen} = 1000;
-    $aedw_dbhandle{ident $self}->{LongTruncOk} = 1;
+    $dbhandle{ident $self}->{LongReadLen}{ $AEREP_DB } = 1000;
+    $dbhandle{ident $self}->{LongTruncOk}{ $AEREP_DB } = 1;
+    $dbhandle{ident $self}->{LongReadLen}{ $AEDW_DB }  = 1000;
+    $dbhandle{ident $self}->{LongTruncOk}{ $AEDW_DB }  = 1;
 }
 
 sub START {
@@ -82,7 +83,7 @@ sub cache_statement_handles : PRIVATE {
 
     print STDOUT "Caching statement handles...\n";
 
-    my $dbh = $self->get_ae_dbhandle();
+    my $dbh = $self->get_dbhandle()->{ $AEREP_DB };
     
     $cached_sth{ident $self}{expt_species} = $dbh->prepare(<<"QUERY");
 select unique o.value
@@ -280,7 +281,7 @@ sub get_experiments {
     my ( $self ) = @_;
 
     # FIXME we might want to extend this to include the AEDW.
-    my $dbh = $self->get_ae_dbhandle();
+    my $dbh = $self->get_dbhandle()->{ $AEREP_DB };
 
     my $sth = $dbh->prepare(<<"QUERY");
 select i.identifier
@@ -301,7 +302,7 @@ sub get_array_designs {
     # FIXME we might want to extend this to include the AEDW.
     my ( $self ) = @_;
 
-    my $dbh = $self->get_ae_dbhandle();
+    my $dbh = $self->get_dbhandle()->{ $AEREP_DB };
 
     my $sth = $dbh->prepare(<<"QUERY");
 select i.identifier
@@ -550,15 +551,41 @@ sub get_events {
     return $self->get_event_cache()->{ $accession } || [];
 }
 
+sub get_updated_event_data {
+
+    my ( $self, $dbid, $instance ) = @_;
+
+    my $dbh = $self->get_dbhandle()->{ $instance }
+	or confess("Error: unrecognized database instance $instance.");
+
+    my $sth = $dbh->prepare(<<"QUERY");
+select ENDTIME, PHASE
+from jobregister
+where id = ?
+QUERY
+
+    $sth->execute( $dbid ) or die( $sth->errstr );
+
+    # This query is by primary key, so we can rely on only one row
+    # returned.
+    my $results = $sth->fetchrow_hashref();
+    my ($success, $endtime);
+    if ( defined( $results->{'ENDTIME'} ) ) {
+	$success = $self->parse_job_phase( $results->{'PHASE'} );
+	my $date = ParseDate($results->{'ENDTIME'});
+	$endtime = UnixDate($date, "%Y-%m-%d %T");
+    }
+
+    return ( $endtime, $success );
+}
+
 sub cache_aerep_events : PRIVATE {
 
     my ( $self ) = @_;
 
     print STDOUT "Caching AE repository events...\n";
 
-    my $dbh = $self->get_ae_dbhandle();
-
-    $self->cache_events( $dbh, $self->get_aerep_db() );
+    $self->cache_events( $AEREP_DB );
 }
 
 sub cache_aedw_events : PRIVATE {
@@ -567,14 +594,15 @@ sub cache_aedw_events : PRIVATE {
 
     print STDOUT "Caching AE warehouse events...\n";
 
-    my $dbh = $self->get_aedw_dbhandle();
-
-    $self->cache_events( $dbh, $self->get_aedw_db() );
+    $self->cache_events( $AEDW_DB );
 }
 
 sub cache_events : PRIVATE {
 
-    my ( $self, $dbh, $instance ) = @_;
+    my ( $self, $instance ) = @_;
+
+    my $dbh = $self->get_dbhandle()->{ $instance }
+	or confess("Error: Undefined database handle ($instance).");
 
     # Note that currently the AEDW and AEREP jobregister schemas are
     # identical, so we use this code for both. We may need to change
@@ -585,7 +613,6 @@ sub cache_events : PRIVATE {
 select distinct ID, USERNAME, DIRNAME, JOBTYPE, STARTTIME, ENDTIME, PHASE
 from jobregister
 where id > ?
-and endtime is not null
 QUERY
 
     $sth->execute( $self->get_last_jobid() ) or die( $sth->errstr() );
@@ -615,6 +642,12 @@ sub make_event_object : PRIVATE {
     # identical columns; we may need to make database-specific
     # versions of this method if that ever changes.
 
+    # If the job is unfinished, leave success undefined.
+    my $success;
+    if ( defined( $hashref->{'ENDTIME'} ) ) {
+	$success = $self->parse_job_phase( $hashref->{'PHASE'} );
+    }
+
     # Here we map the AEREP column names to our events. Attributes not
     # set: source_db, machine, log_file, comment. Note that we need to
     # parse the returned date format here.
@@ -622,9 +655,10 @@ sub make_event_object : PRIVATE {
 	my $date = ParseDate($hashref->{$key});
 	$hashref->{$key} = UnixDate($date, "%Y-%m-%d %T");
     }
+
     my $obj = AEDB::Event->new({
 	event_type       => $hashref->{'JOBTYPE'},
-	success          => ( ( $hashref->{'PHASE'} eq 'finished' ) ? 1 : 0 ),
+	success          => $success,
 	target_db        => $instance,
 	starttime        => $hashref->{'STARTTIME'},
 	endtime          => $hashref->{'ENDTIME'},
@@ -633,6 +667,13 @@ sub make_event_object : PRIVATE {
     });
 
     return $obj;
+}
+
+sub parse_job_phase : PRIVATE {
+
+    my ( $self, $phase ) = @_;
+
+    return ( $phase eq 'finished' ) ? 1 : 0 ;
 }
 
 ##############################################################################
@@ -693,7 +734,7 @@ sub delete_cached_data {
 
     # Delete all events associated with the database instances of interest.
     if ( $todo->{events} ) {
-	foreach my $instance ( $aedb->get_aerep_db(), $aedb->get_aedw_db() ) {
+	foreach my $instance ( keys %{ $aedb->get_dbhandle() } ) {
 	    print STDOUT ("Deleting old event data imported from $instance...\n");
 
 	    # FIXME consider trying this without using the iterator
@@ -706,7 +747,6 @@ sub delete_cached_data {
 
     # Delete metadata associated with experiments, array designs.
     if ( $todo->{metadata} ) {
-
 	delete_cached_metadata( $aedb );
     }
 }
@@ -977,6 +1017,33 @@ sub max_job_dbid {
     return ArrayExpress::AutoSubmission::DB::Event->maximum_value_of('jobregister_dbid') || 0;
 }    
 
+sub update_unfinished_events {
+
+    my ( $aedb ) = @_;
+
+    my $event_iterator = ArrayExpress::AutoSubmission::DB::Event->search(
+	success    => undef,
+	end_time   => undef,
+	is_deleted => 0,
+    );
+
+    while ( my $event = $event_iterator->next() ) {
+	my ( $endtime, $success ) = $aedb->get_updated_event_data(
+	    $event->jobregister_dbid(),
+	    $event->target_db(),
+	);
+
+	if ( defined( $endtime ) ) {
+	    printf STDOUT ("Updating event %s...\n", $event->jobregister_dbid());
+	    $event->set(
+		end_time       => $endtime,
+		was_successful => $success,
+	    );
+	    $event->update();
+	}
+    }
+}
+
 # Separate autosubs DB queries from AE/AEDW queries. Transparently
 # cache data (e.g. jobregister) retrieved from the AE databases.
 
@@ -1083,3 +1150,7 @@ while ( my $array_design = $array_iterator->next() ) {
     update_array_metadata( $array_design, $aedb ) if $todo{metadata};
     update_events( $array_design, $aedb )         if $todo{events};
 }
+
+# Finally, update any previously-unfinished events.
+update_unfinished_events( $aedb );
+
