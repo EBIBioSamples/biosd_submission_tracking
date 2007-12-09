@@ -70,7 +70,8 @@ $creator->insert_data_files();
 
 # Now we're all set, release the hounds.
 $expt->set(
-    status      => $CONFIG->get_STATUS_PENDING(),
-    in_curation => 1,
+    status          => $CONFIG->get_STATUS_PENDING(),
+    in_curation     => 1,
+    num_submissions => ( $expt->num_submissions() + 1 ),
 );
 $expt->update();
