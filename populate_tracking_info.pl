@@ -46,7 +46,7 @@ use ArrayExpress::Curator::Database qw(
 
 my %dbhandle        : ATTR( :name<dbhandle>,        :default<{}>        );
 my %event_cache     : ATTR( :name<event_cache>,     :default<undef>     );
-my %last_jobid      : ATTR( :name<last_jobid>,      :default<0>         );
+my %last_jobid      : ATTR( :name<last_jobid>,      :default<{}>        );
 my %cached_sth      : ATTR( :name<cached_sth>,      :default<{}>        );
 
 Readonly my $AEREP_DB  => 'AEPUB1';
@@ -72,6 +72,11 @@ sub BUILD {
 sub START {
 
     my ( $self, $id, $args ) = @_;
+
+    # Set the default last job id to zero for each DB instance.
+    foreach my $instance ( @{ $self->get_instances() } ) {
+	$self->get_last_jobid()->{ $instance } ||= 0;
+    }
 
     # Create our cached statement handles.
     $self->cache_statement_handles();
@@ -274,6 +279,13 @@ and d.text not like '(Generated description)%'
 and length(d.text) > 0
 QUERY
     
+}
+
+sub get_instances {
+
+    my ( $self ) = @_;
+
+    return [ keys %{ $self->get_dbhandle() } ];
 }
 
 sub get_experiments {
@@ -616,7 +628,8 @@ from jobregister
 where id > ?
 QUERY
 
-    $sth->execute( $self->get_last_jobid() ) or die( $sth->errstr() );
+    $sth->execute( $self->get_last_jobid()->{ $instance } || 0 )
+	or die( $sth->errstr() );
 
     my $event = $self->get_event_cache() || {};
 
@@ -735,7 +748,7 @@ sub delete_cached_data {
 
     # Delete all events associated with the database instances of interest.
     if ( $todo->{events} ) {
-	foreach my $instance ( keys %{ $aedb->get_dbhandle() } ) {
+	foreach my $instance ( @{ $aedb->get_instances() } ) {
 	    print STDOUT ("Deleting old event data imported from $instance...\n");
 
 	    # FIXME consider trying this without using the iterator
@@ -1013,9 +1026,18 @@ sub update_array_metadata {
     $array->update();
 }
 
-sub max_job_dbid {
+sub max_job_dbids {
 
-    return ArrayExpress::AutoSubmission::DB::Event->maximum_value_of('jobregister_dbid') || 0;
+    my ( $aedb ) = 0;
+
+    my %last_jobid;
+    foreach my $instance ( @{ $aedb->get_instances() } ) {
+	$last_jobid{$instance} =
+	    ArrayExpress::AutoSubmission::DB::Event
+		->sql_last_jobid('target_db')->select_val($instance);
+    }
+
+    return \%last_jobid;
 }    
 
 sub update_unfinished_events {
@@ -1090,13 +1112,11 @@ my %todo = (  # N.B. careful about how you add entries to this hash.
 # be a bit memory-hungry; we'll see when we come to test it. We
 # want to use the largest jobregister_dbid as last_jobid here so that
 # updates work correctly.
-my $last_jobid = 0;
+my $aedb = AEDB->new();
 unless ( $repopulating ) {
-    $last_jobid = max_job_dbid();
+    my $last_jobid = max_job_dbids( $aedb );
+    $aedb->set_last_jobid( $last_jobid );
 }
-my $aedb = AEDB->new({
-    last_jobid => $last_jobid,
-});
 
 # The first thing to do is to make sure we have a full list of
 # every experiment and array design in the AE databases.

@@ -725,6 +725,9 @@ ALTER TABLE organisms MODIFY COLUMN taxon_id int(11) DEFAULT NULL;
 ALTER TABLE array_designs MODIFY COLUMN accession varchar(255) DEFAULT NULL;
 ALTER TABLE experiments MODIFY COLUMN accession varchar(255) DEFAULT NULL;
 
+-- Fix our legacy submissions.
+UPDATE experiments SET num_submissions=1 where in_curation=1;
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
