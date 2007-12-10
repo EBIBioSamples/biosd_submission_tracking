@@ -306,7 +306,9 @@ QUERY
     
     my $results = $sth->fetchall_arrayref();
 
-    return [ map { $_->[0] } @{ $results } ];
+    return scalar @{ $results }
+           ? [ map { $_->[0] } @{ $results } ]
+	   : [];
 }
 
 sub get_array_designs {
@@ -327,7 +329,9 @@ QUERY
     
     my $results = $sth->fetchall_arrayref();
 
-    return [ map { $_->[0] } @{ $results } ];
+    return scalar @{ $results }
+           ? [ map { $_->[0] } @{ $results } ]
+	   : [];
 }
 
 sub get_array_species {
@@ -342,7 +346,9 @@ sub get_array_species {
 
     my $results = $sth->fetchall_arrayref();
 
-    return [ map { $_->[0] } @{ $results } ];
+    return scalar @{ $results }
+           ? [ map { $_->[0] } @{ $results } ]
+	   : [];
 }
 
 sub get_expt_species {
@@ -357,7 +363,9 @@ sub get_expt_species {
 
     my $results = $sth->fetchall_arrayref();
 
-    return [ map { $_->[0] } @{ $results } ];
+    return scalar @{ $results }
+           ? [ map { $_->[0] } @{ $results } ]
+	   : [];
 }
 
 sub get_expt_arrays {
@@ -372,7 +380,9 @@ sub get_expt_arrays {
     
     my $results = $sth->fetchall_arrayref();
 
-    return [ map { $_->[0] } @{ $results } ];
+    return scalar @{ $results }
+           ? [ map { $_->[0] } @{ $results } ]
+	   : [];
 }
 
 sub get_expt_factors {
@@ -387,7 +397,9 @@ sub get_expt_factors {
     
     my $results = $sth->fetchall_arrayref();
 
-    return [ map { $_->[0] } @{ $results } ];
+    return scalar @{ $results }
+           ? [ map { $_->[0] } @{ $results } ]
+	   : [];
 }
 
 sub get_expt_qts {
@@ -402,7 +414,9 @@ sub get_expt_qts {
     
     my $results = $sth->fetchall_arrayref();
 
-    return [ map { $_->[0] } @{ $results } ];
+    return scalar @{ $results }
+           ? [ map { $_->[0] } @{ $results } ]
+	   : [];
 }
 
 sub get_submitter_description {
@@ -1028,7 +1042,7 @@ sub update_array_metadata {
 
 sub max_job_dbids {
 
-    my ( $aedb ) = 0;
+    my ( $aedb ) = @_;
 
     my %last_jobid;
     foreach my $instance ( @{ $aedb->get_instances() } ) {
