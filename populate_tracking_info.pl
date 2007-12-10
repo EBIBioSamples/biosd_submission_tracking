@@ -63,10 +63,10 @@ sub BUILD {
 	or croak("Error: Unable to connect to AE warehouse DB.");
 
     # Long values are trimmed at 1000 chars.
-    $dbhandle{ident $self}->{LongReadLen}{ $AEREP_DB } = 1000;
-    $dbhandle{ident $self}->{LongTruncOk}{ $AEREP_DB } = 1;
-    $dbhandle{ident $self}->{LongReadLen}{ $AEDW_DB }  = 1000;
-    $dbhandle{ident $self}->{LongTruncOk}{ $AEDW_DB }  = 1;
+    $dbhandle{ident $self}->{ $AEREP_DB }{LongReadLen} = 1000;
+    $dbhandle{ident $self}->{ $AEREP_DB }{LongTruncOk} = 1;
+    $dbhandle{ident $self}->{ $AEDW_DB }{LongReadLen}  = 1000;
+    $dbhandle{ident $self}->{ $AEDW_DB }{LongTruncOk}  = 1;
 }
 
 sub START {
@@ -724,7 +724,7 @@ sub update_toplevel_objects {
     );
     my @prev_expt_accns = map { $_->accession() } @prev_expts;
     foreach my $accession ( @$ae_experiments ) {
-	unless ( first { $_ eq $accession } @prev_expt_accns ) {
+	unless ( first { defined($_) && $_ eq $accession } @prev_expt_accns ) {
 	    my $expt = ArrayExpress::AutoSubmission::DB::Experiment->find_or_create({
 		accession  => $accession,
 		is_deleted => 0,
@@ -744,7 +744,7 @@ sub update_toplevel_objects {
     );
     my @prev_array_accns = map { $_->accession() } @prev_arrays;
     foreach my $accession ( @$ae_arrays ) {
-	unless ( first { $_ eq $accession } @prev_array_accns ) {
+	unless ( first { defined($_) && $_ eq $accession } @prev_array_accns ) {
 	    ArrayExpress::AutoSubmission::DB::ArrayDesign->find_or_create({
 		accession  => $accession,
 		is_deleted => 0,
@@ -887,12 +887,21 @@ sub update_expt_metadata {
 	croak("Error: update_expt_metadata called with an invalid experiment object (no accession).");
     }
 
+    # Always update the date info, as it will change.
+    $expt->set(
+	release_date => $aedb->get_release_date($acc),
+    );
+    $expt->set(
+	is_released => $aedb->get_is_released($acc),
+    );
+
+    # Only update the following if the metadatum is not present.
     unless ( defined ($expt->submitter_description()) ) {
 	$expt->set(
 	    submitter_description => $aedb->get_submitter_description($acc),
 	);
     }
-    unless ( defined ($expt->curated_name()) ) {
+    unless ( $expt->curated_name() ) {
 	$expt->set(
 	    curated_name => $aedb->get_curated_name($acc),
 	);
@@ -915,16 +924,6 @@ sub update_expt_metadata {
     unless ( defined ($expt->has_processed_data()) ) {
 	$expt->set(
 	    has_processed_data => $aedb->get_has_processed_data($acc),
-	);
-    }
-    unless ( defined ($expt->release_date()) ) {
-	$expt->set(
-	    release_date => $aedb->get_release_date($acc),
-	);
-    }
-    unless ( defined ($expt->is_released()) ) {
-	$expt->set(
-	    is_released => $aedb->get_is_released($acc),
 	);
     }
     unless ( defined ($expt->ae_miame_score()) ) {
