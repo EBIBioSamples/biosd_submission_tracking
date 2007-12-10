@@ -1,0 +1,54 @@
+<%= content_tag("h1", "All Arrays", :class => "title") %>
+
+<% if flash[:notice] %><div class="notice"><%= flash[:notice] %></div><% end %>
+
+<div>
+	<%= form_tag %>
+	<%= content_tag("span", "Search on Accession (wildcards: *, ?): ") %>
+	<%= text_field_tag("search_term", @search_term) %>
+	<%= submit_tag("Search") %>
+	<%= end_form_tag %>
+</div>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+      <%= content_tag("th", "Accession") %>
+      <%= content_tag("th", "Species") %>
+      <%= content_tag("th", "Annotation Source") %>
+      <%= content_tag("th", "Annotation Version") %>
+      <%= content_tag("th", "BioMart Table Name") %>
+      <%= content_tag("th", "Release Date") %>
+      <%= content_tag("th", "Is Released") %>
+    </tr>
+
+    <% @array_designs.each do |a| %>
+      <tr>
+	<td>
+	<%= link_to "Details", :action      => "show", 
+                               :id          => a.id %>
+        </td>
+	<%= content_tag("td", a.accession) %>
+	<%= content_tag("td", a.organisms.collect{ |o| o.scientific_name}.join(", ")) %>
+	<%= content_tag("td", a.annotation_source) %>
+	<%= content_tag("td", a.annotation_version) %>
+	<%= content_tag("td", a.biomart_table_name) %>
+	<%= content_tag("td", a.release_date ?
+			      a.release_date.strftime('%Y-%m-%d') :
+                              "") %>
+	<%= content_tag("td", a.is_released.nil? ? '' :
+                              a.is_released? ?
+                              '<font color="green">YES</font>' :
+                              '<font color="red">no</font>') %>
+      </tr> 
+    <% end %>
+  </table>
+
+  <p class="footer">
+    <%= link_to 'Previous', { :page => @array_design_pages.current.previous, :search_term => @search_term } if @array_design_pages.current.previous %>
+    <%= pagination_links( @array_design_pages, options={:window_size => 3, :params => {:search_term => @search_term} } ) %>
+    <%= link_to 'Next', { :page => @array_design_pages.current.next, :search_term => @search_term } if @array_design_pages.current.next %>
+  </p>
+
+</div>

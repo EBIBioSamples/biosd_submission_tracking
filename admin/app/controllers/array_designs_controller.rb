@@ -14,7 +14,7 @@ class ArrayDesignsController < ApplicationController
 
   def list
 
-    sql_where_clause = "is_deleted=0"
+    sql_where_clause = "is_deleted=0 and miamexpress_subid is not null"
 
     @search_term = ""
 
@@ -37,6 +37,31 @@ class ArrayDesignsController < ApplicationController
       :per_page   => 40,
       :conditions => sql_where_clause.to_s,
       :order      => 'miamexpress_subid DESC'
+  end
+
+  def list_all
+
+    sql_where_clause = "is_deleted=0"
+
+    @search_term = ""
+
+    if params[:search_term]
+
+      # Strip single quotes, otherwise they will cause a crash.
+      @search_term = params[:search_term].gsub(/\'/, "")
+
+      # Silently allow asterisk wildcards
+      sql_search = @search_term.gsub(/\*/, "%").gsub(/\?/, "_")
+
+      sql_where_clause += " and accession like '#{ sql_search }'"
+
+    end
+
+    @array_design_pages, @array_designs = paginate :array_designs,
+      :per_page   => 30,
+      :conditions => sql_where_clause.to_s,
+      :order      => 'accession is null asc, accession="" asc, cast(substr(accession,8,10) as signed integer) desc'
+
   end
 
   def show

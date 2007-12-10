@@ -1,0 +1,60 @@
+<%= error_messages_for 'event' %>
+
+<div>
+  <%= start_form_tag :action => "update", :id => @event.id %>
+
+<table>
+  <tr>
+    <%= content_tag("th", "Associated Array:") %>
+    <%= content_tag("td", ( @event.array_design.nil? ? '' :
+				link_to( @event.array_design.accession,
+  					 :controller => 'array_designs',
+					 :action     => 'show',
+					 :id         => @event.array_design.id) ) ) %>
+  </tr>
+  <tr>
+    <%= content_tag("th", "Associated Experiment:") %>
+    <%= content_tag("td", ( @event.experiment.nil? ? '' :
+				link_to( @event.experiment.accession,
+  					 :controller => 'experiments',
+					 :action     => 'show',
+					 :id         => @event.experiment.id) ) ) %>
+  </tr>
+  <tr>
+    <%= content_tag("th", "Event type:") %>
+    <%= content_tag("td", @event.event_type) %>
+  </tr>
+  <tr>
+    <%= content_tag("th", "Operator:") %>
+    <%= content_tag("td", @event.operator) %>
+  </tr>
+  <tr>
+    <%= content_tag("th", "Source Database:") %>
+    <%= content_tag("td", @event.source_db) %>
+  </tr>
+  <tr>
+    <%= content_tag("th", "Target Database:") %>
+    <%= content_tag("td", @event.target_db) %>
+  </tr>
+  <tr>
+    <%= content_tag("th", "Was Successful:") %>
+    <%= content_tag("td", @event.was_successful.nil? ? '' :
+                              @event.was_successful? ?
+                              '<font color="green">YES</font>' :
+                              '<font color="red">no</font>') %>
+  </tr>
+  <tr>
+    <%= content_tag("th", "Start Time:") %>
+    <%= content_tag("td", @event.start_time) %>
+  </tr>
+  <tr>
+    <%= content_tag("th", "End Time:") %>
+    <%= content_tag("td", @event.end_time) %>
+  </tr>
+  <tr>
+    <%= content_tag("th", "Comment:") %>
+    <%= content_tag("td", input("event", "comment")) %>
+  </tr>
+</table>
+    <%= content_tag("p", submit_tag("Update")) %>
+</div>

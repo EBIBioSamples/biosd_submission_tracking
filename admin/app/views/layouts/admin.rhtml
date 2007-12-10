@@ -68,6 +68,24 @@
 
    <div class="submenu">
     <div class="submenutitle">
+      <%= content_tag("h4", "Tracking") %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "All Experiments", 
+                :controller => "experiments", 
+                :action => "list" %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "All Arrays", 
+                :controller => "array_designs", 
+                :action => "list_all" %>
+    </div>
+
+   </div>
+   <div class="submenu">
+    <div class="submenutitle">
       <%= content_tag("h4", "Ontology") %>
     </div>
 

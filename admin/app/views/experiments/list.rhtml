@@ -1,43 +1,71 @@
 <%= render_partial "title" %>
 
 <div>
+	<%= form_tag %>
+	<%= content_tag("span", "Search on Accession (wildcards: *, ?): ") %>
+	<%= text_field_tag("search_term", @search_term) %>
+	<%= submit_tag("Search") %>
+	<%= end_form_tag %>
+</div>
+
+<div>
   <table>
     <tr>
       <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
-      <% Experiment.content_columns.each do |c| %>
-        <%= content_tag("th", c.name.humanize) %>
-      <% end %>
-      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+      <%= content_tag("th", "Accession") %>
+      <%= content_tag("th", "Curated Name") %>
+      <%= content_tag("th", "No. of Samples") %>
+      <%= content_tag("th", "No. of Hybs") %>
+      <%= content_tag("th", "Raw Data") %>
+      <%= content_tag("th", "Processed Data") %>
+      <%= content_tag("th", "AE MIAME Score") %>
+      <%= content_tag("th", "AE DW Score") %>
+      <%= content_tag("th", "Release Date") %>
+      <%= content_tag("th", "Is Released") %>
     </tr>
 
     <% @experiments.each do |e| %>
       <tr>
 	<td>
-	<%= link_to "Edit", :action => "edit", 
-                            :id     => e.id %>
+	<%= link_to "Details", :action          => "show", 
+                               :id              => e.id,
+			       :page            => @experiment_pages.current,
+	                       :search_term     => @search_term %>
         </td>
-        <% Experiment.content_columns.each do |c| %>
-	  <%= content_tag("td", e.attributes[c.name]) %>
-        <% end %>
-	<td>
-        <%= link_to "Delete", {:action      => "deprecate", 
-                               :id          => e.id,
-	                       :page        => @experiment_pages.current,
-	                       :search_term => @search_term },
-                               :confirm     => "Really delete experiment \"#{e.id}\"?" %>
-        </td>
+	<%= content_tag("td", e.accession) %>
+	<%= content_tag("td", e.curated_name) %>
+        <%= content_tag("td", e.num_samples) %>
+	<%= content_tag("td", e.num_hybridizations) %>
+	<%= content_tag("td", e.has_raw_data.nil? ? '' :
+                              e.has_raw_data? ?
+                              '<font color="green">YES</font>' :
+                              '<font color="red">no</font>') %>
+	<%= content_tag("td", e.has_processed_data.nil? ? '' :
+                              e.has_processed_data? ?
+                              '<font color="green">YES</font>' :
+                              '<font color="red">no</font>') %>
+	<%= content_tag("td", e.ae_miame_score) %>
+	<%= content_tag("td", e.ae_data_warehouse_score) %>
+	<%= content_tag("td", e.release_date ?
+			      e.release_date.strftime('%Y-%m-%d') :
+                              "") %>
+	<%= content_tag("td", e.is_released.nil? ? '' :
+                              e.is_released? ?
+                              '<font color="green">YES</font>' :
+                              '<font color="red">no</font>') %>
       </tr> 
     <% end %>
   </table>
 
   <p class="footer">
-    <%= link_to 'Previous', { :page => @experiment_pages.current.previous } if @experiment_pages.current.previous %>
-    <%= pagination_links( @experiment_pages, options={:window_size => 3} ) %>
-    <%= link_to 'Next', { :page => @experiment_pages.current.next } if @experiment_pages.current.next %>
-  </p>
+    <%= link_to 'Previous', { :page            => @experiment_pages.current.previous,
+                              :search_term     => @search_term } if @experiment_pages.current.previous %>
 
-  <%= content_tag("p", link_to("Add new experiment", 
-                        :controller => "experiments", 
-                        :action     => "new"), { :class => 'footer' } ) %>
+    <%= pagination_links( @experiment_pages, options={:window_size => 3,
+                                              :params => {:search_term => @search_term} } ) %>
+
+    <%= link_to 'Next', { :page            => @experiment_pages.current.next,
+                          :search_term     => @search_term } if @experiment_pages.current.next %>
+  </p>
 
 </div>

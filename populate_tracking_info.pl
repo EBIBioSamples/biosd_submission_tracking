@@ -1136,6 +1136,9 @@ unless ( $repopulating ) {
 # every experiment and array design in the AE databases.
 update_toplevel_objects( $aedb );
 
+# FIXME we should consider wiping the release_date and is_released
+# data every time we re-run the metadata updates.
+
 # If we want a full repopulation we delete the old cached data here.
 if ( $repopulating ) {
 

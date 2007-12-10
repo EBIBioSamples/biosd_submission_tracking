@@ -12,6 +12,7 @@ class Experiment < ActiveRecord::Base
 
   has_and_belongs_to_many :factors
   has_and_belongs_to_many :quantitation_types
+  has_and_belongs_to_many :array_designs
 
   has_many   :spreadsheets
   has_many   :data_files

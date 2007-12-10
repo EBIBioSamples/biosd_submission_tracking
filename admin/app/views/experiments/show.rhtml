@@ -1,0 +1,111 @@
+<%= content_tag("h1", @experiment.accession, :class => "title") %>
+<%= content_tag("h4", "This experiment is currently " +
+	                 (@experiment.is_released.nil? ? '' :
+                              @experiment.is_released? ?
+                              '<font color="green">Public</font>' :
+                              '<font color="red">Private</font>') +
+			" (release date: " +
+			      (@experiment.release_date ?
+			      @experiment.release_date.strftime('%Y-%m-%d') :
+                              "") + ")" ) %>
+
+<% if flash[:notice] %><div class="notice"><%= flash[:notice] %></div><% end %>
+
+<table width="100%">
+<tr>
+  <%= content_tag("th", "Accession") %>
+  <%= content_tag("td", @experiment.accession) %>
+</tr>
+<tr>
+  <%= content_tag("th", "Curated Name") %>
+  <%= content_tag("td", @experiment.curated_name) %>
+</tr>
+<tr>
+  <%= content_tag("th", "Submitter's Description") %>
+  <%= content_tag("td", @experiment.submitter_description) %>
+</tr>
+</table>
+
+<hr/>
+
+<table width="100%">
+<tr>
+  <%= content_tag("th", "Species") %>
+  <%= content_tag("td", @experiment.organisms.collect{ |o| o.scientific_name}.join(", ")) %>
+</tr>
+<tr>
+  <%= content_tag("th", "Array Designs") %>
+  <%= content_tag("td", @experiment.array_designs.collect{ |a| a.accession}.join(", ")) %>
+</tr>
+<tr>
+  <%= content_tag("th", "Experimental Factors") %>
+  <%= content_tag("td", @experiment.factors.collect{ |f| f.name}.join(", ")) %>
+</tr>
+<tr>
+  <%= content_tag("th", "Quantitation Types") %>
+  <%= content_tag("td", @experiment.quantitation_types.collect{ |q| q.name}.join(", ")) %>
+</tr>
+</table>
+
+<hr/>
+
+<table width="100%">
+<tr>
+  <%= content_tag("th", "No. of Samples") %>
+  <%= content_tag("td", @experiment.num_samples) %>
+  <%= content_tag("th", "AE MIAME Score") %>
+  <%= content_tag("td", @experiment.ae_miame_score) %>
+  <%= content_tag("th", "Raw Data") %>
+  <%= content_tag("td", @experiment.has_raw_data.nil? ? '' :
+                              @experiment.has_raw_data? ?
+                              '<font color="green">YES</font>' :
+                              '<font color="red">no</font>') %>
+</tr>
+<tr>
+  <%= content_tag("th", "No. of Hybridizations") %>
+  <%= content_tag("td", @experiment.num_hybridizations) %>
+  <%= content_tag("th", "AE DW Score") %>
+  <%= content_tag("td", @experiment.ae_data_warehouse_score) %>
+  <%= content_tag("th", "Processed Data") %>
+  <%= content_tag("td", @experiment.has_processed_data.nil? ? '' :
+                              @experiment.has_processed_data? ?
+                              '<font color="green">YES</font>' :
+                              '<font color="red">no</font>') %>
+</tr>
+</table>
+
+<hr/>
+	
+<table width="100%">
+<tr>
+  <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+  <%= content_tag("th", "Event") %>
+  <%= content_tag("th", "Target DB") %>
+  <%= content_tag("th", "Operator") %>
+  <%= content_tag("th", "Start Time") %>
+  <%= content_tag("th", "End Time") %>
+  <%= content_tag("th", "Comment") %>
+</tr>
+<% for event in @experiment.events.sort_by{ |e| e.start_time } %>
+<tr>
+  <td>
+  <%= link_to "Edit", :controller      => "event",
+	              :action          => "edit", 
+                      :id              => event.id %>
+  </td>
+  <%= content_tag("td", "<font color='#{ (event.was_successful.nil? ? 'black' :
+					  event.was_successful == 0 ? 'red' :
+					  'green') }'>" + event.event_type + '</font>') %>
+  <%= content_tag("td", event.target_db) %>
+  <%= content_tag("td", event.operator) %>
+  <%= content_tag("td", event.start_time) %>
+  <%= content_tag("td", event.end_time) %>
+  <%= content_tag("td", truncate(event.comment, 30)) %>
+</tr>
+<% end %>
+</table>
+
+<p class="text"><font color="green">Green</font> events were
+successful, while <font color="red">Red</font> events failed.</p>
+
+<%= link_to 'Back', :action => 'list' %>
