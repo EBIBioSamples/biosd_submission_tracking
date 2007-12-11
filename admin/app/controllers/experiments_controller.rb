@@ -14,11 +14,15 @@ class ExperimentsController < ApplicationController
 
   def list
 
+    @list_all    = params[:list_all]
+    num_per_page = @list_all.to_i.zero? ? 30 : 1000000
+
     sql_where_clause = "is_deleted=0 and (accession is not null and accession!='')"
 
     @search_term = ""
 
-    if params[:search_term]
+    # Don't search with an empty string.
+    if params[:search_term] && !params[:search_term].eql?("")
 
       # Strip single quotes, otherwise they will cause a crash.
       @search_term = params[:search_term].gsub(/\'/, "")
@@ -31,7 +35,7 @@ class ExperimentsController < ApplicationController
     end
 
     @experiment_pages, @experiments = paginate :experiments,
-      :per_page   => 30,
+      :per_page   => num_per_page,
       :conditions => sql_where_clause.to_s,
       :order      => 'accession'
 

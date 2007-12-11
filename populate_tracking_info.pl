@@ -1147,6 +1147,8 @@ if ( $want_help ) {
     Optional arguments:
 
 	-R    Wipe the old tracking data and repopulate.
+        -E    Only update Event data.
+        -M    Only update Experiment and Array metadata.
 	-h    Print this help text.
 
 USAGE
