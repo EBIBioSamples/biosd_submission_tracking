@@ -14,7 +14,7 @@ class ExperimentsController < ApplicationController
 
   def list
 
-    sql_where_clause = "is_deleted=0"
+    sql_where_clause = "is_deleted=0 and (accession is not null and accession!='')"
 
     @search_term = ""
 

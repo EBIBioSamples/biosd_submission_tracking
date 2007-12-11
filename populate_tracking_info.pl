@@ -242,6 +242,14 @@ and vi.user_id = usr.id
 and usr.name = 'guest'
 QUERY
 
+    $cached_sth{ident $self}{is_loaded} = $dbh->prepare(<<"QUERY");
+select count(*)
+from pl_label la,
+tt_identifiable i
+where i.identifier = ?
+and i.identifier = la.mainobj_name
+QUERY
+
     $cached_sth{ident $self}{release_date} = $dbh->prepare(<<"QUERY");
 select nvt.value
 from tt_namevaluetype nvt,
@@ -537,6 +545,21 @@ sub get_is_released {
     my $results = $sth->fetchall_arrayref();
 
     return scalar @{ $results } ? 1 : 0;
+}
+
+sub get_is_loaded {
+
+    my ( $self, $accession ) = @_;
+
+    # If query returns > 0, object is loaded.
+    my $sth = $self->get_cached_sth()->{is_loaded}
+	or die("Error: Undefined statement handle.");
+
+    $sth->execute( $accession ) or die( $sth->errstr() );
+    
+    my $results = $sth->fetchall_arrayref();
+
+    return $results->[0][0];
 }
 
 sub get_ae_miame_score {
@@ -855,6 +878,9 @@ sub update_events {
 	croak("Error: update_events called with an invalid experiment object (no accession).");
     }
 
+    # Don't process unloaded objects.
+    return unless ( $aedb->get_is_loaded( $object->accession() ) );
+
     my $events = $aedb->get_events( $object->accession() );
 
     foreach my $event ( @{ $events } ) {
@@ -886,6 +912,9 @@ sub update_expt_metadata {
     unless ( $acc ) {
 	croak("Error: update_expt_metadata called with an invalid experiment object (no accession).");
     }
+
+    # Don't process unloaded experiments.
+    return unless ( $aedb->get_is_loaded( $acc ) );
 
     # Always update the date info, as it will change.
     $expt->set(
@@ -1011,16 +1040,16 @@ sub update_array_metadata {
 	croak("Error: update_array_metadata called with an invalid array design object (no accession).");
     }
 
-    unless ( defined ($array->release_date()) ) {
-	$array->set(
-	    release_date => $aedb->get_release_date($acc),
-	);
-    }
-    unless ( defined ($array->is_released()) ) {
-	$array->set(
-	    is_released => $aedb->get_is_released($acc),
-	);
-    }
+    # Don't process unloaded array_designs.
+    return unless ( $aedb->get_is_loaded( $acc ) );
+
+    $array->set(
+	release_date => $aedb->get_release_date($acc),
+    );
+    $array->set(
+	is_released => $aedb->get_is_released($acc),
+    );
+
     unless ( scalar ($array->organisms()) ) {
 	my $species_list = $aedb->get_array_species($acc);
 	foreach my $species ( @$species_list ) {
