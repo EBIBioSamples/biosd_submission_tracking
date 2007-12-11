@@ -33,7 +33,7 @@ class ExperimentsController < ApplicationController
     @experiment_pages, @experiments = paginate :experiments,
       :per_page   => 30,
       :conditions => sql_where_clause.to_s,
-      :order      => 'accession is null asc, accession="" asc, cast(substr(accession,8,10) as signed integer) desc'
+      :order      => 'accession'
 
   end
 

@@ -746,7 +746,13 @@ sub update_toplevel_objects {
 	is_deleted => 0,
     );
     my @prev_expt_accns = map { $_->accession() } @prev_expts;
+
+    EXPT:
     foreach my $accession ( @$ae_experiments ) {
+
+	# Don't load obviously bad accessions.
+	next EXPT unless ( $accession =~ m/\A E-[A-Z]{4}-\d+[a-zA-Z]* \z/xms );
+
 	unless ( first { defined($_) && $_ eq $accession } @prev_expt_accns ) {
 	    my $expt = ArrayExpress::AutoSubmission::DB::Experiment->find_or_create({
 		accession  => $accession,
@@ -766,7 +772,13 @@ sub update_toplevel_objects {
 	is_deleted => 0,
     );
     my @prev_array_accns = map { $_->accession() } @prev_arrays;
+
+    ARRAY:
     foreach my $accession ( @$ae_arrays ) {
+
+	# Don't load obviously bad accessions.
+	next ARRAY unless ( $accession =~ m/\A A-[A-Z]{4}-\d+[a-zA-Z]* \z/xms );
+
 	unless ( first { defined($_) && $_ eq $accession } @prev_array_accns ) {
 	    ArrayExpress::AutoSubmission::DB::ArrayDesign->find_or_create({
 		accession  => $accession,
@@ -878,8 +890,7 @@ sub update_events {
 	croak("Error: update_events called with an invalid experiment object (no accession).");
     }
 
-    # Don't process unloaded objects.
-    return unless ( $aedb->get_is_loaded( $object->accession() ) );
+    # N.B. we *do* process unloaded objects here.
 
     my $events = $aedb->get_events( $object->accession() );
 
