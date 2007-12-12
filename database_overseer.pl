@@ -117,6 +117,12 @@ while ( my $submission = $expt_iterator->next() ) {
         next SUBMISSION;
     }
 
+    # Skip test submissions, and subs without users.
+    my $user = $submission->user_id();
+    if ( ! $user || ( $user->login() eq 'test' ) ) {
+	next SUBMISSION;
+    }
+
     my $then = ParseDate( $submission->date_last_edited() );
     next SUBMISSION unless $then;
 
@@ -139,14 +145,14 @@ while ( my $submission = $expt_iterator->next() ) {
         }
 
         # Either never processed, or over a month since last done.
-        if ( !$last || ( $elapsed_months > 1 ) ) {
+        if ( ! $last || ( $elapsed_months > 1 ) ) {
 
 	    # Make a note for cron feedback to admin.
 	    print STDOUT (
 		"Emailing ",
-		$submission->user_id->login,
+		$user->login(),
 		" concerning submission ",
-		$submission->name,
+		$submission->name(),
 		"\n",
 	    );
 
