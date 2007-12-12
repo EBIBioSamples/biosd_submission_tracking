@@ -20,7 +20,7 @@
         <%= content_tag("td", o.scientific_name) %>
         <%= content_tag("td", o.common_name) %>
         <%= content_tag("td", o.accession) %>
-        <%= content_tag("td", o.taxon.scientific_name) %>
+        <%= content_tag("td", o.taxon.nil? ? '' : o.taxon.scientific_name) %>
 	<td>
         <%= link_to "Delete", {:action  => "deprecate", 
                                :id      => o.id},
@@ -35,6 +35,13 @@
     <%= pagination_links( @organism_pages, options={:window_size => 3} ) %>
     <%= link_to 'Next', { :page => @organism_pages.current.next } if @organism_pages.current.next %>
   </p>
+
+  <p class="text"><em>Note:</em> Organisms must be
+  assigned to taxa for them to be displayed in the public submissions web
+  interface. If you wish to enable one of the organisms listed above
+  for submissions you need to assign it to a taxon; preferably one
+  with the appropriate annotation categories selected, so that the
+  template spreadsheets contain the desired columns.</p>
 
   <%= content_tag("p", link_to("Add new organism", 
                         :controller => "organism", 
