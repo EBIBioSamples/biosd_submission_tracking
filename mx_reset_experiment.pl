@@ -56,7 +56,7 @@ QUERY
     my $results = $sth->fetchall_hashref('TSUBMIS_SYSUID');
     $sth->finish();
 
-    my $count = scalar( grep defined, values %$results );
+    my $count = scalar( grep { defined $_ } values %$results );
 
     unless ( $count == 1 ) {
         die(      "Error: SubID $subid returns invalid "
@@ -80,6 +80,8 @@ QUERY
 
     print STDOUT ( "MIAMExpress TSUBMIS table successfully updated "
             . "($subid: changed from $old_status to $new_status).\n" );
+
+    return;
 }
 
 sub reset_accession_cache {
@@ -115,6 +117,8 @@ sub reset_accession_cache {
             "Warning: No submission with SubID $subid found in accession table.\n"
         );
     }
+
+    return;
 }
 
 sub parse_args {

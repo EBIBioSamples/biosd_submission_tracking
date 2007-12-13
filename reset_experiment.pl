@@ -77,6 +77,8 @@ sub reset_accession_cache {
             "Error: No $expt_type submission with ID $id found in accession table. Skipping.\n"
         );
     }
+
+    return;
 }
 
 sub parse_args {

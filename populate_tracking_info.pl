@@ -67,6 +67,8 @@ sub BUILD {
     $dbhandle{ident $self}->{ $AEREP_DB }{LongTruncOk} = 1;
     $dbhandle{ident $self}->{ $AEDW_DB }{LongReadLen}  = 1000;
     $dbhandle{ident $self}->{ $AEDW_DB }{LongTruncOk}  = 1;
+
+    return;
 }
 
 sub START {
@@ -80,6 +82,8 @@ sub START {
 
     # Create our cached statement handles.
     $self->cache_statement_handles();
+
+    return;
 }
 
 sub cache_statement_handles : PRIVATE {
@@ -287,6 +291,7 @@ and d.text not like '(Generated description)%'
 and length(d.text) > 0
 QUERY
     
+    return;
 }
 
 sub get_instances {
@@ -636,6 +641,8 @@ sub cache_aerep_events : PRIVATE {
     print STDOUT "Caching AE repository events...\n";
 
     $self->cache_events( $AEREP_DB );
+
+    return;
 }
 
 sub cache_aedw_events : PRIVATE {
@@ -645,6 +652,8 @@ sub cache_aedw_events : PRIVATE {
     print STDOUT "Caching AE warehouse events...\n";
 
     $self->cache_events( $AEDW_DB );
+
+    return;
 }
 
 sub cache_events : PRIVATE {
@@ -683,6 +692,8 @@ QUERY
     }
 
     $self->set_event_cache($event);
+
+    return;
 }
 
 sub make_event_object : PRIVATE {
@@ -786,6 +797,8 @@ sub update_toplevel_objects {
 	    });
 	}
     }
+
+    return;
 }
 
 sub delete_cached_data {
@@ -812,6 +825,8 @@ sub delete_cached_data {
     if ( $todo->{metadata} ) {
 	delete_cached_metadata( $aedb );
     }
+
+    return;
 }
 
 sub delete_cached_metadata {
@@ -878,6 +893,8 @@ sub delete_cached_metadata {
 	
 	$array->update();
     }
+
+    return;
 }
 
 sub update_events {
@@ -910,6 +927,8 @@ sub update_events {
 	    is_deleted       => 0,
 	});
     }
+
+    return;
 }
 
 sub update_expt_metadata {
@@ -1037,6 +1056,8 @@ sub update_expt_metadata {
 
     # Save any changes.
     $expt->update();
+
+    return;
 }
 
 sub update_array_metadata {
@@ -1077,6 +1098,8 @@ sub update_array_metadata {
 
     # Save any changes.
     $array->update();
+
+    return;
 }
 
 sub max_job_dbids {
@@ -1118,6 +1141,8 @@ sub update_unfinished_events {
 	    $event->update();
 	}
     }
+
+    return;
 }
 
 # Separate autosubs DB queries from AE/AEDW queries. Transparently
@@ -1186,7 +1211,7 @@ if ( $repopulating ) {
     print("WARNING: You have chosen to delete the following information, and repopulate from the AE databases:\n\n");
     print("    " . join("; ", grep { $todo{$_} } keys %todo) . "\n\nProceed (Y/N)? ");
 
-    chomp( my $choice = <STDIN> );
+    chomp( my $choice = <> );
 
     unless( lc($choice) eq 'y' ) {
 	print("User terminated script execution.\n");
