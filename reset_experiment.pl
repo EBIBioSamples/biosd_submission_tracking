@@ -16,9 +16,8 @@ use English qw( -no_match_vars );
 use Readonly;
 
 use ArrayExpress::Curator::Config qw($CONFIG);
-
 use ArrayExpress::Curator::Common qw(date_now);
-use ArrayExpress::AutoSubmission::DB;
+require ArrayExpress::AutoSubmission::DB::Experiment;
 
 Readonly my $CURATION => 1;
 Readonly my $PENDING  => 0;

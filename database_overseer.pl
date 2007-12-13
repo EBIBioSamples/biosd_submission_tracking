@@ -20,7 +20,7 @@ use warnings;
 use MIME::Lite;
 use Date::Manip qw(ParseDate DateCalc Delta_Format);
 use Getopt::Long;
-use ArrayExpress::AutoSubmission::DB;
+require ArrayExpress::AutoSubmission::DB::Experiment;
 use ArrayExpress::Curator::Common qw(date_now);
 use ArrayExpress::Curator::Config qw($CONFIG);
 

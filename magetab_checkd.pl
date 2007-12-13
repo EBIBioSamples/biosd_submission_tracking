@@ -10,7 +10,7 @@
 use strict;
 use warnings;
 
-use ArrayExpress::AutoSubmission::Daemon::Checker;
+use ArrayExpress::AutoSubmission::Daemon::MAGETABChecker;
 use ArrayExpress::Curator::Config qw($CONFIG);
 
 # Create the daemon object and start checking.

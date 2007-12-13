@@ -11,7 +11,7 @@
 use strict;
 use warnings;
 
-use ArrayExpress::AutoSubmission::Daemon::Exporter;
+use ArrayExpress::AutoSubmission::Daemon::T2MExporter;
 use ArrayExpress::Curator::Config qw($CONFIG);
 
 # Create the daemon object and start exporting.

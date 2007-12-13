@@ -10,7 +10,7 @@
 use strict;
 use warnings;
 
-use ArrayExpress::AutoSubmission::Daemon::Checker;
+use ArrayExpress::AutoSubmission::Daemon::T2MChecker;
 use ArrayExpress::Curator::Config qw($CONFIG);
 
 # Create the daemon object and start checking.

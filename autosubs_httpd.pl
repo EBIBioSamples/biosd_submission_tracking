@@ -21,7 +21,9 @@ use Proc::Daemon;
 use CGI;
 use Getopt::Long;
 
-use ArrayExpress::AutoSubmission::DB;
+require ArrayExpress::AutoSubmission::DB::Protocol;
+require ArrayExpress::AutoSubmission::DB::Experiment;
+require ArrayExpress::AutoSubmission::DB::ArrayDesign;
 
 ########
 # SUBS #
