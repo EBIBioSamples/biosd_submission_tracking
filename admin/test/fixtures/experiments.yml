@@ -1,5 +1,18 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
-first:
+first:     # N.B. no accession for the first, otherwise test deprecation fails.
   id: 1
+  experiment_type: Tab2MAGE
+  is_affymetrix: 1
+  in_curation: 1
 another:
   id: 2
+  accession: E-TABM-1
+  experiment_type: Tab2MAGE
+  is_affymetrix: 0
+  in_curation: 0
+yetanother:
+  id: 3
+  accession: E-MEXP-1
+  experiment_type: MIAMExpress
+  is_affymetrix: 0
+  in_curation: 0

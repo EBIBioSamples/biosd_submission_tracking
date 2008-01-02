@@ -6,11 +6,13 @@ class ProtocolsController; def rescue_action(e) raise e end; end
 
 class ProtocolsControllerTest < Test::Unit::TestCase
   fixtures :protocols
+  fixtures :permissions, :roles, :users, :roles_users, :permissions_roles
 
   def setup
     @controller = ProtocolsController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
+    @request.session["user"] = @bob
   end
 
   def test_index
@@ -74,15 +76,13 @@ class ProtocolsControllerTest < Test::Unit::TestCase
     assert_redirected_to :action => 'list'
   end
 
-  def test_destroy
+  def test_deprecate
     assert_not_nil Protocol.find(1)
 
-    post :delete, :id => 1
+    post :deprecate, :id => 1
     assert_response :redirect
     assert_redirected_to :action => 'list'
 
-    assert_raise(ActiveRecord::RecordNotFound) {
-      Protocol.find(1)
-    }
+    assert_equal(1, Protocol.find(1).is_deleted)
   end
 end

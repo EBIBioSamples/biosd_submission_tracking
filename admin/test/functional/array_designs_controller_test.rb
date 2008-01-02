@@ -6,11 +6,13 @@ class ArrayDesignsController; def rescue_action(e) raise e end; end
 
 class ArrayDesignsControllerTest < Test::Unit::TestCase
   fixtures :array_designs
+  fixtures :permissions, :roles, :users, :roles_users, :permissions_roles
 
   def setup
     @controller = ArrayDesignsController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
+    @request.session["user"] = @bob
   end
 
   def test_index
@@ -50,7 +52,7 @@ class ArrayDesignsControllerTest < Test::Unit::TestCase
   def test_create
     num_array_designs = ArrayDesign.count
 
-    post :create, :array_design => {:id => 3, :subid => 3, :accession => 3}
+    post :create, :array_design => {:id => 3, :miamexpress_subid => 1003, :accession => "A-MEXP-3"}
 
     assert_response :redirect
     assert_redirected_to :action => 'list'
@@ -74,15 +76,13 @@ class ArrayDesignsControllerTest < Test::Unit::TestCase
     assert_redirected_to :action => 'list'
   end
 
-  def test_destroy
+  def test_deprecate
     assert_not_nil ArrayDesign.find(1)
 
-    post :delete, :id => 1
+    post :deprecate, :id => 1
     assert_response :redirect
     assert_redirected_to :action => 'list'
 
-    assert_raise(ActiveRecord::RecordNotFound) {
-      ArrayDesign.find(1)
-    }
+    assert_equal(1, ArrayDesign.find(1).is_deleted)
   end
 end

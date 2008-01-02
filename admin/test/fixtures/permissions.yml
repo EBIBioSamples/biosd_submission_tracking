@@ -1,5 +1,17 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
-first:
+adminperms:
   id: 1
-another:
+  name: '.*/.*'
+  info: 'Access All Areas'
+  is_deleted: 0
+exptperms:
   id: 2
+  name: 'experiments/.*'
+  info: 'Full experiment access'
+  is_deleted: 0
+arrayperms:
+  id: 3
+  name: 'array_designs/.*'
+  info: 'Full array design access'
+  is_deleted: 0
+

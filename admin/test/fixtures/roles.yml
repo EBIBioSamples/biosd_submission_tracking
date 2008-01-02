@@ -1,5 +1,11 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 first:
   id: 1
+  name: 'admin'
+  info: 'Superuser'
+  is_deleted: 0
 another:
   id: 2
+  name: 'curator'
+  info: 'Curator'
+  is_deleted: 0

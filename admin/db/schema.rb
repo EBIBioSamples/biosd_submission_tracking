@@ -6,7 +6,7 @@ ActiveRecord::Schema.define() do
 
   create_table "array_designs", :force => true do |t|
     t.column "miamexpress_subid", :integer
-    t.column "accession", :string, :limit => 15
+    t.column "accession", :string
     t.column "name", :string
     t.column "miamexpress_login", :string, :limit => 50
     t.column "status", :string, :limit => 50
@@ -16,9 +16,30 @@ ActiveRecord::Schema.define() do
     t.column "is_deleted", :integer, :default => 0, :null => false
     t.column "miame_score", :integer
     t.column "in_data_warehouse", :integer
+    t.column "annotation_source", :string, :limit => 50
+    t.column "annotation_version", :string, :limit => 50
+    t.column "biomart_table_name", :string, :limit => 50
+    t.column "release_date", :datetime
+    t.column "is_released", :integer
   end
 
   add_index "array_designs", ["miamexpress_subid"], :name => "miamexpress_subid", :unique => true
+
+  create_table "array_designs_experiments", :force => true do |t|
+    t.column "array_design_id", :integer, :default => 0, :null => false
+    t.column "experiment_id", :integer, :default => 0, :null => false
+  end
+
+  add_index "array_designs_experiments", ["array_design_id"], :name => "array_design_id"
+  add_index "array_designs_experiments", ["experiment_id"], :name => "experiment_id"
+
+  create_table "array_designs_organisms", :force => true do |t|
+    t.column "organism_id", :integer, :default => 0, :null => false
+    t.column "array_design_id", :integer, :default => 0, :null => false
+  end
+
+  add_index "array_designs_organisms", ["organism_id"], :name => "organism_id"
+  add_index "array_designs_organisms", ["array_design_id"], :name => "array_design_id"
 
   create_table "categories", :force => true do |t|
     t.column "ontology_term", :string, :limit => 50
@@ -78,8 +99,28 @@ ActiveRecord::Schema.define() do
     t.column "is_deleted", :integer, :default => 0, :null => false
   end
 
+  create_table "events", :force => true do |t|
+    t.column "array_design_id", :integer
+    t.column "experiment_id", :integer
+    t.column "event_type", :string, :limit => 50, :default => "", :null => false
+    t.column "was_successful", :integer
+    t.column "source_db", :string, :limit => 30
+    t.column "target_db", :string, :limit => 30
+    t.column "start_time", :datetime
+    t.column "end_time", :datetime
+    t.column "machine", :string, :limit => 30
+    t.column "operator", :string, :limit => 30
+    t.column "log_file", :string
+    t.column "jobregister_dbid", :integer, :limit => 13
+    t.column "comment", :text
+    t.column "is_deleted", :integer, :default => 0, :null => false
+  end
+
+  add_index "events", ["array_design_id"], :name => "array_design_id"
+  add_index "events", ["experiment_id"], :name => "experiment_id"
+
   create_table "experiments", :force => true do |t|
-    t.column "accession", :string, :limit => 15
+    t.column "accession", :string
     t.column "name", :string
     t.column "user_id", :integer
     t.column "checker_score", :integer
@@ -100,9 +141,41 @@ ActiveRecord::Schema.define() do
     t.column "is_deleted", :integer, :default => 0, :null => false
     t.column "miame_score", :integer
     t.column "in_data_warehouse", :integer
+    t.column "num_submissions", :integer
+    t.column "submitter_description", :text
+    t.column "curated_name", :string
+    t.column "num_samples", :integer
+    t.column "num_hybridizations", :integer
+    t.column "has_raw_data", :integer
+    t.column "has_processed_data", :integer
+    t.column "release_date", :datetime
+    t.column "is_released", :integer
+    t.column "ae_miame_score", :integer
+    t.column "ae_data_warehouse_score", :integer
   end
 
   add_index "experiments", ["user_id"], :name => "user_id"
+
+  create_table "experiments_factors", :force => true do |t|
+    t.column "experiment_id", :integer, :default => 0, :null => false
+    t.column "factor_id", :integer, :default => 0, :null => false
+  end
+
+  add_index "experiments_factors", ["experiment_id"], :name => "experiment_id"
+  add_index "experiments_factors", ["factor_id"], :name => "factor_id"
+
+  create_table "experiments_quantitation_types", :force => true do |t|
+    t.column "quantitation_type_id", :integer, :default => 0, :null => false
+    t.column "experiment_id", :integer, :default => 0, :null => false
+  end
+
+  add_index "experiments_quantitation_types", ["quantitation_type_id"], :name => "quantitation_type_id"
+  add_index "experiments_quantitation_types", ["experiment_id"], :name => "experiment_id"
+
+  create_table "factors", :force => true do |t|
+    t.column "name", :string, :limit => 128, :default => "", :null => false
+    t.column "is_deleted", :integer, :default => 0, :null => false
+  end
 
   create_table "material_instances", :force => true do |t|
     t.column "material_id", :integer, :default => 0, :null => false
@@ -136,9 +209,11 @@ ActiveRecord::Schema.define() do
     t.column "scientific_name", :string, :limit => 50
     t.column "common_name", :string, :limit => 50
     t.column "accession", :integer
-    t.column "taxon_id", :integer, :default => 0, :null => false
+    t.column "taxon_id", :integer
     t.column "is_deleted", :integer, :default => 0, :null => false
   end
+
+  add_index "organisms", ["taxon_id"], :name => "taxon_id"
 
   create_table "permissions", :force => true do |t|
     t.column "name", :string, :limit => 40, :default => "", :null => false
@@ -165,6 +240,11 @@ ActiveRecord::Schema.define() do
   end
 
   add_index "protocols", ["accession"], :name => "accession", :unique => true
+
+  create_table "quantitation_types", :force => true do |t|
+    t.column "name", :string, :limit => 128, :default => "", :null => false
+    t.column "is_deleted", :integer, :default => 0, :null => false
+  end
 
   create_table "roles", :force => true do |t|
     t.column "name", :string, :limit => 40, :default => "", :null => false

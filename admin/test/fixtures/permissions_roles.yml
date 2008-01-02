@@ -1,0 +1,11 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+
+adminrole:
+  role_id: 1
+  permission_id: 1
+exptrole:
+  role_id: 1
+  permission_id: 2
+arrayrole:
+  role_id: 1
+  permission_id: 3
