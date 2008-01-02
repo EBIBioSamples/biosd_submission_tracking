@@ -5,6 +5,9 @@ require 'quantitation_type_controller'
 class QuantitationTypeController; def rescue_action(e) raise e end; end
 
 class QuantitationTypeControllerTest < Test::Unit::TestCase
+  
+  fixtures :quantitation_types
+
   def setup
     @controller = QuantitationTypeController.new
     @request    = ActionController::TestRequest.new

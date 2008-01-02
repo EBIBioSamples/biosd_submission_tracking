@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
 class OrganismTest < Test::Unit::TestCase
-  fixtures :organisms
+  fixtures :taxons, :organisms
 
   def setup
     @organism = Organism.find(1)

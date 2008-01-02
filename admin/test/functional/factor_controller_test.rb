@@ -5,6 +5,9 @@ require 'factor_controller'
 class FactorController; def rescue_action(e) raise e end; end
 
 class FactorControllerTest < Test::Unit::TestCase
+
+  fixtures :factors
+
   def setup
     @controller = FactorController.new
     @request    = ActionController::TestRequest.new

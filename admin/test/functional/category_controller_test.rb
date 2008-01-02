@@ -5,6 +5,9 @@ require 'category_controller'
 class CategoryController; def rescue_action(e) raise e end; end
 
 class CategoryControllerTest < Test::Unit::TestCase
+
+  fixtures :categories
+
   def setup
     @controller = CategoryController.new
     @request    = ActionController::TestRequest.new

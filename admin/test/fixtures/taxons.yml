@@ -1,5 +1,11 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 first_taxon:
   id: 1
+  accession:  2
+  common_name: Eubacteria
+  scientific_name: Bacteria
 another_taxon:
   id: 2
+  accession:  4890
+  common_name: Sac Fungi
+  scientific_name: Ascomycota

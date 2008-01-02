@@ -1,5 +1,9 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 first:
   id: 1
+  event_type: MAGEvalidator
+  experiment_id: 2
 another:
   id: 2
+  event_type: MAGEloader
+  experiment_id: 2

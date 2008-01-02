@@ -1,5 +1,11 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 first:
   id: 1
+  display_label:     Whole organism
+  ontology_category: MaterialType
+  ontology_value:    whole_organism
 another:
   id: 2
+  display_label:     Organism part
+  ontology_category: MaterialType
+  ontology_value:    organism_part

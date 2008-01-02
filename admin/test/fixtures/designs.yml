@@ -1,5 +1,13 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 first:
   id: 1
+  display_label:     Cell type comparison
+  ontology_category: ExperimentalDesignType
+  ontology_value:    cell_type_comparison_design
+  design_type:       biological
 another:
   id: 2
+  display_label:     Dye swap
+  ontology_category: MethodologicalDesignType
+  ontology_value:    dye_swap_design
+  design_type:       methodological

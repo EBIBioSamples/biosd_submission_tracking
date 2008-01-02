@@ -5,6 +5,9 @@ require 'material_controller'
 class MaterialController; def rescue_action(e) raise e end; end
 
 class MaterialControllerTest < Test::Unit::TestCase
+
+  fixtures :materials
+
   def setup
     @controller = MaterialController.new
     @request    = ActionController::TestRequest.new

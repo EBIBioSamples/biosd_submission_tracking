@@ -1,5 +1,13 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 first_organism:
   id: 1
+  accession:  562
+  common_name: E. coli
+  scientific_name: Escherichia coli
+  taxon_id: 1
 another_organism:
   id: 2
+  accession:  4932
+  common_name: Baker's yeast
+  scientific_name: Saccharomyces cerevisiae
+  taxon_id: 2

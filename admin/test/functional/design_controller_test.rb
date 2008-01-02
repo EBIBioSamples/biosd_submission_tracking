@@ -5,6 +5,9 @@ require 'design_controller'
 class DesignController; def rescue_action(e) raise e end; end
 
 class DesignControllerTest < Test::Unit::TestCase
+
+  fixtures :designs
+
   def setup
     @controller = DesignController.new
     @request    = ActionController::TestRequest.new

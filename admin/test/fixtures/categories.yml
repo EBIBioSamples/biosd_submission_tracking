@@ -1,5 +1,9 @@
 # Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
 first_category:
   id: 1
+  ontology_term: Age
+  display_label: Age
 another_category:
   id: 2
+  ontology_term: CellLine
+  display_label: Cell line
