@@ -122,10 +122,10 @@ CREATE TABLE `events` (
   `target_db` varchar(30) default NULL,
   `start_time` datetime default NULL,        -- REDUNDANT
   `end_time` datetime default NULL,          -- REDUNDANT
-  `machine` varchar(30) default NULL,
+  `machine` varchar(50) default NULL,
   `operator` varchar(30) default NULL,
-  `log_file` varchar(255) default NULL,
-  `jobregister_dbid` int(13) default NULL,
+  `log_file` varchar(511) default NULL,
+  `jobregister_dbid` int(15) default NULL,
   `comment` text,
   `is_deleted` int(11) NOT NULL,
   PRIMARY KEY  (`id`),

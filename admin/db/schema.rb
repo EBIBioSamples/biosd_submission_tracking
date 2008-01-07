@@ -108,10 +108,10 @@ ActiveRecord::Schema.define() do
     t.column "target_db", :string, :limit => 30
     t.column "start_time", :datetime
     t.column "end_time", :datetime
-    t.column "machine", :string, :limit => 30
+    t.column "machine", :string, :limit => 50
     t.column "operator", :string, :limit => 30
     t.column "log_file", :string
-    t.column "jobregister_dbid", :integer, :limit => 13
+    t.column "jobregister_dbid", :integer, :limit => 15
     t.column "comment", :text
     t.column "is_deleted", :integer, :default => 0, :null => false
   end

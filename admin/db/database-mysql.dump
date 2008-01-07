@@ -1,8 +1,8 @@
 -- MySQL dump 10.10
 --
--- Host: localhost    Database: test
+-- Host: localhost    Database: autosubs_test
 -- ------------------------------------------------------
--- Server version	5.0.24a-standard-log
+-- Server version	5.0.27
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `array_designs`;
 CREATE TABLE `array_designs` (
   `id` int(11) NOT NULL auto_increment,
   `miamexpress_subid` int(11) default NULL,
-  `accession` char(15) default NULL,
+  `accession` varchar(255) default NULL,
   `name` varchar(255) default NULL,
   `miamexpress_login` varchar(50) default NULL,
   `status` varchar(50) default NULL,
@@ -33,6 +33,11 @@ CREATE TABLE `array_designs` (
   `is_deleted` int(11) NOT NULL,
   `miame_score` int(11) default NULL,
   `in_data_warehouse` int(11) default NULL,
+  `annotation_source` varchar(50) default NULL,
+  `annotation_version` varchar(50) default NULL,
+  `biomart_table_name` varchar(50) default NULL,
+  `release_date` datetime default NULL,
+  `is_released` int(11) default NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `miamexpress_subid` (`miamexpress_subid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -44,6 +49,56 @@ CREATE TABLE `array_designs` (
 LOCK TABLES `array_designs` WRITE;
 /*!40000 ALTER TABLE `array_designs` DISABLE KEYS */;
 /*!40000 ALTER TABLE `array_designs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `array_designs_experiments`
+--
+
+DROP TABLE IF EXISTS `array_designs_experiments`;
+CREATE TABLE `array_designs_experiments` (
+  `id` int(11) NOT NULL auto_increment,
+  `array_design_id` int(11) NOT NULL,
+  `experiment_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `array_design_id` (`array_design_id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `array_designs_experiments_ibfk_1` FOREIGN KEY (`array_design_id`) REFERENCES `array_designs` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `array_designs_experiments_ibfk_2` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `array_designs_experiments`
+--
+
+LOCK TABLES `array_designs_experiments` WRITE;
+/*!40000 ALTER TABLE `array_designs_experiments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `array_designs_experiments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `array_designs_organisms`
+--
+
+DROP TABLE IF EXISTS `array_designs_organisms`;
+CREATE TABLE `array_designs_organisms` (
+  `id` int(11) NOT NULL auto_increment,
+  `organism_id` int(11) NOT NULL,
+  `array_design_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `organism_id` (`organism_id`),
+  KEY `array_design_id` (`array_design_id`),
+  CONSTRAINT `array_designs_organisms_ibfk_1` FOREIGN KEY (`organism_id`) REFERENCES `organisms` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `array_designs_organisms_ibfk_2` FOREIGN KEY (`array_design_id`) REFERENCES `array_designs` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `array_designs_organisms`
+--
+
+LOCK TABLES `array_designs_organisms` WRITE;
+/*!40000 ALTER TABLE `array_designs_organisms` DISABLE KEYS */;
+/*!40000 ALTER TABLE `array_designs_organisms` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -220,13 +275,50 @@ INSERT INTO `designs` VALUES (1,'Disease state','ExperimentalDesignType','diseas
 UNLOCK TABLES;
 
 --
+-- Table structure for table `events`
+--
+
+DROP TABLE IF EXISTS `events`;
+CREATE TABLE `events` (
+  `id` int(11) NOT NULL auto_increment,
+  `array_design_id` int(11) default NULL,
+  `experiment_id` int(11) default NULL,
+  `event_type` varchar(50) NOT NULL,
+  `was_successful` int(11) default NULL,
+  `source_db` varchar(30) default NULL,
+  `target_db` varchar(30) default NULL,
+  `start_time` datetime default NULL,
+  `end_time` datetime default NULL,
+  `machine` varchar(50) default NULL,
+  `operator` varchar(30) default NULL,
+  `log_file` varchar(511) default NULL,
+  `jobregister_dbid` int(15) default NULL,
+  `comment` text,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `array_design_id` (`array_design_id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `events_ibfk_1` FOREIGN KEY (`array_design_id`) REFERENCES `array_designs` (`id`),
+  CONSTRAINT `events_ibfk_2` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `events`
+--
+
+LOCK TABLES `events` WRITE;
+/*!40000 ALTER TABLE `events` DISABLE KEYS */;
+/*!40000 ALTER TABLE `events` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `experiments`
 --
 
 DROP TABLE IF EXISTS `experiments`;
 CREATE TABLE `experiments` (
   `id` int(11) NOT NULL auto_increment,
-  `accession` char(15) default NULL,
+  `accession` varchar(255) default NULL,
   `name` varchar(255) default NULL,
   `user_id` int(11) default NULL,
   `checker_score` int(11) default NULL,
@@ -247,6 +339,17 @@ CREATE TABLE `experiments` (
   `is_deleted` int(11) NOT NULL,
   `miame_score` int(11) default NULL,
   `in_data_warehouse` int(11) default NULL,
+  `num_submissions` int(11) default NULL,
+  `submitter_description` text,
+  `curated_name` varchar(255) default NULL,
+  `num_samples` int(11) default NULL,
+  `num_hybridizations` int(11) default NULL,
+  `has_raw_data` int(11) default NULL,
+  `has_processed_data` int(11) default NULL,
+  `release_date` datetime default NULL,
+  `is_released` int(11) default NULL,
+  `ae_miame_score` int(11) default NULL,
+  `ae_data_warehouse_score` int(11) default NULL,
   PRIMARY KEY  (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `experiments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
@@ -259,6 +362,77 @@ CREATE TABLE `experiments` (
 LOCK TABLES `experiments` WRITE;
 /*!40000 ALTER TABLE `experiments` DISABLE KEYS */;
 /*!40000 ALTER TABLE `experiments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `experiments_factors`
+--
+
+DROP TABLE IF EXISTS `experiments_factors`;
+CREATE TABLE `experiments_factors` (
+  `id` int(11) NOT NULL auto_increment,
+  `experiment_id` int(11) NOT NULL,
+  `factor_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `experiment_id` (`experiment_id`),
+  KEY `factor_id` (`factor_id`),
+  CONSTRAINT `experiments_factors_ibfk_1` FOREIGN KEY (`factor_id`) REFERENCES `factors` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `experiments_factors_ibfk_2` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `experiments_factors`
+--
+
+LOCK TABLES `experiments_factors` WRITE;
+/*!40000 ALTER TABLE `experiments_factors` DISABLE KEYS */;
+/*!40000 ALTER TABLE `experiments_factors` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `experiments_quantitation_types`
+--
+
+DROP TABLE IF EXISTS `experiments_quantitation_types`;
+CREATE TABLE `experiments_quantitation_types` (
+  `id` int(11) NOT NULL auto_increment,
+  `quantitation_type_id` int(11) NOT NULL,
+  `experiment_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `quantitation_type_id` (`quantitation_type_id`),
+  KEY `experiment_id` (`experiment_id`),
+  CONSTRAINT `experiments_quantitation_types_ibfk_1` FOREIGN KEY (`quantitation_type_id`) REFERENCES `quantitation_types` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `experiments_quantitation_types_ibfk_2` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `experiments_quantitation_types`
+--
+
+LOCK TABLES `experiments_quantitation_types` WRITE;
+/*!40000 ALTER TABLE `experiments_quantitation_types` DISABLE KEYS */;
+/*!40000 ALTER TABLE `experiments_quantitation_types` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `factors`
+--
+
+DROP TABLE IF EXISTS `factors`;
+CREATE TABLE `factors` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(128) NOT NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `factors`
+--
+
+LOCK TABLES `factors` WRITE;
+/*!40000 ALTER TABLE `factors` DISABLE KEYS */;
+/*!40000 ALTER TABLE `factors` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -366,11 +540,11 @@ CREATE TABLE `organisms` (
   `scientific_name` varchar(50) default NULL,
   `common_name` varchar(50) default NULL,
   `accession` int(11) default NULL,
-  `taxon_id` int(11) NOT NULL,
+  `taxon_id` int(11) default NULL,
   `is_deleted` int(11) NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `taxon_id` (`taxon_id`),
-  CONSTRAINT `organisms_ibfk_1` FOREIGN KEY (`taxon_id`) REFERENCES `taxons` (`id`) ON DELETE RESTRICT
+  CONSTRAINT `organisms_ibfk_1` FOREIGN KEY (`taxon_id`) REFERENCES `taxons` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -455,6 +629,27 @@ CREATE TABLE `protocols` (
 LOCK TABLES `protocols` WRITE;
 /*!40000 ALTER TABLE `protocols` DISABLE KEYS */;
 /*!40000 ALTER TABLE `protocols` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `quantitation_types`
+--
+
+DROP TABLE IF EXISTS `quantitation_types`;
+CREATE TABLE `quantitation_types` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(128) NOT NULL,
+  `is_deleted` int(11) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `quantitation_types`
+--
+
+LOCK TABLES `quantitation_types` WRITE;
+/*!40000 ALTER TABLE `quantitation_types` DISABLE KEYS */;
+/*!40000 ALTER TABLE `quantitation_types` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -590,4 +785,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2007-04-27 10:56:28
+-- Dump completed on 2008-01-07  9:25:44
