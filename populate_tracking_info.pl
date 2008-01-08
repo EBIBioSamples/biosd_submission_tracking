@@ -11,6 +11,9 @@
 use strict;
 use warnings;
 
+# Next line is a placeholder. Uncomment and edit as necessary, or set PERL5LIB environmental variable
+# use lib /path/to/directory/containing/Curator/modules;
+
 use Getopt::Long;
 use Carp;
 use List::Util qw(first);
