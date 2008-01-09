@@ -231,6 +231,8 @@ sub update_expt_metadata {
     # Don't process unloaded experiments.
     return unless ( $aedb->get_is_loaded( $acc ) );
 
+    my $has_metadata = $expt->release_date();
+
     # Always update the date info, as it will change.
     $expt->set(
 	release_date => ( $aedb->get_release_date($acc) || 0 ),
@@ -238,6 +240,28 @@ sub update_expt_metadata {
     $expt->set(
 	is_released => $aedb->get_is_released($acc),
     );
+
+    # Skip metadata update for experiments having a release date (this
+    # is a fairly arbitrary shortcut to reduce processing time).
+    unless ( defined $has_metadata ) {
+	update_heavy_expt_queries( $expt, $aedb );
+    }
+
+    # Save any changes.
+    $expt->update();
+
+    return;
+}
+
+sub update_heavy_expt_queries {
+
+    my ( $expt, $aedb ) = @_;
+
+    my $acc = $expt->accession();
+
+    unless ( $acc ) {
+	croak("Error: update_heavy_expt_queries called with an invalid experiment object (no accession).");
+    }
 
     # Only update the following if the metadatum is not present.
     unless ( defined ($expt->submitter_description()) ) {
@@ -360,12 +384,36 @@ sub update_array_metadata {
     # Don't process unloaded array_designs.
     return unless ( $aedb->get_is_loaded( $acc ) );
 
+    my $has_metadata = $array->release_date();
+
     $array->set(
 	release_date => ( $aedb->get_release_date($acc) || 0 ),
     );
     $array->set(
 	is_released => $aedb->get_is_released($acc),
     );
+
+    # Skip metadata update for array designs having a release date
+    # (this is a fairly arbitrary shortcut to reduce processing time).
+    unless ( defined $has_metadata ) {
+	update_heavy_array_queries( $array, $aedb );
+    }
+
+    # Save any changes.
+    $array->update();
+
+    return;
+}
+
+sub update_heavy_array_queries {
+
+    my ( $array, $aedb ) = @_;
+
+    my $acc = $array->accession();
+
+    unless ( $acc ) {
+	croak("Error: update_heavy_array_queries called with an invalid array design object (no accession).");
+    }
 
     unless ( scalar ($array->organisms()) ) {
 	my $species_list = $aedb->get_array_species($acc);
@@ -519,10 +567,6 @@ while ( my $expt = $expt_iterator->next() ) {
     printf STDOUT ("Updating experiment %s...\n", $expt->accession());
 
     update_events( $expt, $aedb )        if $todo{events};
-
-    # Skip metadata update for experiments having a release date (this
-    # is a fairly arbitrary shortcut to reduce processing time).
-    next EXPT if defined( $expt->release_date() );
     update_expt_metadata( $expt, $aedb ) if $todo{metadata};
 }
 
@@ -540,10 +584,6 @@ while ( my $array_design = $array_iterator->next() ) {
     printf STDOUT ("Updating array design %s...\n", $array_design->accession());
 
     update_events( $array_design, $aedb )         if $todo{events};
-
-    # Skip metadata update for designs having a release date (this is
-    # a fairly arbitrary shortcut to reduce processing time).
-    next ARRAY_DESIGN if defined( $array_design->release_date() );
     update_array_metadata( $array_design, $aedb ) if $todo{metadata};
 }
 
