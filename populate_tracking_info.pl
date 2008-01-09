@@ -361,7 +361,7 @@ sub update_array_metadata {
     return unless ( $aedb->get_is_loaded( $acc ) );
 
     $array->set(
-	release_date => $aedb->get_release_date($acc),
+	release_date => ( $aedb->get_release_date($acc) || 0 ),
     );
     $array->set(
 	is_released => $aedb->get_is_released($acc),
