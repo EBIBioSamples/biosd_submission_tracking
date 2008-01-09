@@ -131,6 +131,8 @@ sub delete_cached_metadata {
 
 	printf STDOUT ("Deleting metadata for %s...\n", $expt->accession());
 
+	# Setting release_date = undef is particularly important, sinc
+	# it is used to flag objects needing update.
 	$expt->set(
 	    submitter_description   => undef,
 	    curated_name            => undef,
@@ -165,6 +167,8 @@ sub delete_cached_metadata {
 
 	printf STDOUT ("Deleting metadata for %s...\n", $array->accession());
 
+	# Setting release_date = undef is particularly important, sinc
+	# it is used to flag objects needing update.
 	$array->set(
 	    release_date            => undef,
 	    is_released             => undef,
@@ -229,7 +233,7 @@ sub update_expt_metadata {
 
     # Always update the date info, as it will change.
     $expt->set(
-	release_date => $aedb->get_release_date($acc),
+	release_date => ( $aedb->get_release_date($acc) || 0 ),
     );
     $expt->set(
 	is_released => $aedb->get_is_released($acc),
@@ -514,8 +518,12 @@ while ( my $expt = $expt_iterator->next() ) {
 
     printf STDOUT ("Updating experiment %s...\n", $expt->accession());
 
-    update_expt_metadata( $expt, $aedb ) if $todo{metadata};
     update_events( $expt, $aedb )        if $todo{events};
+
+    # Skip metadata update for experiments having a release date (this
+    # is a fairly arbitrary shortcut to reduce processing time).
+    next EXPT if defined( $expt->release_date() );
+    update_expt_metadata( $expt, $aedb ) if $todo{metadata};
 }
 
 # Update array designs here.
@@ -526,13 +534,17 @@ my $array_iterator = ArrayExpress::AutoSubmission::DB::ArrayDesign->search(
 ARRAY_DESIGN:
 while ( my $array_design = $array_iterator->next() ) {
 
-    # Skip experiments without assigned accessions.
+    # Skip array designs without assigned accessions.
     next ARRAY_DESIGN unless $array_design->accession();
 
     printf STDOUT ("Updating array design %s...\n", $array_design->accession());
 
-    update_array_metadata( $array_design, $aedb ) if $todo{metadata};
     update_events( $array_design, $aedb )         if $todo{events};
+
+    # Skip metadata update for designs having a release date (this is
+    # a fairly arbitrary shortcut to reduce processing time).
+    next ARRAY_DESIGN if defined( $array_design->release_date() );
+    update_array_metadata( $array_design, $aedb ) if $todo{metadata};
 }
 
 # Finally, update any previously-unfinished events.
