@@ -4,7 +4,7 @@
 
 <div>
 	<%= form_tag %>
-	<%= content_tag("span", "Search on Accession (wildcards: *, ?): ") %>
+	<%= content_tag("span", "Search on Accession or Comment (wildcards: *, ?): ") %>
 	<%= text_field_tag("search_term", @search_term) %>
 	<%= submit_tag("Search") %>
         <%= content_tag("span", "&nbsp;&nbsp;List all results on one page:") %>
@@ -24,6 +24,7 @@
       <%= content_tag("th", "Release Date") %>
       <%= content_tag("th", "Is Released") %>
       <%= content_tag("th", "Loaded in DW") %>
+      <%= content_tag("th", "Comment") %>
     </tr>
 
     <% @array_designs.each do |a| %>
@@ -47,6 +48,7 @@
 	<%= content_tag("td", a.in_data_warehouse?        ?
                               '<font color="green">YES</font>' :
                               '<font color="red">no</font>') %>
+	<%= content_tag("td", truncate(a.comment, 30)) %>
       </tr> 
     <% end %>
   </table>

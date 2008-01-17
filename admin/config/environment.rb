@@ -51,3 +51,6 @@ end
 # end
 
 # Include your application configuration below
+
+# All our database timestamps are GMT.
+ActiveRecord::Base.default_timezone = :utc

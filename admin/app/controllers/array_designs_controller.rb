@@ -57,7 +57,8 @@ class ArrayDesignsController < ApplicationController
       # Silently allow asterisk wildcards
       sql_search = @search_term.gsub(/\*/, "%").gsub(/\?/, "_")
 
-      sql_where_clause += " and accession like '#{ sql_search }'"
+      sql_where_clause += " and accession like '#{ sql_search }'" +
+	                  " or comment like '%#{ sql_search }%'"
 
     end
 

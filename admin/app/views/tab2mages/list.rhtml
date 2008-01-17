@@ -2,7 +2,7 @@
 
 <div>
 	<%= form_tag %>
-	<%= content_tag("span", "Search on Accession, User or Name (wildcards: *, ?): ") %>
+	<%= content_tag("span", "Search on Accession, User, Name or Comment (wildcards: *, ?): ") %>
 	<%= text_field_tag("search_term", @search_term) %>
         <%= hidden_field_tag("experiment_type", @params[:experiment_type]) %>
 	<%= submit_tag("Search") %>

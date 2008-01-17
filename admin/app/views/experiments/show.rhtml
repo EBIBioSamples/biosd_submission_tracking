@@ -86,7 +86,7 @@
   <%= content_tag("th", "End Time") %>
   <%= content_tag("th", "Comment") %>
 </tr>
-<% for event in @experiment.events.sort_by{ |e| e.start_time } %>
+<% for event in @experiment.events.sort_by{ |e| e.start_time || Time.local(0) } %>
 <tr>
   <td>
   <%= link_to "Edit", :controller      => "event",
