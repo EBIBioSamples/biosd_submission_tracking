@@ -43,8 +43,8 @@
                               "") %>
 	<%= content_tag("td", a.is_released.nil? ? '' :
                               a.is_released? ?
-                              '<font color="green">YES</font>' :
-                              '<font color="red">no</font>') %>
+                              '<font color="green">PUBLIC</font>' :
+                              '<font color="red">private</font>') %>
 	<%= content_tag("td", a.in_data_warehouse?        ?
                               '<font color="green">YES</font>' :
                               '<font color="red">no</font>') %>
