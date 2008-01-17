@@ -100,7 +100,7 @@ class ArrayDesignsController < ApplicationController
     @array_design = ArrayDesign.find(params[:id])
     if @array_design.update_attributes(params[:array_design])
       flash[:notice] = 'ArrayDesign was successfully updated.'
-      redirect_to :action => 'list',
+      redirect_to :action => 'list_all',
 	          :search_term     => params[:search_term],
                   :page            => params[:page]
     else

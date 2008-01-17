@@ -29,7 +29,7 @@ class Experiment < ActiveRecord::Base
                            :in        => 0..1,
                            :message   => "is not 0 or 1"
   validates_inclusion_of :experiment_type,
-                           :in      => %w(Tab2MAGE MIAMExpress MUGEN GEO MAGE-TAB),
+                           :in      => %w(Tab2MAGE MIAMExpress MUGEN GEO MAGE-TAB Unknown),
                            :message => "is not recognized"
   validates_format_of :accession, :with => /^(E-[A-Z]{4}-\d+|unknown)?$/, :message => "is not the correct format"
 

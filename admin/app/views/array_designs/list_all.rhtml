@@ -23,6 +23,7 @@
       <%= content_tag("th", "BioMart Table Name") %>
       <%= content_tag("th", "Release Date") %>
       <%= content_tag("th", "Is Released") %>
+      <%= content_tag("th", "Loaded in DW") %>
     </tr>
 
     <% @array_designs.each do |a| %>
@@ -41,6 +42,9 @@
                               "") %>
 	<%= content_tag("td", a.is_released.nil? ? '' :
                               a.is_released? ?
+                              '<font color="green">YES</font>' :
+                              '<font color="red">no</font>') %>
+	<%= content_tag("td", a.in_data_warehouse?        ?
                               '<font color="green">YES</font>' :
                               '<font color="red">no</font>') %>
       </tr> 

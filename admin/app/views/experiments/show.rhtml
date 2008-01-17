@@ -108,4 +108,16 @@
 <p class="text"><font color="green">Green</font> events were
 successful, while <font color="red">Red</font> events failed.</p>
 
+<div>
+  <%= start_form_tag :action => "update", :id => @experiment.id %>
+<table>
+  <tr>
+    <%= content_tag("td", "Comment:") %>
+    <%= content_tag("td", input("experiment", "comment")) %>
+  </tr>
+</table>
+    <%= content_tag("p", submit_tag("Update")) %>
+  <%= end_form_tag %>
+</div>
+
 <%= link_to 'Back', :action => 'list' %>

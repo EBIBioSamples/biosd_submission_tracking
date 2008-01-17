@@ -27,7 +27,7 @@
   </tr>
   <tr>
     <%= content_tag("td", "Loaded in DW:") %>
-    <%= content_tag("td", check_box("array_design", "in_data_warehouse")) %>
+    <%= content_tag("td", @array_design.in_data_warehouse? ? 'YES' : 'no') %>
   </tr>
   <tr>
     <%= content_tag("td", "MIAME score:") %>
