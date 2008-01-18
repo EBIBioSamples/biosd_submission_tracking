@@ -240,6 +240,15 @@ sub update_expt_metadata {
     $expt->set(
 	is_released => $aedb->get_is_released($acc),
     );
+    $expt->set(
+	in_data_warehouse => $aedb->get_expt_in_data_warehouse($acc),
+    );
+
+    unless ( $expt->curated_name() ) {
+	$expt->set(
+	    curated_name => $aedb->get_curated_name($acc),
+	);
+    }
 
     # Skip metadata update for experiments having a release date (this
     # is a fairly arbitrary shortcut to reduce processing time).
@@ -267,11 +276,6 @@ sub update_heavy_expt_queries {
     unless ( defined ($expt->submitter_description()) ) {
 	$expt->set(
 	    submitter_description => $aedb->get_submitter_description($acc),
-	);
-    }
-    unless ( $expt->curated_name() ) {
-	$expt->set(
-	    curated_name => $aedb->get_curated_name($acc),
 	);
     }
     unless ( defined ($expt->num_samples()) ) {
@@ -392,6 +396,9 @@ sub update_array_metadata {
     $array->set(
 	is_released => $aedb->get_is_released($acc),
     );
+    $array->set(
+	in_data_warehouse => $aedb->get_array_in_data_warehouse($acc),
+    );
 
     # Skip metadata update for array designs having a release date
     # (this is a fairly arbitrary shortcut to reduce processing time).
@@ -465,7 +472,7 @@ sub update_unfinished_events {
 	    $event->target_db(),
 	);
 
-	if ( defined( $endtime ) ) {
+	if ( defined( $endtime ) || defined( $success ) ) {
 	    printf STDOUT ("Updating event %s...\n", $event->jobregister_dbid());
 	    $event->set(
 		end_time       => $endtime,
@@ -543,9 +550,9 @@ if ( $repopulating ) {
     print("WARNING: You have chosen to delete the following information, and repopulate from the AE databases:\n\n");
     print("    " . join("; ", grep { $todo{$_} } keys %todo) . "\n\nProceed (Y/N)? ");
 
-    chomp( my $choice = <> );
+    chomp( my $choice = lc <STDIN> );
 
-    unless( lc($choice) eq 'y' ) {
+    unless( $choice eq 'y' ) {
 	print("User terminated script execution.\n");
 	exit 255;
     }
