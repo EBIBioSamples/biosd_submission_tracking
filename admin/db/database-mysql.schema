@@ -728,6 +728,78 @@ ALTER TABLE experiments MODIFY COLUMN accession varchar(255) DEFAULT NULL;
 -- Fix our legacy submissions.
 UPDATE experiments SET num_submissions=1 where in_curation=1;
 
+-- #######################################################################
+-- The following are additional tables for the loaded data hashing system.
+-- #######################################################################
+
+--
+-- Table structure for table `data_formats`
+--
+
+DROP TABLE IF EXISTS `data_formats`;
+CREATE TABLE `data_formats` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(50) UNIQUE NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Table structure for table `loaded_data`
+--
+
+DROP TABLE IF EXISTS `loaded_data`;
+CREATE TABLE `loaded_data` (
+  `id` int(11) NOT NULL auto_increment,
+  `identifier` varchar(255) UNIQUE NOT NULL,
+  `md5_hash` char(35) NOT NULL,
+  `data_format_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `data_format_id` (`data_format_id`),
+  CONSTRAINT `data_format_loaded_data_ibfk_1` FOREIGN KEY (`data_format_id`) REFERENCES `data_formats` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Table structure for table `quality_metrics`
+--
+
+DROP TABLE IF EXISTS `quality_metrics`;
+CREATE TABLE `quality_metrics` (
+  `id` int(11) NOT NULL auto_increment,
+  `type` varchar(50) UNIQUE NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Table structure for table `experiments_loaded_data`
+--
+
+DROP TABLE IF EXISTS `experiments_loaded_data`;
+CREATE TABLE `experiments_loaded_data` (
+  `experiment_id` int(11) NOT NULL,
+  `loaded_data_id` int(11) NOT NULL,
+  KEY `experiment_id` (`experiment_id`),
+  KEY `loaded_data_id` (`loaded_data_id`),
+  CONSTRAINT `loaded_data_experiment_ibfk_1` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `loaded_data_loaded_data_ibfk_1` FOREIGN KEY (`loaded_data_id`) REFERENCES `loaded_data` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Table structure for table `loaded_data_quality_metrics`
+--
+
+DROP TABLE IF EXISTS `loaded_data_quality_metrics`;
+CREATE TABLE `loaded_data_quality_metrics` (
+  `id` int(11) NOT NULL auto_increment,
+  `value` numeric,
+  `quality_metric_id` int(11) NOT NULL,
+  `loaded_data_id` int(11) NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `quality_metric_id` (`quality_metric_id`),
+  KEY `loaded_data_id` (`loaded_data_id`),
+  CONSTRAINT `quality_metric_quality_metric_ibfk_1` FOREIGN KEY (`quality_metric_id`) REFERENCES `quality_metrics` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `quality_metric_loaded_data_ibfk_1` FOREIGN KEY (`loaded_data_id`) REFERENCES `loaded_data` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
