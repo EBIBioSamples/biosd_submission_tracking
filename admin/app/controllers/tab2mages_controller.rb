@@ -2,7 +2,7 @@ class Tab2magesController < ExperimentsController
 
   def list
 
-    sql_where_clause = "miamexpress_subid is null and is_deleted=0"
+    sql_where_clause = "is_deleted=0"
 
     @search_term = ""
 
