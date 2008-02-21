@@ -20,6 +20,7 @@ use ArrayExpress::AutoSubmission::DB::LoadedData;
 use ArrayExpress::AutoSubmission::DB::DataFormat;
 use ArrayExpress::AutoSubmission::DB::Experiment;
 use ArrayExpress::Curator::Database qw(get_ae_dbh);
+use ArrayExpress::Curator::Common qw(date_now);
 
 ########
 # SUBS #
@@ -31,7 +32,9 @@ sub delete_unused_data {
 
     print qq{Scanning for recently deleted data objects...\n};
 
-    my $records = ArrayExpress::AutoSubmission::DB::LoadedData->retrieve_all();
+    my $records = ArrayExpress::AutoSubmission::DB::LoadedData->search(
+	is_deleted => 0,
+    );
 
     my $ae_sth = $ae_dbh->prepare(<<'QUERY');
 select identifier
@@ -44,7 +47,8 @@ QUERY
 	my $results = $ae_sth->fetchall_arrayref();
 	unless ( scalar @{ $results } ) {
 	    printf( q{Deleting obsolete record "%s"...}, $data->identifier() );
-	    $data->delete();
+	    $data->set('is_deleted' => 1);
+	    $data->update();
 	    print qq{ done.\n};
 	}
     }
@@ -67,6 +71,7 @@ select e.accession, d.identifier
 from experiments e, loaded_data d, experiments_loaded_data ed
 where e.id=ed.experiment_id
 and d.id=ed.loaded_data_id
+and d.is_deleted=0
 QUERY
 
     $sth->execute() or die( $sth->errstr() );
@@ -97,6 +102,7 @@ sub needs_hashing {
     # More detailed look to check linkage etc.
     my $experiment = ArrayExpress::AutoSubmission::DB::Experiment->find_or_create({
 	accession  => $row->{'accession'},
+	is_deleted => 0,
     });
     my %attached = map { $_->identifier() => 1 } $experiment->loaded_data();
     if ( $attached{ $row->{'identifier'} } ) {
@@ -107,6 +113,7 @@ sub needs_hashing {
 
     my @data = ArrayExpress::AutoSubmission::DB::LoadedData->search(
 	identifier => $row->{'identifier'},
+	is_deleted => 0,
     );
     if ( scalar @data ) {
 	foreach my $datum ( @data ) {    # Should be only one, but just in case...
@@ -134,7 +141,7 @@ sub hash_row_data {
 
     my $lob_locator = $row->{'lob'};
     my $length      = $ae_dbh->ora_lob_length( $lob_locator );
-    my $chunksize   = 4096;
+    my $chunksize   = 65536;
 
     # Read in the LOB and add it to a Digest::MD5 object.
     for ( my $i = 1; $i <= $length; $i += $chunksize ) {
@@ -150,6 +157,9 @@ sub hash_row_data {
 	identifier     => $row->{'identifier'},
 	data_format_id => $format,
 	md5_hash       => $md5->hexdigest(),
+	is_deleted     => 0,
+	needs_metrics_calculation => 1,
+	date_hashed    => date_now(),
     });
     $datafile->add_to_loaded_data_instances({
 	experiment_id => $experiment,
@@ -190,6 +200,9 @@ QUERY
 
     ROW:
     while ( my $row = $ae_sth->fetchrow_hashref( 'NAME_lc' ) ) {
+
+	# Skip obviously bad accessions.
+	next ROW unless ( $row->{'accession'} =~ m/\A E-[A-Z]{4}-\d+[a-zA-Z]* \z/xms );
 
 	# Skip data files we've already processed.
 

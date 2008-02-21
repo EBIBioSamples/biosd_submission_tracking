@@ -598,7 +598,7 @@ CREATE TABLE `array_designs_organisms` (
 DROP TABLE IF EXISTS `quantitation_types`;
 CREATE TABLE `quantitation_types` (
   `id` int(11) NOT NULL auto_increment,
-  `name` varchar(128) NOT NULL,
+  `name` varchar(128) COLLATE latin1_general_cs NOT NULL,
   `is_deleted` int(11) NOT NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -739,6 +739,17 @@ UPDATE experiments SET num_submissions=1 where in_curation=1;
 DROP TABLE IF EXISTS `data_formats`;
 CREATE TABLE `data_formats` (
   `id` int(11) NOT NULL auto_increment,
+  `name` varchar(50) COLLATE latin1_general_cs UNIQUE NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Table structure for table `platforms`
+--
+
+DROP TABLE IF EXISTS `platforms`;
+CREATE TABLE `platforms` (
+  `id` int(11) NOT NULL auto_increment,
   `name` varchar(50) UNIQUE NOT NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -750,12 +761,17 @@ CREATE TABLE `data_formats` (
 DROP TABLE IF EXISTS `loaded_data`;
 CREATE TABLE `loaded_data` (
   `id` int(11) NOT NULL auto_increment,
-  `identifier` varchar(255) UNIQUE NOT NULL,
+  `identifier` varchar(255) COLLATE latin1_general_cs NOT NULL,
   `md5_hash` char(35) NOT NULL,
   `data_format_id` int(11) NOT NULL,
+  `platform_id` int(11) NOT NULL,
+  `needs_metrics_calculation` int(11) NOT NULL,
+  `date_hashed` datetime,
+  `is_deleted` int(11) NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `data_format_id` (`data_format_id`),
-  CONSTRAINT `data_format_loaded_data_ibfk_1` FOREIGN KEY (`data_format_id`) REFERENCES `data_formats` (`id`) ON DELETE RESTRICT
+  CONSTRAINT `data_format_loaded_data_ibfk_1` FOREIGN KEY (`data_format_id`) REFERENCES `data_formats` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `platform_loaded_data_ibfk_1` FOREIGN KEY (`platform_id`) REFERENCES `platforms` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -766,6 +782,7 @@ DROP TABLE IF EXISTS `quality_metrics`;
 CREATE TABLE `quality_metrics` (
   `id` int(11) NOT NULL auto_increment,
   `type` varchar(50) UNIQUE NOT NULL,
+  `description` text,
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -791,6 +808,7 @@ DROP TABLE IF EXISTS `loaded_data_quality_metrics`;
 CREATE TABLE `loaded_data_quality_metrics` (
   `id` int(11) NOT NULL auto_increment,
   `value` numeric,
+  `date_calculated` datetime,
   `quality_metric_id` int(11) NOT NULL,
   `loaded_data_id` int(11) NOT NULL,
   PRIMARY KEY  (`id`),

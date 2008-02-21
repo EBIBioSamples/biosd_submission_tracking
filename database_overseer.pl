@@ -112,8 +112,8 @@ SUBMISSION:
 while ( my $submission = $expt_iterator->next() ) {
 
     # Skip clearly unfinished submissions.
-    unless ( scalar $submission->spreadsheets()
-        && scalar $submission->data_files() ) {
+    unless ( scalar $submission->spreadsheets(is_deleted => 0)
+        && scalar $submission->data_files(is_deleted => 0) ) {
         next SUBMISSION;
     }
 

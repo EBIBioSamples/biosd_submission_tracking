@@ -37,9 +37,10 @@ CREATE TABLE `data_formats` (
 DROP TABLE IF EXISTS `loaded_data`;
 CREATE TABLE `loaded_data` (
   `id` int(11) NOT NULL auto_increment,
-  `identifier` varchar(255) COLLATE latin1_general_cs UNIQUE NOT NULL,
+  `identifier` varchar(255) COLLATE latin1_general_cs NOT NULL,
   `md5_hash` char(35) NOT NULL,
   `data_format_id` int(11) NOT NULL,
+  `is_deleted` int(11) NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `data_format_id` (`data_format_id`),
   CONSTRAINT `data_format_loaded_data_ibfk_1` FOREIGN KEY (`data_format_id`) REFERENCES `data_formats` (`id`) ON DELETE RESTRICT
@@ -91,6 +92,27 @@ CREATE TABLE `loaded_data_quality_metrics` (
 -- Fix the matching of QT so that it's case sensitive
 --
 ALTER TABLE `quantitation_types` MODIFY COLUMN `name` varchar(128) COLLATE latin1_general_cs NOT NULL;
+
+--
+-- Table structure for table `platforms`
+--
+
+CREATE TABLE `platforms` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(50) UNIQUE NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Other additions noted during testing.
+--
+
+alter table loaded_data add column platform_id int(11);
+alter table loaded_data add column needs_metrics_calculation int(11) not null;
+alter table loaded_data add column date_hashed datetime;
+alter table loaded_data add constraint `platform_loaded_data_ibfk_1` FOREIGN KEY (`platform_id`) REFERENCES `platforms` (`id`) ON DELETE RESTRICT;
+alter table quality_metrics add column description text;
+alter table loaded_data_quality_metrics add column date_calculated datetime;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

@@ -801,6 +801,7 @@ CREATE TABLE `loaded_data` (
   `identifier` varchar(255) UNIQUE NOT NULL,
   `md5_hash` char(35) NOT NULL,
   `data_format_id` int(11) NOT NULL,
+  `is_deleted` int(11) NOT NULL,
   PRIMARY KEY  (`id`),
   KEY `data_format_id` (`data_format_id`),
   CONSTRAINT `data_format_loaded_data_ibfk_1` FOREIGN KEY (`data_format_id`) REFERENCES `data_formats` (`id`) ON DELETE RESTRICT
