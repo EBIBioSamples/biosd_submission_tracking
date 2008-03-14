@@ -12,7 +12,7 @@ class ExperimentsControllerTest < Test::Unit::TestCase
     @controller = ExperimentsController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
-    @request.session["user"] = @bob
+    @request.session[:user] = @bob
   end
 
   def test_index

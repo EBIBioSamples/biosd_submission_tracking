@@ -1,11 +1,11 @@
 <%= render_partial "title" %>
 
 <div>
-	<%= form_tag %>
+  <% form_tag do %>
 	<%= content_tag("span", "Search on Accession, User Accession, Expt Accession or Name (wildcards: *, ?): ") %>
 	<%= text_field_tag("search_term", @search_term) %>
 	<%= submit_tag("Search") %>
-	<%= end_form_tag %>
+  <% end %>
 </div>
 
 <div>
@@ -26,7 +26,7 @@
 	<td>
 	<%= link_to "Edit", :action      => "edit", 
                             :id          => p.id,
-			    :page        => @protocol_pages.current,
+			    :page        => params[:page],
 	                    :search_term => @search_term %>
         </td>
 	<%= content_tag("td", p.accession) %>
@@ -40,7 +40,7 @@
 	<td>
         <%= link_to "Delete", {:action      => "deprecate", 
                                :id          => p.id,
-	                       :page        => @protocol_pages.current,
+	                       :page        => params[:page],
 	                       :search_term => @search_term },
                                :confirm     => "Really delete protocol \"#{p.accession}\"?" %>
         </td>
@@ -48,13 +48,10 @@
     <% end %>
   </table>
 
-  <p class="footer">
-    <%= link_to 'Previous', { :page => @protocol_pages.current.previous, :search_term => @search_term } if @protocol_pages.current.previous %>
-    <%= pagination_links( @protocol_pages, options={:window_size => 3, :params => {:search_term => @search_term} } ) %>
-    <%= link_to 'Next', { :page => @protocol_pages.current.next, :search_term => @search_term } if @protocol_pages.current.next %>
-  </p>
+  <%= will_paginate @protocols, :class  => 'footer',
+	                        :params => { :search_term => params[:search_term] }  %>
 
-  <%= content_tag("p", link_to("Add new protocol", 
+  <%= content_tag("div", link_to("Add new protocol", 
                         :controller => "protocols", 
                         :action     => "new"), { :class => 'footer' } ) %>
 

@@ -1,8 +1,8 @@
 <%= render_partial "title" %>
 
 <div>
-  <%= start_form_tag :action => "update", :id => @organism.id %>
+  <% form_tag :action => "update", :id => @organism.id do %>
     <%= render_partial "form" %>
     <%= submit_tag "Update" %>
-  <%= end_form_tag %>
+  <% end %>
 </div>

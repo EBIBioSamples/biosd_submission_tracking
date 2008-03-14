@@ -1,7 +1,7 @@
 <%= render_partial "title" %>
 
 <div>
-  <%= start_form_tag :action => "update", :id => @experiment.id %>
+  <% form_tag :action => "update", :id => @experiment.id do %>
 
 <table>
   <tr>
@@ -9,7 +9,7 @@
     <%= content_tag("td", select(
 	"experiment",
 	"user_id",
-	User.find_all.collect { |t| [t.login, t.id] }.sort_by { |login, id| login },
+	User.find(:all).collect { |t| [t.login, t.id] }.sort_by { |login, id| login },
 	{ :include_blank => true })) %>
   </tr>
   <tr>
@@ -27,7 +27,7 @@
     <%= content_tag("p", submit_tag("Update")) %>
     <%= render_partial "annotate" %>
     <%= content_tag("p", submit_tag("Update")) %>
-  <%= end_form_tag %>
+  <% end %>
 
   <%= render_partial "miameinfo" %>
   <%= render_partial "aedwinfo" %>

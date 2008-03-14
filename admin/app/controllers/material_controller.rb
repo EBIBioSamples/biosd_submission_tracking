@@ -1,11 +1,10 @@
 class MaterialController < ApplicationController
-  model :material
-  scaffold :material
+
   layout "admin"
   before_filter :login_required, :except => [ :show, :list ]
 
   def new
-    if Category.find_all.any?
+    if Category.find(:all).any?
       @material = Material.new
     else
       flash[:notice] = 'Please create at least one category:'
@@ -18,10 +17,10 @@ class MaterialController < ApplicationController
   end
 
   def list
-    @material_pages, @materials = paginate(:material, 
-					   :conditions => 'is_deleted=0',
-                                           :per_page => 20,
-                                           :order_by => 'display_label')
+    @materials = Material.paginate :page => params[:page], 
+      :conditions => 'is_deleted=0',
+      :per_page   => 20,
+      :order      => 'display_label'
   end
 
   def create
@@ -39,12 +38,12 @@ class MaterialController < ApplicationController
   end
 
   def update
-    @material = Material.find(@params[:id])
+    @material = Material.find(params[:id])
 
     # Fix for empty ids
-    @params[:material][:category_ids] ||= []
+    params[:material][:category_ids] ||= []
 
-    if @material.update_attributes(@params[:material])
+    if @material.update_attributes(params[:material])
       flash[:notice] = 'Material was successfully updated'
       redirect_to :action => 'list'
     else
@@ -53,7 +52,7 @@ class MaterialController < ApplicationController
   end
       
   def deprecate
-    material = Material.find(@params[:id])
+    material = Material.find(params[:id])
     if material.experiments.any?
       flash[:notice] = "Error: There are still experiments using the #{ material.ontology_value } material."
       redirect_to :action => 'list' 

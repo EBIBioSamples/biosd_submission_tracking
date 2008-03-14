@@ -1,11 +1,11 @@
 <%= render_partial "title" %>
 
 <div>
-	<%= form_tag %>
+  <% form_tag do %>
 	<%= content_tag("span", "Search on SubId, Accession, Name or User (wildcards: *, ?): ") %>
 	<%= text_field_tag("search_term", @search_term) %>
 	<%= submit_tag("Search") %>
-	<%= end_form_tag %>
+  <% end %>
 </div>
 
 <div>
@@ -29,7 +29,7 @@
 	<td>
 	<%= link_to "Edit", :action      => "edit", 
                             :id          => a.id,
-			    :page        => @array_design_pages.current,
+			    :page        => params[:page],
 	                    :search_term => @search_term %>
         </td>
 	<%= content_tag("td", a.miamexpress_subid) %>
@@ -53,7 +53,7 @@
 	<td>
         <%= link_to "Delete", {:action      => "deprecate", 
                                :id          => a.id,
-	                       :page        => @array_design_pages.current,
+	                       :page        => params[:page],
 	                       :search_term => @search_term },
                                :confirm     => "Really delete array design \"#{a.accession}\"?" %>
         </td>
@@ -61,11 +61,8 @@
     <% end %>
   </table>
 
-  <p class="footer">
-    <%= link_to 'Previous', { :page => @array_design_pages.current.previous, :search_term => @search_term } if @array_design_pages.current.previous %>
-    <%= pagination_links( @array_design_pages, options={:window_size => 3, :params => {:search_term => @search_term} } ) %>
-    <%= link_to 'Next', { :page => @array_design_pages.current.next, :search_term => @search_term } if @array_design_pages.current.next %>
-  </p>
+  <%= will_paginate @array_designs, :class  => 'footer',
+	                            :params => { :search_term => params[:search_term] } %>
 
   <%= render_partial "miameinfo" %>
   <%= render_partial "aedwinfo" %>

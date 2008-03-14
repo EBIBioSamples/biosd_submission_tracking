@@ -1,5 +1,5 @@
 class ArrayDesignsController < ApplicationController
-  model :array_design
+
   layout "admin"
   before_filter :login_required
 
@@ -33,7 +33,7 @@ class ArrayDesignsController < ApplicationController
 	                  " or miamexpress_subid like '#{ sql_search }')"
     end
 
-    @array_design_pages, @array_designs = paginate :array_designs,
+    @array_designs = ArrayDesign.paginate :page => params[:page],
       :per_page   => 40,
       :conditions => sql_where_clause.to_s,
       :order      => 'miamexpress_subid DESC'
@@ -62,7 +62,7 @@ class ArrayDesignsController < ApplicationController
 
     end
 
-    @array_design_pages, @array_designs = paginate :array_designs,
+    @array_designs = ArrayDesign.paginate :page => params[:page],
       :per_page   => num_per_page,
       :conditions => sql_where_clause.to_s,
       :order      => 'accession'

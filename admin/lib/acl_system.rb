@@ -19,7 +19,7 @@ module ACLSystem
   # This works in conjunction with the LoginController.
   # The LoginController loads the User object.
   def authorize?(user)
-    required_perm = "%s/%s" % [ @params['controller'], @params['action'] ]
+    required_perm = "%s/%s" % [ params[:controller], params[:action] ]
 
     if user.authorized? required_perm
       return true

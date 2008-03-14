@@ -27,7 +27,7 @@ class Tab2magesController < ExperimentsController
 	                  " or name like '%#{ sql_search }%'#{ user_clause })"
     end
 
-    @experiment_pages, @experiments = paginate :experiments,
+    @experiments = Experiment.paginate :page => params[:page],
       :per_page   => 30,
       :conditions => sql_where_clause.to_s,
       :order      => 'accession is null asc, accession="" asc, cast(substr(accession,8,10) as signed integer) desc'

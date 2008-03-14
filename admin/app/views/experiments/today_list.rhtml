@@ -23,8 +23,8 @@
 	<td>
 	<%= link_to "Edit", :action          => "edit", 
                             :id              => e.id,
-			    :page            => @experiment_pages.current,
-                            :experiment_type => @params[:experiment_type],
+			    :page            => params[:page],
+                            :experiment_type => params[:experiment_type],
 	                    :search_term     => @search_term %>
         </td>
         <%= content_tag("td", e.experiment_type.to_s) %>
@@ -53,10 +53,7 @@
 
   <%= content_tag("p", "Note that all times are GMT.") %>
 
-  <p class="footer">
-    <%= link_to 'Previous', { :page => @experiment_pages.current.previous } if @experiment_pages.current.previous %>
-    <%= pagination_links( @experiment_pages, options={:window_size => 3} ) %>
-    <%= link_to 'Next', { :page => @experiment_pages.current.next } if @experiment_pages.current.next %>
-  </p>
+  <%= will_paginate @experiments, :class  => 'footer',
+	                          :params => { :search_term => params[:search_term] }  %>
 
 </div>

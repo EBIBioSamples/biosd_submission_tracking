@@ -1,11 +1,10 @@
 class DesignController < ApplicationController
-  model :design
-  scaffold :design
+
   layout "admin"
   before_filter :login_required, :except => [ :show, :list ]
 
   def new
-    if Category.find_all.any?
+    if Category.find(:all).any?
       @design = Design.new
     else
       flash[:notice] = 'Please create at least one category:'
@@ -18,10 +17,10 @@ class DesignController < ApplicationController
   end
 
   def list
-    @design_pages, @designs = paginate(:design, 
-				       :conditions => 'is_deleted=0',
-				       :per_page => 20,
-				       :order_by => 'display_label')
+    @designs = Design.paginate :page => params[:page], 
+      :conditions => 'is_deleted=0',
+      :per_page   => 20,
+      :order      => 'display_label'
   end
 
   def create
@@ -39,12 +38,12 @@ class DesignController < ApplicationController
   end
 
   def update
-    @design = Design.find(@params[:id])
+    @design = Design.find(params[:id])
 
     # Fix for empty ids
-    @params[:design][:category_ids] ||= []
+    params[:design][:category_ids] ||= []
 
-    if @design.update_attributes(@params[:design])
+    if @design.update_attributes(params[:design])
       flash[:notice] = 'Design was successfully updated'
       redirect_to :action => 'list'
     else
@@ -53,7 +52,7 @@ class DesignController < ApplicationController
   end
       
   def deprecate
-    design = Design.find(@params[:id])
+    design = Design.find(params[:id])
     if design.experiments.any?
       flash[:notice] = "Error: There are still experiments using the #{ design.ontology_value } design."
       redirect_to :action => 'list' 

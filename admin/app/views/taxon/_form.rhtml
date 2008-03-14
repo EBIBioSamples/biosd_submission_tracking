@@ -21,7 +21,7 @@
 </table>
 
 <table>
-  <% Category.find_all.sort_by { |c| c.ontology_term }.each do |cat| %>
+  <% Category.find(:all).sort_by { |c| c.ontology_term }.each do |cat| %>
     <tr>
       <td>
         <%= check_box_tag("taxon[category_ids][]",

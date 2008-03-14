@@ -1,14 +1,13 @@
 class UsersController < ApplicationController
-  model :user
-  scaffold :user
+
   layout "admin"
   before_filter :login_required
 
   def list
-    @user_pages, @users = paginate :users,
+    @users = User.paginate :page => params[:page],
       :conditions => 'is_deleted=0',
-      :order     => 'login',
-      :per_page => 100
+      :order      => 'login',
+      :per_page   => 100
   end
 
   def show
@@ -43,7 +42,7 @@ class UsersController < ApplicationController
 
     # FIXME the Time call below returns the correct string, but it is
     # not stored correctly in the database.
-    if @user.update_attributes(@params[:user]) \
+    if @user.update_attributes(params[:user]) \
       && @user.update_attribute(:modified_at, Time.now.getutc.iso8601.to_s)
       flash[:notice] = 'User was successfully updated.'
       redirect_to :action => 'list'
@@ -53,7 +52,7 @@ class UsersController < ApplicationController
   end
 
   def deprecate
-    user = User.find(@params[:id])
+    user = User.find(params[:id])
     if user.experiments.any?
       flash[:notice] = "Error: There are still experiments attached to user #{ user.login }."
       redirect_to :action => 'list' 

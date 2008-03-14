@@ -1,13 +1,13 @@
 <%= render_partial "title" %>
 
 <div>
-	<%= form_tag %>
+	<% form_tag do %>
 	<%= content_tag("span", "Search on Accession or Comment (wildcards: *, ?): ") %>
 	<%= text_field_tag("search_term", @search_term) %>
 	<%= submit_tag("Search") %>
         <%= content_tag("span", "&nbsp;&nbsp;List all results on one page:") %>
         <%= check_box_tag("list_all", 1, @list_all ) %>
-	<%= end_form_tag %>
+	<% end %>
 </div>
 
 <div>
@@ -33,7 +33,7 @@
 	<td>
 	<%= link_to "Details", :action          => "show", 
                                :id              => e.id,
-			       :page            => @experiment_pages.current,
+			       :page            => params[:page],
 	                       :search_term     => @search_term %>
         </td>
 	<%= content_tag("td", e.accession) %>
@@ -65,15 +65,7 @@
     <% end %>
   </table>
 
-  <p class="footer">
-    <%= link_to 'Previous', { :page            => @experiment_pages.current.previous,
-                              :search_term     => @search_term } if @experiment_pages.current.previous %>
-
-    <%= pagination_links( @experiment_pages, options={:window_size => 3,
-                                              :params => {:search_term => @search_term} } ) %>
-
-    <%= link_to 'Next', { :page            => @experiment_pages.current.next,
-                          :search_term     => @search_term } if @experiment_pages.current.next %>
-  </p>
+  <%= will_paginate @experiments, :class  => 'footer',
+	                          :params => { :search_term => params[:search_term] }  %>
 
 </div>

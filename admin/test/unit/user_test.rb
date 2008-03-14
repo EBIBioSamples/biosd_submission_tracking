@@ -25,7 +25,7 @@ class UserTest < Test::Unit::TestCase
   
   def test_disallowed_passwords
 
-    u = User.new    
+    u = User.new( :is_deleted => 0 )    
     u.login = "nonbob"
 
     u.password = u.password_confirmation = "tiny"
@@ -48,7 +48,7 @@ class UserTest < Test::Unit::TestCase
   
   def test_bad_logins
 
-    u = User.new  
+    u = User.new( :is_deleted => 0 )
     u.password = u.password_confirmation = "bobs_secure_password"
 
     u.login = "x"
@@ -79,7 +79,7 @@ class UserTest < Test::Unit::TestCase
 
 
   def test_create
-    u = User.new
+    u = User.new( :is_deleted => 0 )
     u.login      = "nonexistingbob"
     u.password = u.password_confirmation = "bobs_secure_password"
       

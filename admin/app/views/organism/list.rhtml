@@ -30,11 +30,8 @@
     <% end %>
   </table>
 
-  <p class="footer">
-    <%= link_to 'Previous', { :page => @organism_pages.current.previous } if @organism_pages.current.previous %>
-    <%= pagination_links( @organism_pages, options={:window_size => 3} ) %>
-    <%= link_to 'Next', { :page => @organism_pages.current.next } if @organism_pages.current.next %>
-  </p>
+  <%= will_paginate @organisms, :class  => 'footer',
+	                        :params => { :search_term => params[:search_term] }  %>
 
   <p class="text"><em>Note:</em> Organisms must be
   assigned to taxa for them to be displayed in the public submissions web
@@ -43,7 +40,7 @@
   with the appropriate annotation categories selected, so that the
   template spreadsheets contain the desired columns.</p>
 
-  <%= content_tag("p", link_to("Add new organism", 
+  <%= content_tag("div", link_to("Add new organism", 
                         :controller => "organism", 
                         :action     => "new"), { :class => 'footer' } ) %>
 

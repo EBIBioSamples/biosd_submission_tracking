@@ -1,11 +1,10 @@
 class OrganismController < ApplicationController
-  model :organism
-  scaffold :organism
+
   layout "admin"
   before_filter :login_required, :except => [ :show, :list ]
 
   def new
-    if Taxon.find_all.any?
+    if Taxon.find(:all).any?
       @organism = Organism.new
     else
       flash[:notice] = 'Please create at least one taxon:'
@@ -18,10 +17,10 @@ class OrganismController < ApplicationController
   end
 
   def list
-    @organism_pages, @organisms = paginate(:organism, 
-					   :conditions => 'is_deleted=0',
-					   :per_page => 20,
-					   :order_by => 'scientific_name')					     
+    @organisms = Organism.paginate :page => params[:page], 
+      :conditions => 'is_deleted=0',
+      :per_page   => 20,
+      :order      => 'scientific_name'
   end
 
   def create
@@ -39,8 +38,8 @@ class OrganismController < ApplicationController
   end
 
   def update
-    @organism = Organism.find(@params[:id])
-    if @organism.update_attributes(@params[:organism])
+    @organism = Organism.find(params[:id])
+    if @organism.update_attributes(params[:organism])
       flash[:notice] = 'Organism was successfully updated'
       redirect_to :action => 'list'
     else
@@ -49,7 +48,7 @@ class OrganismController < ApplicationController
   end
       
   def deprecate
-    organism = Organism.find(@params[:id])
+    organism = Organism.find(params[:id])
     if organism.experiments.any?
       flash[:notice] = "Error: There are still experiments using #{ organism.scientific_name }."
       redirect_to :action => 'list' 

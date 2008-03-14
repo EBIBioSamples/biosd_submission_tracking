@@ -1,11 +1,10 @@
 class TaxonController < ApplicationController
-  model :taxon
-  scaffold :taxon
+
   layout "admin"
   before_filter :login_required, :except => [ :show, :list ]
 
   def new
-    if Category.find_all.any?
+    if Category.find(:all).any?
       @taxon = Taxon.new
     else
       flash[:notice] = 'Please create at least one category:'
@@ -18,10 +17,10 @@ class TaxonController < ApplicationController
   end
 
   def list
-    @taxon_pages, @taxons = paginate(:taxon, 
-				     :conditions => 'is_deleted=0',
-				     :per_page => 20,
-				     :order_by => 'scientific_name')
+    @taxons = Taxon.paginate :page => params[:page], 
+      :conditions => 'is_deleted=0',
+      :per_page   => 20,
+      :order      => 'scientific_name'
   end
 
   def category_table
@@ -44,12 +43,12 @@ class TaxonController < ApplicationController
   end
 
   def update
-    @taxon = Taxon.find(@params[:id])
+    @taxon = Taxon.find(params[:id])
     
     # Fix for empty ids
-    @params[:taxon][:category_ids] ||= []
+    params[:taxon][:category_ids] ||= []
 
-    if @taxon.update_attributes(@params[:taxon])
+    if @taxon.update_attributes(params[:taxon])
       flash[:notice] = 'Taxon was successfully updated'
       redirect_to :action => 'list'
     else
@@ -58,7 +57,7 @@ class TaxonController < ApplicationController
   end
       
   def deprecate
-    taxon = Taxon.find(@params[:id])
+    taxon = Taxon.find(params[:id])
     if taxon.organisms.any?
       flash[:notice] = "Error: There are still organisms in the #{ taxon.common_name } taxon."
       redirect_to :action => 'list' 

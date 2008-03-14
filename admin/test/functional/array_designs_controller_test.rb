@@ -12,7 +12,7 @@ class ArrayDesignsControllerTest < Test::Unit::TestCase
     @controller = ArrayDesignsController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
-    @request.session["user"] = @bob
+    @request.session[:user] = @bob
   end
 
   def test_index
@@ -73,7 +73,7 @@ class ArrayDesignsControllerTest < Test::Unit::TestCase
   def test_update
     post :update, :id => 1
     assert_response :redirect
-    assert_redirected_to :action => 'list'
+    assert_redirected_to :action => 'list_all'
   end
 
   def test_deprecate

@@ -3,13 +3,13 @@
 <% if flash[:notice] %><div class="notice"><%= flash[:notice] %></div><% end %>
 
 <div>
-	<%= form_tag %>
+  <% form_tag do %>
 	<%= content_tag("span", "Search on Accession or Comment (wildcards: *, ?): ") %>
 	<%= text_field_tag("search_term", @search_term) %>
 	<%= submit_tag("Search") %>
         <%= content_tag("span", "&nbsp;&nbsp;List all results on one page:") %>
         <%= check_box_tag("list_all", 1, @list_all ) %>
-	<%= end_form_tag %>
+  <% end %>
 </div>
 
 <div>
@@ -53,10 +53,7 @@
     <% end %>
   </table>
 
-  <p class="footer">
-    <%= link_to 'Previous', { :page => @array_design_pages.current.previous, :search_term => @search_term } if @array_design_pages.current.previous %>
-    <%= pagination_links( @array_design_pages, options={:window_size => 3, :params => {:search_term => @search_term} } ) %>
-    <%= link_to 'Next', { :page => @array_design_pages.current.next, :search_term => @search_term } if @array_design_pages.current.next %>
-  </p>
+  <%= will_paginate @array_designs, :class  => 'footer',
+	                            :params => { :search_term => params[:search_term] } %>
 
 </div>

@@ -110,7 +110,7 @@ successful, while <font color="red">Red</font> events failed. Black
 events are unfinished.</p>
 
 <div>
-  <%= start_form_tag :action => "update", :id => @experiment.id %>
+  <% form_tag :action => "update", :id => @experiment.id do %>
 <table>
   <tr>
     <%= content_tag("td", "Comment:") %>
@@ -118,7 +118,7 @@ events are unfinished.</p>
   </tr>
 </table>
     <%= content_tag("p", submit_tag("Update")) %>
-  <%= end_form_tag %>
+  <% end %>
 </div>
 
 <%= link_to 'Back', :action => 'list' %>

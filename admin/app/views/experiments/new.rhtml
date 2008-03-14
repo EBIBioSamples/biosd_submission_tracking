@@ -1,10 +1,10 @@
 <%= render_partial "title" %>
 
 <div>
-  <%= start_form_tag :action => 'create' %>
+  <% form_tag :action => 'create' do %>
     <%= render_partial "form" %>
     <%= content_tag("p", submit_tag("Create")) %>
     <%= render_partial "annotate" %>
     <%= content_tag("p", submit_tag("Create")) %>
-  <%= end_form_tag %>
+  <% end %>
 </div>

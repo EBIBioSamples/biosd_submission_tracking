@@ -1,5 +1,5 @@
 class ProtocolsController < ApplicationController
-  model :protocol
+
   layout "admin"
   before_filter :login_required
 
@@ -33,7 +33,7 @@ class ProtocolsController < ApplicationController
 	                  " or expt_accession like '#{ sql_search }')"
     end
 
-    @protocol_pages, @protocols = paginate :protocols,
+    @protocols = Protocol.paginate :page => params[:page],
       :per_page   => 40,
       :conditions => sql_where_clause.to_s,
       :order      => 'id DESC'

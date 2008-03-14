@@ -1,10 +1,10 @@
 <%= render_partial "title" %>
 
 <div>
-  <%= start_form_tag :action => "update", :id => @array_design.id %>
+  <% form_tag :action => "update", :id => @array_design.id do %>
     <%= render_partial "form" %>
     <%= hidden_field_tag("page", @page) %>
     <%= hidden_field_tag("search_term", @search_term) %>
     <%= content_tag("p", submit_tag("Update")) %>
-  <%= end_form_tag %>
+  <% end %>
 </div>

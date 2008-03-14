@@ -1,5 +1,5 @@
 class EventController < ApplicationController
-  model :event
+
   layout "admin"
   before_filter :login_required
 
@@ -9,7 +9,7 @@ class EventController < ApplicationController
 
   def update
     @event = Event.find(params[:id])
-    if @event.update_attributes(@params[:event])
+    if @event.update_attributes(params[:event])
       flash[:notice] = 'Event was successfully updated.'
       redirect_to :action => 'edit',
 		  :id     => @event.id

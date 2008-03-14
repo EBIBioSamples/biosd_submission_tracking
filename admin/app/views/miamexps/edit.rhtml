@@ -1,13 +1,13 @@
 <%= render_partial "title" %>
 
 <div>
-  <%= start_form_tag :action => "update", :id => @experiment.id %>
+  <% form_tag :action => "update", :id => @experiment.id do %>
     <%= render_partial "form" %>
     <%= hidden_field_tag("page", @page) %>
     <%= hidden_field_tag("search_term", @search_term) %>
     <%= hidden_field_tag("experiment_type", @experiment.experiment_type) %>
     <%= content_tag("p", submit_tag("Update")) %>
-  <%= end_form_tag %>
+  <% end %>
 
   <%= render_partial "miameinfo" %>
   <%= render_partial "aedwinfo" %>

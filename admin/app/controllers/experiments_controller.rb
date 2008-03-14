@@ -1,5 +1,5 @@
 class ExperimentsController < ApplicationController
-  model :experiment
+
   layout "admin"
   before_filter :login_required
 
@@ -35,7 +35,7 @@ class ExperimentsController < ApplicationController
 
     end
 
-    @experiment_pages, @experiments = paginate :experiments,
+    @experiments = Experiment.paginate :page => params[:page],
       :per_page   => num_per_page,
       :conditions => sql_where_clause.to_s,
       :order      => 'accession'
@@ -52,7 +52,7 @@ class ExperimentsController < ApplicationController
       sql_where_clause += " and experiment_type='#{ params[:experiment_type] }'"
     end
 
-    @experiment_pages, @experiments = paginate :experiments,
+    @experiments = Experiment.paginate :page => params[:page],
       :per_page   => 30,
       :conditions => sql_where_clause.to_s,
       :order      => 'date_last_processed DESC'
@@ -72,7 +72,7 @@ class ExperimentsController < ApplicationController
     params[:experiment][:is_deleted] = 0
     @experiment = Experiment.new(params[:experiment])
 
-    if @experiment.annotate(@params[:annotation]) && @experiment.save
+    if @experiment.annotate(params[:annotation]) && @experiment.save
       flash[:notice] = "#{params[:experiment][:experiment_type]} experiment was successfully created."
       redirect_to :action          => 'list',
 	          :experiment_type => params[:experiment][:experiment_type]
@@ -106,7 +106,7 @@ class ExperimentsController < ApplicationController
 
   def update
     @experiment = Experiment.find(params[:id])
-    if @experiment.annotate(@params[:annotation]) && @experiment.update_attributes(@params[:experiment])
+    if @experiment.annotate(params[:annotation]) && @experiment.update_attributes(params[:experiment])
       flash[:notice] = 'Experiment was successfully updated.'
       redirect_to :action => 'list',
 	          :experiment_type => params[:experiment_type],
@@ -118,7 +118,7 @@ class ExperimentsController < ApplicationController
   end
 
   def deprecate
-    experiment = Experiment.find(@params[:id])
+    experiment = Experiment.find(params[:id])
     if experiment.spreadsheets.find(:all, :conditions => "is_deleted=0").any?
       flash[:notice] = "Error: There are still spreadsheets attached to the experiment: #{ experiment.name }"
       redirect_to :action          => 'list', 

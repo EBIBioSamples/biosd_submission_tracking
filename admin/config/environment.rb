@@ -54,3 +54,6 @@ end
 
 # All our database timestamps are GMT.
 ActiveRecord::Base.default_timezone = :utc
+
+require 'will_paginate'
+

@@ -33,13 +33,10 @@
     <% end %>
   </table>
 
-  <p class="footer">
-    <%= link_to 'Previous', { :page => @taxon_pages.current.previous } if @taxon_pages.current.previous %>
-    <%= pagination_links( @taxon_pages, options={:window_size => 3} ) %>
-    <%= link_to 'Next', { :page => @taxon_pages.current.next } if @taxon_pages.current.next %>
-  </p>
+  <%= will_paginate @taxons, :class  => 'footer',
+	                     :params => { :search_term => params[:search_term] }  %>
 
-  <%= content_tag("p", link_to("Add new taxon", 
+  <%= content_tag("div", link_to("Add new taxon", 
                         :controller => "taxon", 
                         :action     => "new"), { :class => 'footer' } ) %>
 

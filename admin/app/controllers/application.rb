@@ -4,5 +4,4 @@ require_dependency 'acl_system'
 
 class ApplicationController < ActionController::Base
   include ACLSystem
-  model :user
 end

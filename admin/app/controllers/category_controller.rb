@@ -1,5 +1,5 @@
 class CategoryController < ApplicationController
-  model :category
+
   layout "admin"
   before_filter :login_required, :except => [ :show, :list ]
 
@@ -25,10 +25,10 @@ class CategoryController < ApplicationController
   end
 
   def list
-    @category_pages, @categories = paginate(:category, 
-					    :conditions => 'is_deleted=0',
-					    :per_page => 20,
-					    :order    => 'ontology_term')
+    @categories = Category.paginate :page => params[:page], 
+      :conditions => 'is_deleted=0',
+      :per_page   => 20,
+      :order      => 'ontology_term'
   end
 
   def create
@@ -46,8 +46,8 @@ class CategoryController < ApplicationController
   end
 
   def update
-    @category = Category.find(@params[:id])
-    if @category.update_attributes(@params[:category])
+    @category = Category.find(params[:id])
+    if @category.update_attributes(params[:category])
       flash[:notice] = 'Category was successfully updated'
       redirect_to :action => 'list'
     else
@@ -56,7 +56,7 @@ class CategoryController < ApplicationController
   end
       
   def deprecate
-    category = Category.find(@params[:id])
+    category = Category.find(params[:id])
     if category.taxons.any? || category.designs.any? || category.materials.any?
       flash[:notice] = "Error: There are still taxons, designs or materials using #{ category.ontology_term }."
       redirect_to :action => 'list' 

@@ -26,7 +26,7 @@ class MiamexpsController < ExperimentsController
 	                  " or miamexpress_subid like '#{ sql_search }')"
     end
 
-    @experiment_pages, @experiments = paginate :experiments,
+    @experiments = Experiment.paginate :page => params[:page],
       :per_page   => 30,
       :conditions => sql_where_clause.to_s,
       :order      => 'miamexpress_subid DESC'

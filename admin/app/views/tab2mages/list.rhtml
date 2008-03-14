@@ -1,12 +1,12 @@
 <%= render_partial "title" %>
 
 <div>
-	<%= form_tag %>
+  <% form_tag do %>
 	<%= content_tag("span", "Search on Accession, User, Name or Comment (wildcards: *, ?): ") %>
 	<%= text_field_tag("search_term", @search_term) %>
-        <%= hidden_field_tag("experiment_type", @params[:experiment_type]) %>
+        <%= hidden_field_tag("experiment_type", params[:experiment_type]) %>
 	<%= submit_tag("Search") %>
-	<%= end_form_tag %>
+  <% end %>
 </div>
 
 <div>
@@ -37,8 +37,8 @@
 	<td>
 	<%= link_to "Edit", :action          => "edit", 
                             :id              => e.id,
-			    :page            => @experiment_pages.current,
-                            :experiment_type => @params[:experiment_type],
+			    :page            => params[:page],
+                            :experiment_type => params[:experiment_type],
 	                    :search_term     => @search_term %>
         </td>
 	<%= content_tag("td", e.accession) %>
@@ -80,8 +80,8 @@
 	<td>
         <%= link_to "Delete", {:action          => "deprecate", 
                                :id              => e.id,
-	                       :page            => @experiment_pages.current,
-                               :experiment_type => @params[:experiment_type],
+	                       :page            => params[:page],
+                               :experiment_type => params[:experiment_type],
 	                       :search_term     => @search_term },
                                :confirm         => "Really delete experiment \"#{e.id}\"?" %>
         </td>
@@ -89,23 +89,12 @@
     <% end %>
   </table>
 
-  <p class="footer">
-    <%= link_to 'Previous', { :page            => @experiment_pages.current.previous,
-                              :experiment_type => @params[:experiment_type],
-                              :search_term     => @search_term } if @experiment_pages.current.previous %>
+  <%= will_paginate @experiments, :class  => 'footer',
+	                          :params => { :search_term => params[:search_term] }  %>
 
-    <%= pagination_links( @experiment_pages, options={:window_size => 3,
-                                              :params => {:search_term     => @search_term,
-                                                          :experiment_type => @params[:experiment_type]} } ) %>
-
-    <%= link_to 'Next', { :page            => @experiment_pages.current.next,
-                          :experiment_type => @params[:experiment_type],
-                          :search_term     => @search_term } if @experiment_pages.current.next %>
-  </p>
-
-  <%= content_tag("p", link_to("Add new #{@params[:experiment_type]} experiment", 
+  <%= content_tag("div", link_to("Add new #{params[:experiment_type]} experiment", 
                         :controller      => "tab2mages",
-                        :experiment_type => @params[:experiment_type],
+                        :experiment_type => params[:experiment_type],
                         :action          => "new"), { :class => 'footer' } ) %>
 
   <%= render_partial "miameinfo" %>
