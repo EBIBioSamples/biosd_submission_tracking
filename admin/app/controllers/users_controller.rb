@@ -25,7 +25,7 @@ class UsersController < ApplicationController
     @users = User.paginate :page => params[:page],
       :conditions => sql_where_clause.to_s,
       :order      => 'login',
-      :per_page   => 100
+      :per_page   => 15
   end
 
   def show

@@ -16,9 +16,7 @@
       <%= content_tag("th", "Name") %>
       <%= content_tag("th", "Password") %>
       <%= content_tag("th", "Email") %>
-      <%= content_tag("th", "Modified") %>
-      <%= content_tag("th", "Created") %>
-      <%= content_tag("th", "Accessed") %>
+      <%= content_tag("th", "Last Accessed") %>
       <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
     </tr>
 
@@ -34,8 +32,6 @@
 	<%= content_tag("td", u.name) %>
 	<%= content_tag("td", u.password) %>
 	<%= content_tag("td", u.email) %>
-	<%= content_tag("td", u.modified_at) %>
-	<%= content_tag("td", u.created_at) %>
 	<%= content_tag("td", u.access) %>
 	<td>
         <%= link_to "Delete", {:action      => "deprecate", 
