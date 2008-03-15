@@ -17,6 +17,7 @@ class MaterialController < ApplicationController
   end
 
   def list
+    params[:page] ||= 1
     @materials = Material.paginate :page => params[:page], 
       :conditions => 'is_deleted=0',
       :per_page   => 20,
@@ -33,7 +34,7 @@ class MaterialController < ApplicationController
       flash[:notice] = 'Material was successfully created'
       redirect_to :action => 'list'
     else
-      render_action 'new'
+      render :action => 'new'
     end
   end
 
@@ -47,7 +48,7 @@ class MaterialController < ApplicationController
       flash[:notice] = 'Material was successfully updated'
       redirect_to :action => 'list'
     else
-      render_action 'edit'
+      render :action => 'edit'
     end
   end
       

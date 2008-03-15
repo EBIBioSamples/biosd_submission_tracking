@@ -33,6 +33,7 @@ class ProtocolsController < ApplicationController
 	                  " or expt_accession like '#{ sql_search }')"
     end
 
+    params[:page] ||= 1
     @protocols = Protocol.paginate :page => params[:page],
       :per_page   => 40,
       :conditions => sql_where_clause.to_s,
@@ -50,8 +51,6 @@ class ProtocolsController < ApplicationController
 
   def edit
     @protocol = Protocol.find(params[:id])
-    @search_term  = params[:search_term]
-    @page         = params[:page]
   end
 
   def create

@@ -14,8 +14,7 @@ class ExperimentsController < ApplicationController
 
   def list
 
-    @list_all    = params[:list_all]
-    num_per_page = @list_all.to_i.zero? ? 30 : 1000000
+    num_per_page = params[:list_all].to_i.zero? ? 30 : 1000000
 
     sql_where_clause = "is_deleted=0 and (accession is not null and accession!='')"
 
@@ -35,6 +34,7 @@ class ExperimentsController < ApplicationController
 
     end
 
+    params[:page] ||= 1
     @experiments = Experiment.paginate :page => params[:page],
       :per_page   => num_per_page,
       :conditions => sql_where_clause.to_s,
@@ -52,6 +52,7 @@ class ExperimentsController < ApplicationController
       sql_where_clause += " and experiment_type='#{ params[:experiment_type] }'"
     end
 
+    params[:page] ||= 1
     @experiments = Experiment.paginate :page => params[:page],
       :per_page   => 30,
       :conditions => sql_where_clause.to_s,
@@ -85,22 +86,20 @@ class ExperimentsController < ApplicationController
 
     # Abstract superclass method dispatches edit calls to the relevant subclass.
     @experiment  = Experiment.find(params[:id])
-    @search_term = params[:search_term]
-    @page        = params[:page]
     if @experiment.experiment_type == 'MIAMExpress'
       redirect_to :controller      => 'miamexps',
                   :action          => 'edit',
                   :id              => @experiment.id,
                   :experiment_type => @experiment.experiment_type,
-                  :search_term     => @search_term,
-                  :page            => @page
+                  :search_term     => params[:search_term],
+                  :page            => params[:page]
     else
       redirect_to :controller      => 'tab2mages',
                   :action          => 'edit',
                   :id              => @experiment.id,
                   :experiment_type => @experiment.experiment_type,
-                  :search_term     => @search_term,
-                  :page            => @page
+                  :search_term     => params[:search_term],
+                  :page            => params[:page]
     end
   end
 

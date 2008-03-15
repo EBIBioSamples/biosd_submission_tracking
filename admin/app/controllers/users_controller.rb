@@ -4,8 +4,26 @@ class UsersController < ApplicationController
   before_filter :login_required
 
   def list
+    sql_where_clause = "is_deleted=0"
+
+    @search_term = ""
+
+    if params[:search_term]
+
+      # Strip single quotes, otherwise they will cause a crash.
+      @search_term = params[:search_term].gsub(/\'/, "")
+
+      # Silently allow asterisk wildcards
+      sql_search = @search_term.gsub(/\*/, "%").gsub(/\?/, "_")
+
+      sql_where_clause += " and (login like '#{ sql_search }'" +
+	                  " or name like '%#{ sql_search }%'" +
+	                  " or email like '%#{ sql_search }%')"
+    end
+    
+    params[:page] ||= 1
     @users = User.paginate :page => params[:page],
-      :conditions => 'is_deleted=0',
+      :conditions => sql_where_clause.to_s,
       :order      => 'login',
       :per_page   => 100
   end
@@ -45,7 +63,9 @@ class UsersController < ApplicationController
     if @user.update_attributes(params[:user]) \
       && @user.update_attribute(:modified_at, Time.now.getutc.iso8601.to_s)
       flash[:notice] = 'User was successfully updated.'
-      redirect_to :action => 'list'
+      redirect_to :action          => 'list',
+	          :search_term     => params[:search_term],
+                  :page            => params[:page]
     else
       render :action => 'edit'
     end
@@ -55,10 +75,14 @@ class UsersController < ApplicationController
     user = User.find(params[:id])
     if user.experiments.any?
       flash[:notice] = "Error: There are still experiments attached to user #{ user.login }."
-      redirect_to :action => 'list' 
+      redirect_to :action          => 'list',
+	          :search_term     => params[:search_term],
+                  :page            => params[:page]
     elsif user.update_attribute(:is_deleted, 1)
       flash[:notice] = 'User was successfully deleted'
-      redirect_to :action => 'list'
+      redirect_to :action          => 'list',
+	          :search_term     => params[:search_term],
+                  :page            => params[:page]
     end
   end
 

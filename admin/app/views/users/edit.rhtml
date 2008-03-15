@@ -3,6 +3,8 @@
 <div>
   <% form_tag :action => "update", :id => @user.id do %>
     <%= render_partial "form" %>
+    <%= hidden_field_tag("page", params[:page]) %>
+    <%= hidden_field_tag("search_term", params[:search_term]) %>
     <%= submit_tag "Update" %>
   <% end %>
 </div>

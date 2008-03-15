@@ -39,6 +39,12 @@ Rails::Initializer.run do |config|
   # config.active_record.schema_format = :ruby
 
   # See Rails::Configuration for more options
+
+  # :secret, below, is a >30 character secret phrase used is generating session cookies.
+  config.action_controller.session = { :session_key => "_myapp_session",
+    :secret => "Lyta had a little Vorlon/her skin was pale as snow./" +
+               "Everywhere that Lyta went/the Vorlon was sure to go." }
+
 end
 
 # Add new inflection rules using the following format 
@@ -55,5 +61,6 @@ end
 # All our database timestamps are GMT.
 ActiveRecord::Base.default_timezone = :utc
 
+# Pagination now uses an external gem. Apparently
+# this is much better than the classic pagination.
 require 'will_paginate'
-

@@ -17,8 +17,26 @@ class OrganismController < ApplicationController
   end
 
   def list
+    sql_where_clause = "is_deleted=0"
+
+    @search_term = ""
+
+    # Don't search with an empty string.
+    if params[:search_term] && !params[:search_term].eql?("")
+
+      # Strip single quotes, otherwise they will cause a crash.
+      @search_term = params[:search_term].gsub(/\'/, "")
+
+      # Silently allow asterisk wildcards
+      sql_search = @search_term.gsub(/\*/, "%").gsub(/\?/, "_")
+
+      sql_where_clause += " and scientific_name like '#{ sql_search }'"
+
+    end
+
+    params[:page] ||= 1
     @organisms = Organism.paginate :page => params[:page], 
-      :conditions => 'is_deleted=0',
+      :conditions => sql_where_clause.to_s,
       :per_page   => 20,
       :order      => 'scientific_name'
   end
@@ -33,7 +51,7 @@ class OrganismController < ApplicationController
       flash[:notice] = 'Organism was successfully created'
       redirect_to :action => 'list'
     else
-      render_action 'new'
+      render :action => 'new'
     end
   end
 
@@ -41,9 +59,11 @@ class OrganismController < ApplicationController
     @organism = Organism.find(params[:id])
     if @organism.update_attributes(params[:organism])
       flash[:notice] = 'Organism was successfully updated'
-      redirect_to :action => 'list'
+      redirect_to :action => 'list',
+	          :search_term     => params[:search_term],
+                  :page            => params[:page]
     else
-      render_action 'edit'
+      render :action => 'edit'
     end
   end
       
@@ -51,10 +71,19 @@ class OrganismController < ApplicationController
     organism = Organism.find(params[:id])
     if organism.experiments.any?
       flash[:notice] = "Error: There are still experiments using #{ organism.scientific_name }."
-      redirect_to :action => 'list' 
+      redirect_to :action => 'list',
+	          :search_term     => params[:search_term],
+                  :page            => params[:page]
+    elsif organism.array_designs.any?
+      flash[:notice] = "Error: There are still array designs using #{ organism.scientific_name }."
+      redirect_to :action => 'list',
+	          :search_term     => params[:search_term],
+                  :page            => params[:page]
     elsif organism.update_attribute(:is_deleted, 1)
       flash[:notice] = 'Organism was successfully deleted'
-      redirect_to :action => 'list'
+      redirect_to :action => 'list',
+	          :search_term     => params[:search_term],
+                  :page            => params[:page]
     end
   end
 

@@ -17,6 +17,7 @@ class DesignController < ApplicationController
   end
 
   def list
+    params[:page] ||= 1
     @designs = Design.paginate :page => params[:page], 
       :conditions => 'is_deleted=0',
       :per_page   => 20,
@@ -33,7 +34,7 @@ class DesignController < ApplicationController
       flash[:notice] = 'Design was successfully created'
       redirect_to :action => 'list'
     else
-      render_action 'new'
+      render :action => 'new'
     end
   end
 
@@ -47,7 +48,7 @@ class DesignController < ApplicationController
       flash[:notice] = 'Design was successfully updated'
       redirect_to :action => 'list'
     else
-      render_action 'edit'
+      render :action => 'edit'
     end
   end
       

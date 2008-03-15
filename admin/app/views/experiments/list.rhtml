@@ -6,7 +6,7 @@
 	<%= text_field_tag("search_term", @search_term) %>
 	<%= submit_tag("Search") %>
         <%= content_tag("span", "&nbsp;&nbsp;List all results on one page:") %>
-        <%= check_box_tag("list_all", 1, @list_all ) %>
+        <%= check_box_tag("list_all", 1, params[:list_all] ) %>
 	<% end %>
 </div>
 

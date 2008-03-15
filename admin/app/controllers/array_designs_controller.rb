@@ -33,6 +33,7 @@ class ArrayDesignsController < ApplicationController
 	                  " or miamexpress_subid like '#{ sql_search }')"
     end
 
+    params[:page] ||= 1
     @array_designs = ArrayDesign.paginate :page => params[:page],
       :per_page   => 40,
       :conditions => sql_where_clause.to_s,
@@ -41,8 +42,7 @@ class ArrayDesignsController < ApplicationController
 
   def list_all
 
-    @list_all    = params[:list_all]
-    num_per_page = @list_all.to_i.zero? ? 30 : 1000000
+    num_per_page = params[:list_all].to_i.zero? ? 30 : 1000000
 
     sql_where_clause = "is_deleted=0 and (accession is not null and accession!='')"
 
@@ -62,6 +62,7 @@ class ArrayDesignsController < ApplicationController
 
     end
 
+    params[:page] ||= 1
     @array_designs = ArrayDesign.paginate :page => params[:page],
       :per_page   => num_per_page,
       :conditions => sql_where_clause.to_s,
@@ -79,8 +80,6 @@ class ArrayDesignsController < ApplicationController
 
   def edit
     @array_design = ArrayDesign.find(params[:id])
-    @search_term  = params[:search_term]
-    @page         = params[:page]
   end
 
   def create
@@ -110,10 +109,16 @@ class ArrayDesignsController < ApplicationController
   end
 
   def deprecate
-    ArrayDesign.find(params[:id]).update_attribute(:is_deleted, 1)
-    redirect_to :action => 'list',
-	        :search_term     => params[:search_term],
-                :page            => params[:page]
+    array_design = ArrayDesign.find(params[:id])
+    if array_design.experiments.any?
+      flash[:notice] = "Error: There are still experiments using #{ array_design.accession }."
+      redirect_to :action => 'list' 
+    elsif array_design.update_attribute(:is_deleted, 1)
+      flash[:notice] = 'Array design was successfully deleted'
+      redirect_to :action => 'list',
+	          :search_term     => params[:search_term],
+                  :page            => params[:page]
+    end
   end
 
 end

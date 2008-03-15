@@ -1,6 +1,14 @@
 <%= render_partial "title" %>
 
 <div>
+  <% form_tag do %>
+	<%= content_tag("span", "Search on Login, Name or Email (wildcards: *, ?): ") %>
+	<%= text_field_tag("search_term", @search_term) %>
+	<%= submit_tag("Search") %>
+  <% end %>
+</div>
+
+<div>
   <table>
     <tr>
       <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
@@ -17,8 +25,10 @@
     <% @users.each do |u| %>
       <tr>
 	<td>
-	<%= link_to "Edit", :action => "edit", 
-                            :id     => u.id %>
+	<%= link_to "Edit", :action      => "edit", 
+                            :id          => u.id,
+			    :page        => params[:page],
+	                    :search_term => @search_term %>
         </td>
 	<%= content_tag("td", u.login) %>
 	<%= content_tag("td", u.name) %>
@@ -28,8 +38,10 @@
 	<%= content_tag("td", u.created_at) %>
 	<%= content_tag("td", u.access) %>
 	<td>
-        <%= link_to "Delete", {:action  => "deprecate", 
-                               :id      => u.id},
+        <%= link_to "Delete", {:action      => "deprecate", 
+                               :id          => u.id,
+			       :page        => params[:page],
+	                       :search_term => @search_term },
                                :confirm => "Really delete user \"#{u.login}\"?" %>
         </td>
       </tr> 

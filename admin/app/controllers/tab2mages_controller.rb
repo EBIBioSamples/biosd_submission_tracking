@@ -26,7 +26,8 @@ class Tab2magesController < ExperimentsController
 	                  " or id like '#{ sql_search }'" +
 	                  " or name like '%#{ sql_search }%'#{ user_clause })"
     end
-
+    
+    params[:page] ||= 1
     @experiments = Experiment.paginate :page => params[:page],
       :per_page   => 30,
       :conditions => sql_where_clause.to_s,
@@ -36,8 +37,6 @@ class Tab2magesController < ExperimentsController
 
   def edit
     @experiment  = Experiment.find(params[:id])
-    @search_term = params[:search_term]
-    @page        = params[:page]
   end
 
 end

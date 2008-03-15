@@ -26,6 +26,7 @@ class MiamexpsController < ExperimentsController
 	                  " or miamexpress_subid like '#{ sql_search }')"
     end
 
+    params[:page] ||= 1
     @experiments = Experiment.paginate :page => params[:page],
       :per_page   => 30,
       :conditions => sql_where_clause.to_s,
@@ -35,8 +36,6 @@ class MiamexpsController < ExperimentsController
 
   def edit
     @experiment  = Experiment.find(params[:id])
-    @search_term = params[:search_term]
-    @page        = params[:page]
   end
 
 end
