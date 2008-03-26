@@ -85,35 +85,44 @@ QUERY
 
 sub reset_accession_cache {
 
-    my ( $subid, $status ) = @_;
+    my ( $subid, $status, $experiment_type ) = @_;
 
-    my $experiment
-        = ArrayExpress::AutoSubmission::DB::Experiment->retrieve(
+    # In future this will be a MAGE-TAB experiment that we reset to MIAMExpress.
+    my @experiments
+        = ArrayExpress::AutoSubmission::DB::Experiment->search(
 	    miamexpress_subid => $subid,
-	    experiment_type   => $EXPT_TYPE,
 	    is_deleted        => 0,
 	);
 
-    if ( $experiment ) {
+    if ( scalar @experiments == 1 ) {
 
-        $experiment->set(
+	$experiment_type ||= $experiments[0]->experiment_type();
+
+        $experiments[0]->set(
             status              => $status,
             date_last_processed => date_now(),
             curator             => getlogin,
+	    experiment_type     => $experiment_type,
             comment             => (
-                $experiment->status() eq $CONFIG->get_STATUS_CRASHED()
+                $experiments[0]->status() eq $CONFIG->get_STATUS_CRASHED()
                 ? q{}
-                : undef
+                : $experiments[0]->comment()
             ),
         );
-	$experiment->update();
+	$experiments[0]->update();
         print STDOUT (
             qq{Accession table successfully updated ($subid set to "$status").\n}
         );
     }
+    elsif ( scalar @experiments > 1 ) {
+	warn (
+	    "Warning: Duplicate records found for SubID $subid in"
+		. " experiments table. Please fix and re-run this script.\n"
+	);
+    }
     else {
-        print STDERR (
-            "Warning: No submission with SubID $subid found in accession table.\n"
+        warn (
+            "Warning: No submission with SubID $subid found in experiments table.\n"
         );
     }
 
@@ -127,6 +136,7 @@ sub parse_args {
     GetOptions(
 	"p|pending" => \$args{pending},
         "c|check"   => \$args{check},
+        "q|quick"   => \$args{quick},
         "e|export"  => \$args{export},
     );
 
@@ -135,8 +145,17 @@ sub parse_args {
 Usage: $PROGRAM_NAME <option> <list of submission ids>
 
 Options:  -c   set submission for immediate re-checking
+                 (sets experiment back to "MIAMExpress", checks database annotation and data files).
+
+          -q   set submission for re-checking
+                 (checks experiment as indicated by its current type;
+                    typically this will run annotation-only checks on MAGE-TAB experiments).
+
           -e   set submission for MAGE-ML export without re-checking
+                 (experiment is exported according to its current type).
+
           -p   set submission to pending status for user editing
+                 (sets experiment back to "MIAMExpress").
 
 NOINPUT
 
@@ -160,15 +179,20 @@ foreach my $subid (@ARGV) {
         reset_mx_tsubmis( $subid, 'C' );
         reset_accession_cache( $subid, $CONFIG->get_STATUS_PASSED() );
     }
-    elsif ( $args->{check} ) {
+    elsif ( $args->{quick} ) {
 
         reset_mx_tsubmis( $subid, 'C' );
         reset_accession_cache( $subid, $CONFIG->get_STATUS_PENDING() );
     }
+    elsif ( $args->{check} ) {
+
+        reset_mx_tsubmis( $subid, 'C' );
+        reset_accession_cache( $subid, $CONFIG->get_STATUS_PENDING(), $EXPT_TYPE );
+    }
     elsif ( $args->{pending} ) {
 
         reset_mx_tsubmis( $subid, 'P' );
-        reset_accession_cache( $subid, $CONFIG->get_STATUS_PENDING() );
+        reset_accession_cache( $subid, $CONFIG->get_STATUS_PENDING(), $EXPT_TYPE );
     }
     else {
 	die("Error: Unrecognised user option.");
