@@ -41,6 +41,13 @@ sub reset_accession_cache {
 
 	my $experiment = $experiments[0];
 
+	# We can't set MX experiments to pending, so we don't attempt it.
+	if ( $experiment->miamexpress_subid()
+		 && $status eq $CONFIG->get_STATUS_PENDING() ) {
+	    die("Error: This script is unable to set MIAMExpress experiments"
+	      . " back to pending. Please use the mx_reset_experiment.pl script.\n");
+	}
+
         $experiment->set(
             status              => $status,
             date_last_processed => date_now(),
@@ -97,6 +104,9 @@ Usage: $PROGRAM_NAME <option> <list of submission directories>
 Options:  -c   set submission for immediate re-checking
           -e   set submission for MAGE-ML export without re-checking
           -p   set submission to pending status for user editing
+
+   Note that -p will not work for MIAMExpress submissions exported to MAGE-TAB;
+   for such submissions use the mx_reset_experiment.pl script.
 
 NOINPUT
 

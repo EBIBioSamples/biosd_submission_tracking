@@ -21,6 +21,8 @@ use ArrayExpress::Curator::Common qw(date_now);
 require ArrayExpress::AutoSubmission::DB::Experiment;
 
 Readonly my $EXPT_TYPE => 'MIAMExpress';
+Readonly my $CURATION  => 1;
+Readonly my $PENDING   => 0;
 
 ########
 # SUBS #
@@ -85,7 +87,7 @@ QUERY
 
 sub reset_accession_cache {
 
-    my ( $subid, $status, $experiment_type ) = @_;
+    my ( $subid, $status, $in_curation, $experiment_type ) = @_;
 
     # In future this will be a MAGE-TAB experiment that we reset to MIAMExpress.
     my @experiments
@@ -102,6 +104,7 @@ sub reset_accession_cache {
             status              => $status,
             date_last_processed => date_now(),
             curator             => getlogin,
+	    in_curation         => $in_curation,
 	    experiment_type     => $experiment_type,
             comment             => (
                 $experiments[0]->status() eq $CONFIG->get_STATUS_CRASHED()
@@ -140,16 +143,16 @@ sub parse_args {
         "e|export"  => \$args{export},
     );
 
-    unless ( ( $args{pending} || $args{check} || $args{export} ) && @ARGV) {
+    unless ( ( $args{pending} || $args{check} || $args{quick} || $args{export} ) && @ARGV) {
         print <<"NOINPUT";
 Usage: $PROGRAM_NAME <option> <list of submission ids>
 
-Options:  -c   set submission for immediate re-checking
+Options:  -c   set submission for full re-checking
                  (sets experiment back to "MIAMExpress", checks database annotation and data files).
 
-          -q   set submission for re-checking
+          -q   set submission for quick re-checking
                  (checks experiment as indicated by its current type;
-                    typically this will run annotation-only checks on MAGE-TAB experiments).
+                    typically this will run annotation-only checks on MX MAGE-TAB experiments).
 
           -e   set submission for MAGE-ML export without re-checking
                  (experiment is exported according to its current type).
@@ -177,22 +180,40 @@ foreach my $subid (@ARGV) {
     if ( $args->{export} ) {
 
         reset_mx_tsubmis( $subid, 'C' );
-        reset_accession_cache( $subid, $CONFIG->get_STATUS_PASSED() );
+        reset_accession_cache(
+	    $subid,
+	    $CONFIG->get_STATUS_PASSED(),
+	    $CURATION,
+	);
     }
     elsif ( $args->{quick} ) {
 
         reset_mx_tsubmis( $subid, 'C' );
-        reset_accession_cache( $subid, $CONFIG->get_STATUS_PENDING() );
+        reset_accession_cache(
+	    $subid,
+	    $CONFIG->get_STATUS_PENDING(),
+	    $CURATION,
+	);
     }
     elsif ( $args->{check} ) {
 
         reset_mx_tsubmis( $subid, 'C' );
-        reset_accession_cache( $subid, $CONFIG->get_STATUS_PENDING(), $EXPT_TYPE );
+        reset_accession_cache(
+	    $subid,
+	    $CONFIG->get_STATUS_PENDING(),
+	    $CURATION,
+	    $EXPT_TYPE,
+	);
     }
     elsif ( $args->{pending} ) {
 
         reset_mx_tsubmis( $subid, 'P' );
-        reset_accession_cache( $subid, $CONFIG->get_STATUS_PENDING(), $EXPT_TYPE );
+        reset_accession_cache(
+	    $subid,
+	    $CONFIG->get_STATUS_PENDING(),
+	    $PENDING,
+	    $EXPT_TYPE,
+	);
     }
     else {
 	die("Error: Unrecognised user option.");
