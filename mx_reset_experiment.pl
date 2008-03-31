@@ -17,7 +17,7 @@ use English qw( -no_match_vars );
 use Readonly;
 
 use ArrayExpress::Curator::Config qw($CONFIG);
-use ArrayExpress::Curator::Common qw(date_now);
+use ArrayExpress::Curator::Common qw(date_now mx2tab);
 require ArrayExpress::AutoSubmission::DB::Experiment;
 
 Readonly my $EXPT_TYPE => 'MIAMExpress';
@@ -98,21 +98,30 @@ sub reset_accession_cache {
 
     if ( scalar @experiments == 1 ) {
 
-	$experiment_type ||= $experiments[0]->experiment_type();
+	my $expt = $experiments[0];
 
-        $experiments[0]->set(
+	# Sometimes submissions are forced to export; we handle the
+	# requisite MX to MAGE-TAX export here.
+	if ( $status eq $CONFIG->get_STATUS_PASSED()
+		 && $expt->experiment_type() eq 'MIAMExpress' ) {
+	    mx2tab($expt);
+	}
+
+	$experiment_type ||= $expt->experiment_type();
+
+        $expt->set(
             status              => $status,
             date_last_processed => date_now(),
             curator             => getlogin,
 	    in_curation         => $in_curation,
 	    experiment_type     => $experiment_type,
             comment             => (
-                $experiments[0]->status() eq $CONFIG->get_STATUS_CRASHED()
+                $expt->status() eq $CONFIG->get_STATUS_CRASHED()
                 ? q{}
-                : $experiments[0]->comment()
+                : $expt->comment()
             ),
         );
-	$experiments[0]->update();
+	$expt->update();
         print STDOUT (
             qq{Accession table successfully updated ($subid set to "$status").\n}
         );
