@@ -19,6 +19,7 @@ use ArrayExpress::Curator::Config qw($CONFIG);
 use ArrayExpress::Curator::Common qw(date_now);
 require ArrayExpress::AutoSubmission::DB::Experiment;
 
+# These values are assumed to be numeric later.
 Readonly my $CURATION => 1;
 Readonly my $PENDING  => 0;
 
@@ -42,8 +43,7 @@ sub reset_accession_cache {
 	my $experiment = $experiments[0];
 
 	# We can't set MX experiments to pending, so we don't attempt it.
-	if ( $experiment->miamexpress_subid()
-		 && $status eq $CONFIG->get_STATUS_PENDING() ) {
+	if ( $experiment->miamexpress_subid() && $in_curation == $PENDING ) {
 	    die("Error: This script is unable to set MIAMExpress experiments"
 	      . " back to pending. Please use the mx_reset_experiment.pl script.\n");
 	}
