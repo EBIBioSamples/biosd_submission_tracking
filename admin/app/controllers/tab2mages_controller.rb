@@ -24,6 +24,7 @@ class Tab2magesController < ExperimentsController
       sql_where_clause += " and (accession like '#{ sql_search }'" +
 	                  " or comment like '%#{ sql_search }%'" +
 	                  " or id like '#{ sql_search }'" +
+	                  " or miamexpress_login like '%#{ sql_search }%'" +
 	                  " or name like '%#{ sql_search }%'#{ user_clause })"
     end
     
