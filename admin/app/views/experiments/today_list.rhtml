@@ -8,6 +8,7 @@
       <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
       <%= content_tag("th", "Type") %>
       <%= content_tag("th", "Accession") %>
+      <%= content_tag("th", "Directory") %>
       <%= content_tag("th", "Name") %>
       <%= content_tag("th", "Checker score") %>
       <%= content_tag("th", "MIAME score") %>
@@ -29,6 +30,7 @@
         </td>
         <%= content_tag("td", e.experiment_type.to_s) %>
 	<%= content_tag("td", e.accession) %>
+	<%= content_tag("td", e.experiment_type == 'MIAMExpress' ? '' : e.experiment_type + '_' + e.id.to_s) %>
 	<%= content_tag("td", e.name) %>
 	<%= content_tag("td", e.checker_score) %>
 	<%= content_tag("td", (e.miame_score.to_i.&(1).nonzero? ? 'R' : '') +
