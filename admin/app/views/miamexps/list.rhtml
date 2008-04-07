@@ -16,6 +16,7 @@
       <%= content_tag("th", "SubId") %>
       <%= content_tag("th", "Login") %>
       <%= content_tag("th", "Accession") %>
+      <%= content_tag("th", "Directory") %>
       <%= content_tag("th", "Name") %>
       <%= content_tag("th", "Checker score") %>
       <%= content_tag("th", "MIAME score") %>
@@ -24,7 +25,6 @@
       <%= content_tag("th", "Date last processed") %>
       <%= content_tag("th", "Curator") %>
       <%= content_tag("th", "Software") %>
-      <%= content_tag("th", "Batchloader used") %>
       <%= content_tag("th", "Comment") %>
     </tr>
 
@@ -40,6 +40,7 @@
 	<%= content_tag("td", e.miamexpress_subid) %>
 	<%= content_tag("td", e.miamexpress_login) %>
 	<%= content_tag("td", e.accession) %>
+	<%= content_tag("td", e.experiment_type.to_s.eql?('MIAMExpress') ? '' : e.experiment_type.to_s + "_" + e.id.to_s) %>
 	<%= content_tag("td", e.name) %>
 	<%= content_tag("td", e.checker_score) %>
 	<%= content_tag("td", (e.miame_score.to_i.&(1).nonzero? ? 'R' : '') +
@@ -58,10 +59,6 @@
                               "") %>
 	<%= content_tag("td", e.curator) %>
 	<%= content_tag("td", e.software) %>
-	<%= content_tag("td", e.is_mx_batchloader.nil? ? '' :
-                              e.is_mx_batchloader? ?
-                              'yes' :
-                              'no') %>
 	<%= content_tag("td", truncate(e.comment, 30)) %>
       </tr> 
     <% end %>

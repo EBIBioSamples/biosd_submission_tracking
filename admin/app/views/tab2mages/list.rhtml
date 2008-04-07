@@ -22,7 +22,6 @@
       <%= content_tag("th", "DW status") %>
       <%= content_tag("th", "In curation") %>
       <%= content_tag("th", "Status") %>
-      <%= content_tag("th", "Affymetrix") %>
       <%= content_tag("th", "Software") %>
       <%= content_tag("th", "Date last edited") %>
       <%= content_tag("th", "Date submitted") %>
@@ -61,10 +60,6 @@
                               '<font color="green">YES</font>' :
                               '<font color="red">no</font>') %>
 	<%= content_tag("td", e.status) %>
-	<%= content_tag("td", e.is_affymetrix.nil? ? '' :
-                              e.is_affymetrix? ?
-                              'yes' :
-                              'no') %>
 	<%= content_tag("td", e.software) %>
 	<%= content_tag("td", e.date_last_edited ?
 			      e.date_last_edited.strftime('%Y-%m-%d') :
