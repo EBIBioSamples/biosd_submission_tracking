@@ -1,7 +1,7 @@
 class MiamexpsController < ExperimentsController
 
   def list
-    sql_where_clause = "is_deleted=0 and miamexpress_subid is not null"
+    sql_where_clause = "is_deleted=0 and ( miamexpress_subid is not null || experiment_type='MIAMExpress' )"
 
     @search_term = ""
 
