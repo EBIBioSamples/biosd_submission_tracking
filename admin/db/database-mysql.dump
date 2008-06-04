@@ -225,6 +225,27 @@ LOCK TABLES `data_files` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `data_formats`
+--
+
+DROP TABLE IF EXISTS `data_formats`;
+CREATE TABLE `data_formats` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(50) character set latin1 collate latin1_general_cs NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `data_formats`
+--
+
+LOCK TABLES `data_formats` WRITE;
+/*!40000 ALTER TABLE `data_formats` DISABLE KEYS */;
+/*!40000 ALTER TABLE `data_formats` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `design_instances`
 --
 
@@ -390,6 +411,29 @@ LOCK TABLES `experiments_factors` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `experiments_loaded_data`
+--
+
+DROP TABLE IF EXISTS `experiments_loaded_data`;
+CREATE TABLE `experiments_loaded_data` (
+  `experiment_id` int(11) NOT NULL,
+  `loaded_data_id` int(11) NOT NULL,
+  KEY `experiment_id` (`experiment_id`),
+  KEY `loaded_data_id` (`loaded_data_id`),
+  CONSTRAINT `loaded_data_experiment_ibfk_1` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `loaded_data_loaded_data_ibfk_1` FOREIGN KEY (`loaded_data_id`) REFERENCES `loaded_data` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `experiments_loaded_data`
+--
+
+LOCK TABLES `experiments_loaded_data` WRITE;
+/*!40000 ALTER TABLE `experiments_loaded_data` DISABLE KEYS */;
+/*!40000 ALTER TABLE `experiments_loaded_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `experiments_quantitation_types`
 --
 
@@ -433,6 +477,63 @@ CREATE TABLE `factors` (
 LOCK TABLES `factors` WRITE;
 /*!40000 ALTER TABLE `factors` DISABLE KEYS */;
 /*!40000 ALTER TABLE `factors` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `loaded_data`
+--
+
+DROP TABLE IF EXISTS `loaded_data`;
+CREATE TABLE `loaded_data` (
+  `id` int(11) NOT NULL auto_increment,
+  `identifier` varchar(255) character set latin1 collate latin1_general_cs NOT NULL,
+  `md5_hash` char(35) NOT NULL,
+  `data_format_id` int(11) NOT NULL,
+  `is_deleted` int(11) NOT NULL,
+  `platform_id` int(11) default NULL,
+  `needs_metrics_calculation` int(11) NOT NULL,
+  `date_hashed` datetime default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `data_format_id` (`data_format_id`),
+  KEY `platform_loaded_data_ibfk_1` (`platform_id`),
+  CONSTRAINT `platform_loaded_data_ibfk_1` FOREIGN KEY (`platform_id`) REFERENCES `platforms` (`id`),
+  CONSTRAINT `data_format_loaded_data_ibfk_1` FOREIGN KEY (`data_format_id`) REFERENCES `data_formats` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `loaded_data`
+--
+
+LOCK TABLES `loaded_data` WRITE;
+/*!40000 ALTER TABLE `loaded_data` DISABLE KEYS */;
+/*!40000 ALTER TABLE `loaded_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `loaded_data_quality_metrics`
+--
+
+DROP TABLE IF EXISTS `loaded_data_quality_metrics`;
+CREATE TABLE `loaded_data_quality_metrics` (
+  `id` int(11) NOT NULL auto_increment,
+  `value` decimal(12,5) default NULL,
+  `quality_metric_id` int(11) NOT NULL,
+  `loaded_data_id` int(11) NOT NULL,
+  `date_calculated` datetime default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `quality_metric_id` (`quality_metric_id`),
+  KEY `loaded_data_id` (`loaded_data_id`),
+  CONSTRAINT `quality_metric_loaded_data_ibfk_1` FOREIGN KEY (`loaded_data_id`) REFERENCES `loaded_data` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `quality_metric_quality_metric_ibfk_1` FOREIGN KEY (`quality_metric_id`) REFERENCES `quality_metrics` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `loaded_data_quality_metrics`
+--
+
+LOCK TABLES `loaded_data_quality_metrics` WRITE;
+/*!40000 ALTER TABLE `loaded_data_quality_metrics` DISABLE KEYS */;
+/*!40000 ALTER TABLE `loaded_data_quality_metrics` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -605,6 +706,27 @@ INSERT INTO `permissions_roles` VALUES (1,1),(2,4),(2,5),(2,6),(2,7),(2,8),(2,9)
 UNLOCK TABLES;
 
 --
+-- Table structure for table `platforms`
+--
+
+DROP TABLE IF EXISTS `platforms`;
+CREATE TABLE `platforms` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(50) NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `platforms`
+--
+
+LOCK TABLES `platforms` WRITE;
+/*!40000 ALTER TABLE `platforms` DISABLE KEYS */;
+/*!40000 ALTER TABLE `platforms` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `protocols`
 --
 
@@ -632,13 +754,35 @@ LOCK TABLES `protocols` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `quality_metrics`
+--
+
+DROP TABLE IF EXISTS `quality_metrics`;
+CREATE TABLE `quality_metrics` (
+  `id` int(11) NOT NULL auto_increment,
+  `type` varchar(50) NOT NULL,
+  `description` text,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `type` (`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `quality_metrics`
+--
+
+LOCK TABLES `quality_metrics` WRITE;
+/*!40000 ALTER TABLE `quality_metrics` DISABLE KEYS */;
+/*!40000 ALTER TABLE `quality_metrics` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `quantitation_types`
 --
 
 DROP TABLE IF EXISTS `quantitation_types`;
 CREATE TABLE `quantitation_types` (
   `id` int(11) NOT NULL auto_increment,
-  `name` varchar(128) NOT NULL,
+  `name` varchar(128) character set latin1 collate latin1_general_cs NOT NULL,
   `is_deleted` int(11) NOT NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -775,80 +919,6 @@ LOCK TABLES `users` WRITE;
 INSERT INTO `users` VALUES (1,'admin','Administrator','admin','noreply@ebi.ac.uk',NULL,NULL,NULL,0),(2,'curator','Curator','curator','noreply@ebi.ac.uk',NULL,NULL,NULL,0),(3,'test','Test submitter','test','noreply@ebi.ac.uk',NULL,NULL,NULL,0);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
-
--- #######################################################################
--- The following are additional tables for the loaded data hashing system.
--- #######################################################################
-
---
--- Table structure for table `data_formats`
---
-
-DROP TABLE IF EXISTS `data_formats`;
-CREATE TABLE `data_formats` (
-  `id` int(11) NOT NULL auto_increment,
-  `name` varchar(50) UNIQUE NOT NULL,
-  PRIMARY KEY  (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Table structure for table `loaded_data`
---
-
-DROP TABLE IF EXISTS `loaded_data`;
-CREATE TABLE `loaded_data` (
-  `id` int(11) NOT NULL auto_increment,
-  `identifier` varchar(255) UNIQUE NOT NULL,
-  `md5_hash` char(35) NOT NULL,
-  `data_format_id` int(11) NOT NULL,
-  `is_deleted` int(11) NOT NULL,
-  PRIMARY KEY  (`id`),
-  KEY `data_format_id` (`data_format_id`),
-  CONSTRAINT `data_format_loaded_data_ibfk_1` FOREIGN KEY (`data_format_id`) REFERENCES `data_formats` (`id`) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Table structure for table `quality_metrics`
---
-
-DROP TABLE IF EXISTS `quality_metrics`;
-CREATE TABLE `quality_metrics` (
-  `id` int(11) NOT NULL auto_increment,
-  `type` varchar(50) UNIQUE NOT NULL,
-  PRIMARY KEY  (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Table structure for table `experiments_loaded_data`
---
-
-DROP TABLE IF EXISTS `experiments_loaded_data`;
-CREATE TABLE `experiments_loaded_data` (
-  `experiment_id` int(11) NOT NULL,
-  `loaded_data_id` int(11) NOT NULL,
-  KEY `experiment_id` (`experiment_id`),
-  KEY `loaded_data_id` (`loaded_data_id`),
-  CONSTRAINT `loaded_data_experiment_ibfk_1` FOREIGN KEY (`experiment_id`) REFERENCES `experiments` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `loaded_data_loaded_data_ibfk_1` FOREIGN KEY (`loaded_data_id`) REFERENCES `loaded_data` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Table structure for table `loaded_data_quality_metrics`
---
-
-DROP TABLE IF EXISTS `loaded_data_quality_metrics`;
-CREATE TABLE `loaded_data_quality_metrics` (
-  `id` int(11) NOT NULL auto_increment,
-  `value` numeric,
-  `quality_metric_id` int(11) NOT NULL,
-  `loaded_data_id` int(11) NOT NULL,
-  PRIMARY KEY  (`id`),
-  KEY `quality_metric_id` (`quality_metric_id`),
-  KEY `loaded_data_id` (`loaded_data_id`),
-  CONSTRAINT `quality_metric_quality_metric_ibfk_1` FOREIGN KEY (`quality_metric_id`) REFERENCES `quality_metrics` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `quality_metric_loaded_data_ibfk_1` FOREIGN KEY (`loaded_data_id`) REFERENCES `loaded_data` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -859,4 +929,4 @@ CREATE TABLE `loaded_data_quality_metrics` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2008-01-07  9:25:44
+-- Dump completed on 2008-04-28 11:51:32

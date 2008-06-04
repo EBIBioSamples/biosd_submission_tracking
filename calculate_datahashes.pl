@@ -36,6 +36,9 @@ sub delete_unused_data {
 	is_deleted => 0,
     );
 
+    # FIXME modify this to confirm that there's a "valid" experiment
+    # accession; i.e. not E-XXXX-n_bad or whatever. Will probably need
+    # caching a big AE query.
     my $ae_sth = $ae_dbh->prepare(<<'QUERY');
 select identifier
 from tt_identifiable
