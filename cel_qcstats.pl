@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl --
 #
 # Script to generate QC stats for Affy CEL files. Note that the CelQC
 # module requires the R executable to be on your path; you may also
