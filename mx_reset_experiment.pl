@@ -109,18 +109,18 @@ sub reset_accession_cache {
 
 	$experiment_type ||= $expt->experiment_type();
 
-        $expt->set(
-            status              => $status,
-            date_last_processed => date_now(),
-            curator             => getlogin,
-	    in_curation         => $in_curation,
-	    experiment_type     => $experiment_type,
-            comment             => (
-                $expt->status() eq $CONFIG->get_STATUS_CRASHED()
+    $expt->set(
+        status              => $status,
+        date_last_processed => date_now(),
+        curator             => getlogin,
+     	in_curation         => $in_curation,
+        experiment_type     => $experiment_type,
+        comment             => (
+        $expt->status() eq $CONFIG->get_STATUS_CRASHED()
                 ? q{}
                 : $expt->comment()
-            ),
-        );
+        ),
+    );
 	$expt->update();
         print STDOUT (
             qq{Accession table successfully updated ($subid set to "$status").\n}
