@@ -134,6 +134,7 @@ my $creator = ArrayExpress::AutoSubmission::Creator->new({
     experiment_type => 'BII',
     comment         => 'Submission inserted manually',
     clobber         => $clobber,
+    notify          => 1,
 });
 # Create the experiment
 my $expt = $creator->get_experiment();
