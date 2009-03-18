@@ -19,7 +19,7 @@ use File::Spec;
 use File::Copy qw(move copy);
 
 use ArrayExpress::Curator::Config qw($CONFIG);
-use ArrayExpress::Curator::Common qw(date_now);
+use ArrayExpress::Curator::Common qw(date_now mprint);
 require ArrayExpress::AutoSubmission::DB::ArrayDesign;
 use ArrayExpress::MXExport::General qw(get_mx_file_path);
 use ArrayExpress::MXExport::ArrayDesign;
@@ -148,19 +148,34 @@ QUERY
 
     my $count = scalar( @$results );   
     unless ( $count == 1 ) {
-        die(      "Error: SubID $subid returns invalid "
-                . "number of MIAMExpress arrays: $count\n" );
+    	# Write reason for failure to subs tracking
+    	my $error = "Error: SubID $subid returns invalid "
+                  . "number of MIAMExpress arrays: $count";
+                  
+    	$array->set(
+    	     status              => $CONFIG->get_STATUS_CRASHED,
+    	     date_last_processed => date_now(),
+    	     comment             => $error, 
+    	);
+    	$array->update();
+    	
+    	# then die
+        die $error;
     }
 
     my $name = $results->[0][0];
     my $login = $results->[0][1];
 
-    $array->set(
+    my %args = (
         status              => $status,
         date_last_processed => date_now(),
         name                => $name,
         miamexpress_login   => $login, 
-        comment             => $comment, 
+    );
+    $args{comment}=$comment if $comment;
+    
+    $array->set(
+       %args
     ); 
 
     $array->update();
@@ -209,7 +224,7 @@ sub export_array{
        or die "Error: could not open export log $export_log: $!";  
     $parser->set_log_fh($export_log_fh);
     chmod 0777, $export_log;
-    
+        
     # Compute and store MIAME and DW scores
     my $miame_score = $parser->get_miame_score;
     print "MIAME score: $miame_score\n";
@@ -220,17 +235,18 @@ sub export_array{
         data_warehouse_ready => $dw_score,
     );
     $array->update;
-                  
+    
+    # Run array mageml export script              
     my $command = "$export_script '$name' $accession";
     my $time = date_now;
-    print $export_log_fh "\n$time - Starting MAGEML export using command:\n$command\n";
+    mprint (*STDOUT, $export_log_fh, "$time - Starting MAGEML export using command:\n$command\n");
     my $status = system ($command);
     $time = date_now;
     if ($status == 0){
-        print $export_log_fh "$time - MAGEML export completed\n";
+        mprint (*STDOUT, $export_log_fh, "$time - MAGEML export completed\n");
     }
     else{
-        print $export_log_fh "$time - MAGEML export failed: $?\n";
+        print $export_log_fh, "$time - MAGEML export failed: $?\n";
         die "MAGEML export failed: $?";
     }
     
@@ -246,6 +262,65 @@ sub export_array{
     
     move ($xml, $target_path)
         or die "Error: could not move mageml from $xml to $target_path - $!";
+    
+    # Check if it is a Nimblegen design file (NDF)
+    if ($parser->is_nimblegen){
+    	
+    	# Convert NDF to ADF and copy to load dir
+    	my $ndf_convert = $CONFIG->get_NDF_CONVERT_SCRIPT;
+    	my $command = "$ndf_convert '$adf_path'";
+        $time = date_now;
+    	mprint (*STDOUT, $export_log_fh, "$time - Converting NDF to ADF format using command:\n$command\n");
+    	my $status = system($command);
+    	
+    	if ($status == 0){
+    	my $adf_file = $adf_path.".adf";
+    	    mprint (*STDOUT, $export_log_fh, date_now." - NDF to ADF conversion completed\n");
+    	    my $new_name = $accession.".adf_from_ndf.txt";
+     	    my $adf_target_path = File::Spec->catfile($target_dir,$new_name);
+    	    move($adf_file, $adf_target_path)
+    	        or die "Error: could not move $adf_file to $adf_target_path - $!";
+    	    mprint (*STDOUT, $export_log_fh, date_now." - ADF moved to $adf_target_path\n");
+    	}
+    	else{
+    		print $export_log_fh date_now." - NDF to ADF conversion failed: $?\n";
+    		die "NDF to ADF conversion failed: $?";
+    	}
+    	
+    	mprint (*STDOUT, $export_log_fh, date_now." - Removing FeatureGroups_assnlist from mageml\n");    
+        # Remove FeatureGroups_assnlist from mageml
+        my $new_xml = $target_path.".new";
+        open (my $in_fh, "<", $target_path)
+            or die ("Could not open $target_path to remove FeatureGroups_assnlist: $!");
+        open (my $out_fh, ">", $new_xml)
+            or die ("Could not open $new_xml for writing: $!");
+        
+        my $in_featuregroup_assnlist = 0;    
+        while (<$in_fh>){
+        	$in_featuregroup_assnlist = 1 if /<FeatureGroups_assnlist>/;
+        	print $out_fh $_ unless $in_featuregroup_assnlist;
+        	$in_featuregroup_assnlist = 0 if /<\/FeatureGroups_assnlist>/;
+        }
+        close $in_fh;
+        close $out_fh;
+        
+        # Backup original xml file
+        my $xml_bak = $target_path.".bak";
+        move($target_path, $xml_bak)
+            or die "Could not move $target_path to $xml_bak: $!";
+        chmod 0777, $xml_bak;
+        
+        # Move new file to target xml file path
+        move($new_xml, $target_path)
+            or die "Could not move $new_xml to $target_path: $!";
+        chmod 0777, $target_path;
+        mprint (*STDOUT, $export_log_fh, date_now." - FeatureGroups_assnlist removed\n"); 
+        
+        $array->set(
+        	comment => "NDF converted to ADF.",
+        );
+        $array->update;       
+    }
     
     return;
 }
@@ -268,19 +343,29 @@ foreach my $subid (@ARGV) {
         reset_mx_tsubmis($subid, 'C');
         
         # Run checker
-        update_sub_tracking($subid, $CONFIG->get_STATUS_CHECKING);
+        my $array = update_sub_tracking($subid, $CONFIG->get_STATUS_CHECKING);
+        my $accession = $array->get_accession;
         
-        my $design = ArrayExpress::MXExport::ArrayDesign->new({
-            subid => $subid,
-        });
-        my $design_info = $design->get_array_info;
-        
+        # Attempt to get array design info from MX (need ADF file path)
+        my $design_info;
+        eval{
+            my $design = ArrayExpress::MXExport::ArrayDesign->new({
+                subid => $subid,
+            });
+            $design_info = $design->get_array_info;
+        };
+        if ($@){
+        	my $error = "Could not get array design information. Error: $!";
+        	update_sub_tracking($subid, $CONFIG->get_STATUS_CRASHED, $error);
+        	die $error;
+        }
+
         my $adf = $design_info->get_adf_path;
         my $report = $adf.".report";
 
         my $parser;
         
-        print "Starting ADF checking for $adf..\n";
+        print "Starting ADF checking for $accession. ADF: $adf..\n";
         my $start_time = time;
 
 		# Create a MIAMExpress ADF parser
@@ -298,6 +383,7 @@ foreach my $subid (@ARGV) {
 		    array_info => $design_info,
 		});
         
+        # Attempt to check ADF file
         eval{
 	        $parser->check({ 
 		        log_file_path => $report
@@ -305,8 +391,8 @@ foreach my $subid (@ARGV) {
             
         };
         if($@){
-            update_sub_tracking($subid, $CONFIG->get_STATUS_CRASHED, "ADF checking crashed with error: $@");
-            die "ADF checking crashed with error: $@";
+            update_sub_tracking($subid, $CONFIG->get_STATUS_CRASHED, "ADF checking crashed with error: $!");
+            die "ADF checking crashed with error: $!";
         }
         
         my $time_taken = time - $start_time; 
@@ -323,14 +409,14 @@ foreach my $subid (@ARGV) {
         }
             
         # export if checks pass
-        my $array = update_sub_tracking($subid, $CONFIG->get_STATUS_EXPORT);
+        update_sub_tracking($subid, $CONFIG->get_STATUS_EXPORT);
         
         if ($parser->get_warning_status){
             print "Checker result: WARNINGS - see checker log\nproceeding to export\n";
             my $new = File::Spec->catfile( 
                                    $CONFIG->get_AUTOSUBMISSIONS_ARRAY_TARGET, 
                                    "MEXP", 
-                                   $array->get_accession,
+                                   $accession,
                                    "CHECKER_WARNINGS.log",
                                    );
             close $parser->get_log_fh;
@@ -341,11 +427,12 @@ foreach my $subid (@ARGV) {
             print "Checker result: PASS\n";
         }
         
+        # Attempt to run mageml export
         eval{
             export_array($array, $adf, $design_info, $parser);
         };
         if ($@){
-            update_sub_tracking($subid, $CONFIG->get_STATUS_EXPORT_ERROR, "Array MAGEML generation failed with error: $@");
+            update_sub_tracking($subid, $CONFIG->get_STATUS_EXPORT_ERROR, "Array MAGEML generation failed with error: $!");
         }
         else{
             update_sub_tracking($subid, $CONFIG->get_STATUS_COMPLETE);
@@ -358,15 +445,26 @@ foreach my $subid (@ARGV) {
         # export
         my $array = update_sub_tracking($subid, $CONFIG->get_STATUS_EXPORT);
         
-        my $design = ArrayExpress::MXExport::ArrayDesign->new({
-            subid => $subid,
-        });
-        my $design_info = $design->get_array_info;
+        # Attempt to get array design info from MX for use in export command
+        my $design_info;
+        eval{
+            my $design = ArrayExpress::MXExport::ArrayDesign->new({
+                subid => $subid,
+            });
+            $design_info = $design->get_array_info;
+        };
+        if ($@){
+        	my $error = "Could not get array design information. Error: $!";
+        	update_sub_tracking($subid, $CONFIG->get_STATUS_CRASHED, $error);
+        	die $error;
+        }
+        
+        # Attempt to run MIAMExpress mageml generation script
         eval{
             export_array($array, $design_info->get_adf_path, $design_info); 
         };
         if ($@){
-        	update_sub_tracking($subid, $CONFIG->get_STATUS_EXPORT_ERROR, "Array MAGEML generation failed with error: $@");
+        	update_sub_tracking($subid, $CONFIG->get_STATUS_EXPORT_ERROR, "Array MAGEML generation failed with error: $!");
         }
         else{
             update_sub_tracking($subid, $CONFIG->get_STATUS_COMPLETE);       
