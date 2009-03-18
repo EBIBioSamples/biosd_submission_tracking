@@ -280,6 +280,7 @@ sub export_array{
      	    my $adf_target_path = File::Spec->catfile($target_dir,$new_name);
     	    move($adf_file, $adf_target_path)
     	        or die "Error: could not move $adf_file to $adf_target_path - $!";
+    	    chmod 0777, $adf_target_path;
     	    mprint (*STDOUT, $export_log_fh, date_now." - ADF moved to $adf_target_path\n");
     	}
     	else{
