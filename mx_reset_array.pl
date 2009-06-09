@@ -19,7 +19,7 @@ use File::Spec;
 use File::Copy qw(move copy);
 
 use ArrayExpress::Curator::Config qw($CONFIG);
-use ArrayExpress::Curator::Common qw(date_now mprint);
+use ArrayExpress::Curator::Common qw(date_now mprint check_linebreaks);
 require ArrayExpress::AutoSubmission::DB::ArrayDesign;
 use ArrayExpress::MXExport::General qw(get_mx_file_path);
 use ArrayExpress::MXExport::ArrayDesign;
@@ -198,7 +198,9 @@ sub export_array{
         or die "Error: no array design name available for submission $subid";
     my $export_script = $CONFIG->get_MX_ARRAY_MAGEML_EXPORT_COMMAND
         or die "Error: array MAGEML export command not provided in Config file";
-        
+    
+    # Convert mac to unix - MX ADF export can't handle mac line endings
+    mac2unix($adf_path);    
     
     if (!$parser){
         # create one for mx and dw checking
@@ -225,10 +227,11 @@ sub export_array{
     $parser->set_log_fh($export_log_fh);
     chmod 0777, $export_log;
         
-    # Compute and store MIAME and DW scores
-    my $miame_score = $parser->get_miame_score;
+    # Compute and store MIAME and DW scores  
+    my ($miame_score, $dw_score);
+    eval{ $miame_score = $parser->get_miame_score; };
     print "MIAME score: $miame_score\n";
-    my $dw_score = $parser->get_dw_score;
+    eval{ $dw_score = $parser->get_dw_score; };
     print "Data warehouse score: $dw_score\n";
     $array->set( 
         miame_score          => $miame_score,
@@ -326,6 +329,20 @@ sub export_array{
     return;
 }
 
+sub mac2unix{
+	my ($file) = @_;
+	
+	my ($counts, $le) = check_linebreaks($file);
+	
+	if ($counts->{mac}){
+		print "Converting mac line endings to unix for file $file\n";
+		my @args = ('perl','-i','-pe','s/\r/\n/g',$file);
+	    system (@args) == 0
+	        or die "system @args failed: $?";
+	}
+	return;
+}
+
 ########
 # MAIN #
 ########
@@ -368,6 +385,9 @@ foreach my $subid (@ARGV) {
         
         print "Starting ADF checking for $accession. ADF: $adf..\n";
         my $start_time = time;
+        
+        # Convert mac to unix - MX ADF export can't handle mac line endings
+        mac2unix($adf);
 
 		# Create a MIAMExpress ADF parser
 		print "Creating MIAMExpress ADF parser..\n";
