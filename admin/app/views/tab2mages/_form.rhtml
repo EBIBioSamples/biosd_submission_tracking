@@ -66,6 +66,12 @@
     <%= content_tag("td", "Affymetrix:") %>
     <%= content_tag("td", check_box("experiment", "is_affymetrix")) %>
   </tr>
+<% if @experiment.experiment_type == "MAGE-TAB" %>  
+  <tr>
+    <%= content_tag("td", "UHTS:") %>
+    <%= content_tag("td", check_box("experiment", "is_uhts")) %>
+  </tr>
+<% end %>  
   <tr>
     <%= content_tag("td", "Software:") %>
     <%= content_tag("td", input("experiment", "software")) %>
