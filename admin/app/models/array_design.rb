@@ -9,4 +9,25 @@ class ArrayDesign < ActiveRecord::Base
   # Allow nulls but no other duplicated values
   validates_uniqueness_of :accession, :if => Proc.new{ |array| array.accession !~ /^(unknown)?$/ }
 
+  def miame_score_html
+    return '' if self.miame_score.nil?
+    return '<font color="gray">unknown</font>' if self.miame_score == -1
+    if self.miame_score > 0
+      return '<font color="green">PASS</font>'
+    else
+      return '<font color="red">fail</font>'
+    end 
+  end
+  
+  def dw_status_html
+    return '<font color="blue">Loaded</font>' if self.in_data_warehouse
+  	return '' if self.data_warehouse_ready.nil?
+    return '<font color="gray">unknown</font>' if self.data_warehouse_ready.to_i == -1
+    if self.data_warehouse_ready.to_i > 0
+      return '<font color="green">YES</font>'
+    else
+      return '<font color="red">no</font>'
+    end
+  end
+  
 end

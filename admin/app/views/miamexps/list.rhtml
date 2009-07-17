@@ -19,6 +19,7 @@
       <%= content_tag("th", "Directory") %>
       <%= content_tag("th", "Name") %>
       <%= content_tag("th", "Checker score") %>
+      <%= content_tag("th", "No. of Hybs") %>
       <%= content_tag("th", "MIAME score") %>
       <%= content_tag("th", "DW status") %>
       <%= content_tag("th", "Status") %>
@@ -43,6 +44,7 @@
 	<%= content_tag("td", e.experiment_type.to_s.eql?('MIAMExpress') ? '' : e.experiment_type.to_s + "_" + e.id.to_s) %>
 	<%= content_tag("td", e.name) %>
 	<%= content_tag("td", e.checker_score) %>
+        <%= content_tag("td", e.num_hybridizations) %>
 	<%= content_tag("td", (e.miame_score.to_i.&(1).nonzero? ? 'R' : '') +
                               (e.miame_score.to_i.&(2).nonzero? ? 'N' : '') +
                               (e.miame_score.to_i.&(4).nonzero? ? 'F' : '') +

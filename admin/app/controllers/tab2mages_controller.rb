@@ -10,6 +10,10 @@ class Tab2magesController < ExperimentsController
       sql_where_clause += " and experiment_type='#{ params[:experiment_type] }'"
     end
 
+    if params[:has_gds]
+      sql_where_clause += " and has_gds='#{ params[:has_gds] }'"
+    end
+
     if params[:search_term]
 
       # Strip single quotes, otherwise they will cause a crash.
@@ -25,7 +29,8 @@ class Tab2magesController < ExperimentsController
 	                  " or comment like '%#{ sql_search }%'" +
 	                  " or id like '#{ sql_search }'" +
 	                  " or miamexpress_login like '%#{ sql_search }%'" +
-	                  " or name like '%#{ sql_search }%'#{ user_clause })"
+	                  " or name like '%#{ sql_search }%'#{ user_clause }" + 
+                          " or status like '%#{ sql_search }%')"
     end
     
     params[:page] ||= 1

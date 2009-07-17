@@ -40,10 +40,26 @@
     </div>
 
     <div class="menu-item">
+    <%= link_to "BII experiments", 
+                :controller => "tab2mages", 
+                :action => "list",
+                :experiment_type => "BII" %>
+    </div>
+    
+    <div class="menu-item">
+    <%= link_to "GDS experiments",
+                :controller => "tab2mages",
+                :action => "list",
+                :experiment_type => "GEO",
+                :has_gds => "1" %>
+    </div>
+
+    <div class="menu-item">
     <%= link_to "GEO experiments", 
                 :controller => "tab2mages", 
                 :action => "list",
-	        :experiment_type => "GEO" %>
+	        :experiment_type => "GEO",
+                :has_gds => "0" %>
     </div>
 
     <div class="menu-item">

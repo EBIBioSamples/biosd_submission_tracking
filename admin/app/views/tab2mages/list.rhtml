@@ -2,7 +2,7 @@
 
 <div>
   <% form_tag do %>
-	<%= content_tag("span", "Search on Accession, User, Name or Comment (wildcards: *, ?): ") %>
+	<%= content_tag("span", "Search on Accession, User, Name, Comment or Status (wildcards: *, ?): ") %>
 	<%= text_field_tag("search_term", @search_term) %>
         <%= hidden_field_tag("experiment_type", params[:experiment_type]) %>
 	<%= submit_tag("Search") %>
@@ -18,6 +18,7 @@
       <%= content_tag("th", "Directory") %>
       <%= content_tag("th", "Name") %>
       <%= content_tag("th", "Checker score") %>
+      <%= content_tag("th", "No. of Hybs") %>
       <%= content_tag("th", "MIAME score") %>
       <%= content_tag("th", "DW status") %>
       <%= content_tag("th", "In curation") %>
@@ -45,6 +46,7 @@
         <%= content_tag("td", e.experiment_type.to_s + "_" + e.id.to_s) %>
 	<%= content_tag("td", e.name) %>
 	<%= content_tag("td", e.checker_score) %>
+        <%= content_tag("td", e.num_hybridizations) %>
 	<%= content_tag("td", (e.miame_score.to_i.&(1).nonzero? ? 'R' : '') +
                               (e.miame_score.to_i.&(2).nonzero? ? 'N' : '') +
                               (e.miame_score.to_i.&(4).nonzero? ? 'F' : '') +

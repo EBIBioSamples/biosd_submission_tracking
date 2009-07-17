@@ -37,15 +37,12 @@
 	<%= content_tag("td", a.name) %>
 	<%= content_tag("td", a.miamexpress_login) %>
 	<%= content_tag("td", a.status) %>
-	<%= content_tag("td", a.miame_score.nil? ? '' :
-                              a.miame_score? ?
-                              '<font color="green">PASS</font>' :
-                              '<font color="red">fail</font>') %>
-	<%= content_tag("td", a.in_data_warehouse? ? '<font color="blue">Loaded</font>' :
-	                      a.data_warehouse_ready.nil? ? '' :
-                              a.data_warehouse_ready? ?
-                              '<font color="green">YES</font>' :
-                              '<font color="red">no</font>') %>
+	
+	
+	<%= content_tag("td", a.miame_score_html ) %>
+
+	<%= content_tag("td", a.dw_status_html) %>
+	
 	<%= content_tag("td", a.date_last_processed ?
 			      a.date_last_processed.strftime('%Y-%m-%d') :
                               "") %>
