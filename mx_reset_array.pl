@@ -336,7 +336,7 @@ sub mac2unix{
 	
 	if ($counts->{mac}){
 		print "Converting mac line endings to unix for file $file\n";
-		my @args = ('perl','-i','-pe','s/\r/\n/g',$file);
+		my @args = ('/usr/bin/perl','-i','-pe','s/\r/\n/g',$file);
 	    system (@args) == 0
 	        or die "system @args failed: $?";
 	}

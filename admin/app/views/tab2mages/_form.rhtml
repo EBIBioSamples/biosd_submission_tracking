@@ -27,6 +27,10 @@
 	])) %>
   </tr>
   <tr>
+    <%= content_tag("td", "Use native format datafiles?:") %>
+    <%= content_tag("td", check_box("experiment", "use_native_datafiles")) %>
+  </tr>
+  <tr>
     <%= content_tag("td", "Directory:") %>
     <%= content_tag("td", @experiment.experiment_type.to_s + "_" + @experiment.id.to_s) %>
   </tr>
