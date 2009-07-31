@@ -20,7 +20,7 @@ class ArrayDesign < ActiveRecord::Base
   end
   
   def dw_status_html
-    return '<font color="blue">Loaded</font>' if self.in_data_warehouse
+    return '<font color="blue">Loaded</font>' if self.in_data_warehouse.to_i > 0
   	return '' if self.data_warehouse_ready.nil?
     return '<font color="gray">unknown</font>' if self.data_warehouse_ready.to_i == -1
     if self.data_warehouse_ready.to_i > 0
