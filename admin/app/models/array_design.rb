@@ -29,5 +29,20 @@ class ArrayDesign < ActiveRecord::Base
       return '<font color="red">no</font>'
     end
   end
+
+  def experiment_type
+    return 'ArrayDesign'
+  end
   
+  def checker_score
+    return ''
+  end
+
+  def curator
+    return ''
+  end
+  
+  def directory
+    return self.miamexpress_login + "/array" + self.miamexpress_subid.to_s 
+  end
 end

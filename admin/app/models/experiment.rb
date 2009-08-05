@@ -40,4 +40,32 @@ class Experiment < ActiveRecord::Base
 
   # Annotation mixin
   include Annotation
+  
+  def directory
+    dir = ''
+    if self.experiment_type == 'MIAMExpress' 
+      dir = self.miamexpress_login + "/submission" + self.miamexpress_subid.to_s
+    else
+      dir = self.experiment_type + '_' + self.id.to_s
+    end
+    return dir
+  end
+  
+  def miame_score_html
+    score = (self.miame_score.to_i.&(1).nonzero? ? 'R' : '') +
+            (self.miame_score.to_i.&(2).nonzero? ? 'N' : '') +
+            (self.miame_score.to_i.&(4).nonzero? ? 'F' : '') +
+            (self.miame_score.to_i.&(8).nonzero? ? 'P' : '') +
+            (self.miame_score.to_i.&(16).nonzero? ? 'A' : '')
+    return score        
+  end
+  
+  def dw_status_html
+    status = self.in_data_warehouse?                 ? '<font color="blue">Loaded</font>'  :
+             self.data_warehouse_ready.nil?          ? '' :
+             self.data_warehouse_ready.to_i.eql?(31) ? '<font color="green">YES</font>' :
+             self.data_warehouse_ready.to_i.eql?(30) ? '<font color="red">maybe</font>' :
+             '<font color="red">no</font>'
+    return status         
+  end
 end

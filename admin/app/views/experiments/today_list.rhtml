@@ -1,4 +1,4 @@
-<%= content_tag("h1", "Recently processed experiments (as of #{ @time_now.strftime("%Y-%m-%d") })", :class => "title") %>
+<%= content_tag("h1", "Recently processed submissions (as of #{ @time_now.strftime("%Y-%m-%d") })", :class => "title") %>
 
 <% if flash[:notice] %><div class="notice"><%= flash[:notice] %></div><% end %>
 
@@ -19,30 +19,25 @@
       <%= content_tag("th", "Comment") %>
     </tr>
 
-    <% @experiments.each do |e| %>
+    <% @experiments.each do |sub| %>
+	<% e = sub.object_type.constantize.find_by_id(sub.id) %>
+		
       <tr>
 	<td>
-	<%= link_to "Edit", :action          => "edit", 
-                            :id              => e.id,
-			    :page            => params[:page],
-                            :experiment_type => params[:experiment_type],
+	<%= link_to "Edit", :controller      => sub.object_type.tableize,
+                        :action          => "edit", 
+                        :id              => e.id,
+			            :page            => params[:page],
+                        :experiment_type => params[:experiment_type],
 	                    :search_term     => @search_term %>
         </td>
         <%= content_tag("td", e.experiment_type.to_s) %>
 	<%= content_tag("td", e.accession) %>
-	<%= content_tag("td", e.experiment_type == 'MIAMExpress' ? '' : e.experiment_type + '_' + e.id.to_s) %>
+	<%= content_tag("td", e.directory) %>
 	<%= content_tag("td", e.name) %>
 	<%= content_tag("td", e.checker_score) %>
-	<%= content_tag("td", (e.miame_score.to_i.&(1).nonzero? ? 'R' : '') +
-                              (e.miame_score.to_i.&(2).nonzero? ? 'N' : '') +
-                              (e.miame_score.to_i.&(4).nonzero? ? 'F' : '') +
-                              (e.miame_score.to_i.&(8).nonzero? ? 'P' : '') +
-                              (e.miame_score.to_i.&(16).nonzero? ? 'A' : '')) %>
-	<%= content_tag("td", e.in_data_warehouse?        ? '<font color="blue">Loaded</font>' :
-                              e.data_warehouse_ready.nil? ? '' :
-                              e.data_warehouse_ready.to_i.eql?(31) ? '<font color="green">YES</font>' :
-			      e.data_warehouse_ready.to_i.eql?(30) ? '<font color="red">maybe</font>' :
-                              '<font color="red">no</font>') %>
+	<%= content_tag("td", e.miame_score_html) %>
+	<%= content_tag("td", e.dw_status_html) %>
 	<%= content_tag("td", e.status) %>
 	<%= content_tag("td", e.date_last_processed ?
 			e.date_last_processed.localtime.strftime('%Y-%m-%d %H:%M:%S') :

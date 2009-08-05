@@ -53,10 +53,19 @@ class ExperimentsController < ApplicationController
     end
 
     params[:page] ||= 1
-    @experiments = Experiment.paginate :page => params[:page],
-      :per_page   => 30,
-      :conditions => sql_where_clause.to_s,
-      :order      => 'date_last_processed DESC'
+
+#    @experiments = Experiment.paginate :page => params[:page],
+#      :per_page   => 30,
+#      :conditions => sql_where_clause.to_s,
+#      :order      => 'date_last_processed DESC'
+
+    # Include array designs too
+    experiment_and_array_sql =  "select id, 'ArrayDesign' as object_type, date_last_processed from array_designs where #{sql_where_clause} 
+    union select id, 'Experiment' as object_type, date_last_processed from experiments where #{sql_where_clause} order by date_last_processed DESC";
+
+    @experiments = Experiment.paginate_by_sql experiment_and_array_sql, 
+       :page => params[:page],
+       :per_page   => 30
   end
 
   def show
@@ -86,20 +95,21 @@ class ExperimentsController < ApplicationController
 
     # Abstract superclass method dispatches edit calls to the relevant subclass.
     @experiment  = Experiment.find(params[:id])
+    common_params = {
+                  :id              => @experiment.id,
+                  :experiment_type => @experiment.experiment_type,
+                  :search_term     => params[:search_term],
+                  :page            => params[:page]
+    }
+
     if @experiment.experiment_type == 'MIAMExpress'
-      redirect_to :controller      => 'miamexps',
-                  :action          => 'edit',
-                  :id              => @experiment.id,
-                  :experiment_type => @experiment.experiment_type,
-                  :search_term     => params[:search_term],
-                  :page            => params[:page]
+      redirect_to common_params.merge({ 
+                  :controller      => 'miamexps',
+                  :action          => 'edit',})
     else
-      redirect_to :controller      => 'tab2mages',
-                  :action          => 'edit',
-                  :id              => @experiment.id,
-                  :experiment_type => @experiment.experiment_type,
-                  :search_term     => params[:search_term],
-                  :page            => params[:page]
+      redirect_to common_params.merge({
+                  :controller      => 'tab2mages',
+                  :action          => 'edit',})
     end
   end
 

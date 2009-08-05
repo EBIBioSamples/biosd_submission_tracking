@@ -47,16 +47,8 @@
 	<%= content_tag("td", e.name) %>
 	<%= content_tag("td", e.checker_score) %>
         <%= content_tag("td", e.num_hybridizations) %>
-	<%= content_tag("td", (e.miame_score.to_i.&(1).nonzero? ? 'R' : '') +
-                              (e.miame_score.to_i.&(2).nonzero? ? 'N' : '') +
-                              (e.miame_score.to_i.&(4).nonzero? ? 'F' : '') +
-                              (e.miame_score.to_i.&(8).nonzero? ? 'P' : '') +
-                              (e.miame_score.to_i.&(16).nonzero? ? 'A' : '')) %>
-	<%= content_tag("td", e.in_data_warehouse?        ? '<font color="blue">Loaded</font>' :
-                              e.data_warehouse_ready.nil? ? '' :
-                              e.data_warehouse_ready.to_i.eql?(31) ? '<font color="green">YES</font>' :
-			      e.data_warehouse_ready.to_i.eql?(30) ? '<font color="red">maybe</font>' :
-                              '<font color="red">no</font>') %>
+	<%= content_tag("td", e.miame_score_html) %>
+	<%= content_tag("td", e.dw_status_html) %>
 	<%= content_tag("td", e.in_curation.nil? ? '' :
                               e.in_curation? ?
                               '<font color="green">YES</font>' :
