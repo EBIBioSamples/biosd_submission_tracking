@@ -15,7 +15,14 @@ class ArrayDesignsController < ApplicationController
   def list
 
     sql_where_clause = "is_deleted=0 and miamexpress_subid is not null"
+    order_by = 'miamexpress_subid DESC'
 
+    if params[:array_type] == "geo"
+        sql_where_clause = "is_deleted=0 and accession like 'A-GEOD-%'"
+        order_by = 'accession DESC'
+    end
+    
+    @array_type = params[:array_type]
     @search_term = ""
 
     if params[:search_term]
@@ -33,11 +40,12 @@ class ArrayDesignsController < ApplicationController
 	                  " or miamexpress_subid like '#{ sql_search }')"
     end
 
+    
     params[:page] ||= 1
     @array_designs = ArrayDesign.paginate :page => params[:page],
       :per_page   => 40,
       :conditions => sql_where_clause.to_s,
-      :order      => 'miamexpress_subid DESC'
+      :order      => order_by
   end
 
   def list_all

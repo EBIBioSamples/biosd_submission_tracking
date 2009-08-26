@@ -43,6 +43,9 @@ class ArrayDesign < ActiveRecord::Base
   end
   
   def directory
-    return self.miamexpress_login + "/array" + self.miamexpress_subid.to_s 
+    if self.miamexpress_login and self.miamexpress_subid
+      return self.miamexpress_login + "/array" + self.miamexpress_subid.to_s 
+    end
+    return ''
   end
 end
