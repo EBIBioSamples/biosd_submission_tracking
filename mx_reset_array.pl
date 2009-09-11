@@ -262,7 +262,8 @@ sub export_array{
         mkdir ($target_dir, 0777)
             or die "Error: could not make target directory $target_dir - $!";
     }
-    
+    chmod 0777, $target_dir;     
+
     move ($xml, $target_path)
         or die "Error: could not move mageml from $xml to $target_path - $!";
     
