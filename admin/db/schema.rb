@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 0) do
+ActiveRecord::Schema.define(:version => 4) do
 
   create_table "array_designs", :force => true do |t|
     t.integer  "miamexpress_subid"
@@ -28,6 +28,8 @@ ActiveRecord::Schema.define(:version => 0) do
     t.string   "biomart_table_name",   :limit => 50
     t.datetime "release_date"
     t.integer  "is_released"
+    t.string   "migration_status"
+    t.text     "migration_comment"
   end
 
   add_index "array_designs", ["miamexpress_subid"], :name => "miamexpress_subid", :unique => true
@@ -115,18 +117,18 @@ ActiveRecord::Schema.define(:version => 0) do
   create_table "events", :force => true do |t|
     t.integer  "array_design_id"
     t.integer  "experiment_id"
-    t.string   "event_type",       :limit => 50,  :default => "", :null => false
+    t.string   "event_type",       :limit => 50, :default => "", :null => false
     t.integer  "was_successful"
     t.string   "source_db",        :limit => 30
     t.string   "target_db",        :limit => 30
     t.datetime "start_time"
     t.datetime "end_time"
-    t.string   "machine",          :limit => 50
+    t.string   "machine",          :limit => 30
     t.string   "operator",         :limit => 30
-    t.string   "log_file",         :limit => 511
-    t.integer  "jobregister_dbid", :limit => 15
+    t.string   "log_file"
+    t.integer  "jobregister_dbid", :limit => 13
     t.text     "comment"
-    t.integer  "is_deleted",                                      :null => false
+    t.integer  "is_deleted",                                     :null => false
   end
 
   add_index "events", ["array_design_id"], :name => "array_design_id"
@@ -150,6 +152,8 @@ ActiveRecord::Schema.define(:version => 0) do
     t.string   "miamexpress_login",       :limit => 30
     t.integer  "miamexpress_subid"
     t.integer  "is_affymetrix"
+    t.integer  "is_uhts",                 :limit => 4
+    t.integer  "use_native_datafiles",    :limit => 4
     t.integer  "is_mx_batchloader"
     t.integer  "is_deleted",                             :null => false
     t.integer  "miame_score"
@@ -161,10 +165,13 @@ ActiveRecord::Schema.define(:version => 0) do
     t.integer  "num_hybridizations"
     t.integer  "has_raw_data"
     t.integer  "has_processed_data"
+    t.integer  "has_gds",                 :limit => 4
     t.datetime "release_date"
     t.integer  "is_released"
     t.integer  "ae_miame_score"
     t.integer  "ae_data_warehouse_score"
+    t.string   "migration_status"
+    t.text     "migration_comment"
   end
 
   add_index "experiments", ["user_id"], :name => "user_id"
@@ -209,6 +216,7 @@ ActiveRecord::Schema.define(:version => 0) do
   end
 
   add_index "loaded_data", ["data_format_id"], :name => "data_format_id"
+  add_index "loaded_data", ["md5_hash"], :name => "loaded_data_md5_hash"
   add_index "loaded_data", ["platform_id"], :name => "platform_loaded_data_ibfk_1"
 
   create_table "loaded_data_quality_metrics", :force => true do |t|
