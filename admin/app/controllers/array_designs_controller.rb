@@ -78,6 +78,23 @@ class ArrayDesignsController < ApplicationController
 
   end
 
+  def migrations
+    
+    num_per_page = params[:list_all].to_i.zero? ? 30 : 1000000
+    
+    sql_where_clause = "migration_status is not null"
+    
+    if params[:migration_phase]
+      # Filter list on selected migration status
+      sql_where_clause = "migration_status = '#{ params[:migration_phase] }'"
+    end
+    params[:page] ||= 1
+    @array_designs = ArrayDesign.paginate :page => params[:page],
+      :per_page   => num_per_page,
+      :conditions => sql_where_clause.to_s,
+      :order      => 'accession'
+  end
+
   def show
     @array_design = ArrayDesign.find(params[:id])
   end

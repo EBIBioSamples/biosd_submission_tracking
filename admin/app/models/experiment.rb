@@ -41,6 +41,11 @@ class Experiment < ActiveRecord::Base
   # Annotation mixin
   include Annotation
   
+  def self.migration_status_list
+    # get count of each non-null values for migration_status
+    return self.count(:group => "migration_status", :conditions => "migration_status is not null")
+  end
+  
   def directory
     dir = ''
     if self.experiment_type == 'MIAMExpress' 

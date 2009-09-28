@@ -91,6 +91,44 @@
 
    <div class="submenu">
     <div class="submenutitle">
+      <%= content_tag("h4", "Migrations") %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "Experiments", 
+                :controller => "experiments", 
+                :action => "migrations" %>
+	<% phases = Experiment.migration_status_list %>
+    <% phases.each do |phase| %>
+      <div class="menu-subitem"> 
+        <%= link_to phase[0]+"("+phase[1].to_s+")", 
+                    :controller => "experiments",
+                    :action => "migrations",
+                    :migration_phase => phase[0] %>
+	  </div>
+    <% end %>				
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "Arrays", 
+                :controller => "array_designs", 
+                :action => "migrations" %>
+    
+	<% phases = ArrayDesign.migration_status_list %>
+    <% phases.each do |phase| %>
+      <div class="menu-subitem"> 
+        <%= link_to phase[0]+"("+phase[1].to_s+")", 
+            :controller => "array_designs",
+            :action => "migrations",
+            :migration_phase => phase[0] %>
+	  </div>
+    <% end %>			
+    </div>
+
+   </div>
+   
+   <div class="submenu">
+    <div class="submenutitle">
       <%= content_tag("h4", "Tracking") %>
     </div>
 
@@ -107,6 +145,7 @@
     </div>
 
    </div>
+      
    <div class="submenu">
     <div class="submenutitle">
       <%= content_tag("h4", "Ontology") %>

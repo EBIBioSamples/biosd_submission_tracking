@@ -9,6 +9,11 @@ class ArrayDesign < ActiveRecord::Base
   # Allow nulls but no other duplicated values
   validates_uniqueness_of :accession, :if => Proc.new{ |array| array.accession !~ /^(unknown)?$/ }
 
+  def self.migration_status_list
+    # get count of each non-null values for migration_status
+    return self.count(:group => "migration_status", :conditions => "migration_status is not null")
+  end
+  
   def miame_score_html
     return '' if self.miame_score.nil?
     return '<font color="gray">unknown</font>' if self.miame_score == -1

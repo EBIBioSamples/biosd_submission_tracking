@@ -67,7 +67,24 @@ class ExperimentsController < ApplicationController
        :page => params[:page],
        :per_page   => 30
   end
-
+  
+  def migrations
+    
+    num_per_page = params[:list_all].to_i.zero? ? 30 : 1000000
+    
+    sql_where_clause = "migration_status is not null"
+    
+    if params[:migration_phase]
+      # Filter list on selected migration status
+      sql_where_clause = "migration_status = '#{ params[:migration_phase] }'"
+    end
+    params[:page] ||= 1
+    @experiments = Experiment.paginate :page => params[:page],
+      :per_page   => num_per_page,
+      :conditions => sql_where_clause.to_s,
+      :order      => 'accession'
+  end
+  
   def show
     @experiment = Experiment.find(params[:id])
   end
