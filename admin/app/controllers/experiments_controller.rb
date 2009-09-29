@@ -1,5 +1,7 @@
 class ExperimentsController < ApplicationController
 
+  include AutosubsCommon
+  
   layout "admin"
   before_filter :login_required
 
@@ -20,19 +22,9 @@ class ExperimentsController < ApplicationController
 
     @search_term = ""
 
-    # Don't search with an empty string.
-    if params[:search_term] && !params[:search_term].eql?("")
-
-      # Strip single quotes, otherwise they will cause a crash.
-      @search_term = params[:search_term].gsub(/\'/, "")
-
-      # Silently allow asterisk wildcards
-      sql_search = @search_term.gsub(/\*/, "%").gsub(/\?/, "_")
-
-      sql_where_clause += " and accession like '#{ sql_search }'" +
-	                  " or comment like '%#{ sql_search }%'"
-
-    end
+    @search_term = strip_single_quotes(params[:search_term])
+    
+    sql_where_clause += search_sql(@search_term,"accession","comment")
 
     params[:page] ||= 1
     @experiments = Experiment.paginate :page => params[:page],
@@ -78,6 +70,13 @@ class ExperimentsController < ApplicationController
       # Filter list on selected migration status
       sql_where_clause = "migration_status = '#{ params[:migration_phase] }'"
     end
+    
+    @search_term = ""
+
+    @search_term = strip_single_quotes(params[:search_term])
+    
+    sql_where_clause += search_sql(@search_term,"accession","migration_comment")
+    
     params[:page] ||= 1
     @experiments = Experiment.paginate :page => params[:page],
       :per_page   => num_per_page,
@@ -86,6 +85,7 @@ class ExperimentsController < ApplicationController
   end
   
   def show
+    @show_migration = params[:migration]
     @experiment = Experiment.find(params[:id])
   end
 
@@ -134,10 +134,15 @@ class ExperimentsController < ApplicationController
     @experiment = Experiment.find(params[:id])
     if @experiment.annotate(params[:annotation]) && @experiment.update_attributes(params[:experiment])
       flash[:notice] = 'Experiment was successfully updated.'
-      redirect_to :action => 'list',
+      if params[:migration]
+        redirect_to :action  => 'migrations',
+            :page            => params[:page]
+      else
+        redirect_to :action => 'list',
 	          :experiment_type => params[:experiment_type],
 	          :search_term     => params[:search_term],
-                  :page            => params[:page]
+            :page            => params[:page]
+      end
     else
       render :action => 'edit'
     end

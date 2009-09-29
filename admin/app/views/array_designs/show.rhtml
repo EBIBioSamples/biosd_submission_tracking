@@ -50,7 +50,7 @@
   <tr>
     <td>
     <%= link_to "Edit", :controller      => "event",
-	                :action          => "edit", 
+	                    :action          => "edit", 
                         :id              => event.id %>
     </td>
     <%= content_tag("td", "<font color='#{ (event.was_successful.nil? ? 'black' :
@@ -70,15 +70,26 @@ successful, while <font color="red">Red</font> events failed. Black
 events are unfinished.</p>
 
 <div>
-  <% form_tag :action => "update", :id => @array_design.id do %>
+  <% form_tag :action => "update", :id => @array_design.id, :migration => @show_migration do %>
 <table>
+<% if @show_migration %>
+  <tr>
+   <%= content_tag("td", "Migratrion Status:") %>
+   <%= migration_status_drop_down("array_design") %>
+  </tr>
+  <tr>
+  	<%= content_tag("td", "Migration Comment:") %>
+	<%= content_tag("td", input("array_design","migration_comment")) %>
+  </tr>
+<% else %>
   <tr>
     <%= content_tag("td", "Comment:") %>
     <%= content_tag("td", input("array_design", "comment")) %>
   </tr>
+<% end %>
 </table>
     <%= content_tag("p", submit_tag("Update")) %>
   <% end %>
 </div>
 
-<%= link_to 'Back', :action => 'list' %>
+<%= link_to 'Back', :action => @show_migration ? 'migrations' : 'list' %>

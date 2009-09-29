@@ -14,6 +14,10 @@ td {
   font-size: 80%;
 }
 
+td.highlight {
+  background-color: #ddefff;	
+}
+
 th { 
   background-color: #eeffff;
   padding: 4px;
@@ -59,6 +63,7 @@ div.link-list {
   margin-left:0;
   margin-right:0;
   background-color: #c9edff;
+  height:1300px;  
 }
 
 div.menu-item {
@@ -69,6 +74,14 @@ div.menu-item {
   border-style: solid;
   border-width: 1px;
   border-color: #ffffff;
+}
+
+div.menu-subitem {
+  margin-top: 1px;
+  margin-bottom: 1px;
+  padding-left: 6px;
+  padding-right: 4px;
+  font-size: 70%;
 }
 
 div.submenu {

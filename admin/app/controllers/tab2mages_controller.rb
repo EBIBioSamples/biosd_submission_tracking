@@ -1,5 +1,7 @@
 class Tab2magesController < ExperimentsController
 
+  include AutosubsCommon
+  
   def list
 
     sql_where_clause = "is_deleted=0"
@@ -16,21 +18,16 @@ class Tab2magesController < ExperimentsController
 
     if params[:search_term]
 
-      # Strip single quotes, otherwise they will cause a crash.
-      @search_term = params[:search_term].gsub(/\'/, "")
+      @search_term = strip_single_quotes(params[:search_term])
+    
+      sql_where_clause += search_sql(@search_term,"accession","name","comment","id","miamexpress_subid","status", "miamexpress_login")
 
-      # Silently allow asterisk wildcards
+      # Search in user names too
       sql_search = @search_term.gsub(/\*/, "%").gsub(/\?/, "_")
-
       users = User.find(:all, :conditions => "login like '%#{ sql_search }%'")
       user_clause = users.any? ? " or user_id in (#{ users.collect{|u| u.id}.join(',') })" : ""
 
-      sql_where_clause += " and (accession like '#{ sql_search }'" +
-	                  " or comment like '%#{ sql_search }%'" +
-	                  " or id like '#{ sql_search }'" +
-	                  " or miamexpress_login like '%#{ sql_search }%'" +
-	                  " or name like '%#{ sql_search }%'#{ user_clause }" + 
-                          " or status like '%#{ sql_search }%')"
+      sql_where_clause += user_clause  
     end
     
     params[:page] ||= 1

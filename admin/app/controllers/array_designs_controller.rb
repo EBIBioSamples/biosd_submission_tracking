@@ -1,5 +1,7 @@
 class ArrayDesignsController < ApplicationController
 
+  include AutosubsCommon
+
   layout "admin"
   before_filter :login_required
 
@@ -23,23 +25,12 @@ class ArrayDesignsController < ApplicationController
     end
     
     @array_type = params[:array_type]
+
     @search_term = ""
 
-    if params[:search_term]
-
-      # Strip single quotes, otherwise they will cause a crash.
-      @search_term = params[:search_term].gsub(/\'/, "")
-
-      # Silently allow asterisk wildcards
-      sql_search = @search_term.gsub(/\*/, "%").gsub(/\?/, "_")
-
-      sql_where_clause += " and (accession like '#{ sql_search }'" +
-	                  " or name like '%#{ sql_search }%'" +
-	                  " or comment like '%#{ sql_search }%'" +
-	                  " or miamexpress_login like '%#{ sql_search }%'" +
-	                  " or miamexpress_subid like '#{ sql_search }')"
-    end
-
+    @search_term = strip_single_quotes(params[:search_term])
+    
+    sql_where_clause += search_sql(@search_term,"accession","name","comment","miamexpress_login","miamexpress_subid")
     
     params[:page] ||= 1
     @array_designs = ArrayDesign.paginate :page => params[:page],
@@ -56,19 +47,9 @@ class ArrayDesignsController < ApplicationController
 
     @search_term = ""
 
-    # Don't search with an empty string.
-    if params[:search_term] && !params[:search_term].eql?("")
-
-      # Strip single quotes, otherwise they will cause a crash.
-      @search_term = params[:search_term].gsub(/\'/, "")
-
-      # Silently allow asterisk wildcards
-      sql_search = @search_term.gsub(/\*/, "%").gsub(/\?/, "_")
-
-      sql_where_clause += " and accession like '#{ sql_search }'" +
-	                  " or comment like '%#{ sql_search }%'"
-
-    end
+    @search_term = strip_single_quotes(params[:search_term])
+    
+    sql_where_clause += search_sql(@search_term,"accession","comment")
 
     params[:page] ||= 1
     @array_designs = ArrayDesign.paginate :page => params[:page],
@@ -88,6 +69,13 @@ class ArrayDesignsController < ApplicationController
       # Filter list on selected migration status
       sql_where_clause = "migration_status = '#{ params[:migration_phase] }'"
     end
+    
+    @search_term = ""
+
+    @search_term = strip_single_quotes(params[:search_term])
+    
+    sql_where_clause += search_sql(@search_term,"accession","migration_comment")
+    
     params[:page] ||= 1
     @array_designs = ArrayDesign.paginate :page => params[:page],
       :per_page   => num_per_page,
@@ -96,6 +84,7 @@ class ArrayDesignsController < ApplicationController
   end
 
   def show
+    @show_migration = params[:migration]
     @array_design = ArrayDesign.find(params[:id])
   end
 
@@ -125,9 +114,14 @@ class ArrayDesignsController < ApplicationController
     @array_design = ArrayDesign.find(params[:id])
     if @array_design.update_attributes(params[:array_design])
       flash[:notice] = 'ArrayDesign was successfully updated.'
+      if params[:migration]
+        redirect_to :action => 'migrations',
+            :page           => params[:page]
+      else
       redirect_to :action => 'list_all',
 	          :search_term     => params[:search_term],
-                  :page            => params[:page]
+            :page            => params[:page]
+      end
     else
       render :action => 'edit'
     end
