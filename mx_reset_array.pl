@@ -280,7 +280,7 @@ sub export_array{
     	if ($status == 0){
     	my $adf_file = $adf_path.".adf";
     	    mprint (*STDOUT, $export_log_fh, date_now." - NDF to ADF conversion completed\n");
-    	    my $new_name = $accession.".adf_from_ndf.txt";
+    	    my $new_name = $accession.".adf.txt";
      	    my $adf_target_path = File::Spec->catfile($target_dir,$new_name);
     	    move($adf_file, $adf_target_path)
     	        or die "Error: could not move $adf_file to $adf_target_path - $!";
