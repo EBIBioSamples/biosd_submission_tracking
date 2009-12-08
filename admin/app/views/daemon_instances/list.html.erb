@@ -1,0 +1,26 @@
+<%= render_partial "title" %>
+
+<div>
+  <table>
+    <tr>
+	  <%= content_tag("th", "Submission Type" ) %>
+	  <%= content_tag("th", "Daemon Type" ) %>
+	  <%= content_tag("th", "Process owner" ) %>
+	  <%= content_tag("th", "Process ID" ) %>
+	  <%= content_tag("th", "Start Time" ) %>
+	  <%= content_tag("th", "Running?" ) %>
+	</tr>
+	
+	<% @daemons.each do |d| %>
+	  <tr>
+		<%= content_tag("td", d.pipeline.submission_type) %>
+		<%= content_tag("td", d.daemon_type) %>
+		<%= content_tag("td", p.user) %>
+		<%= content_tag("td", p.pid) %>
+		<%= content_tag("td", p.start_time) %>
+		<%= content_tag("td", p.running) %>
+	  </tr>
+	<% end %>
+	
+  </table>
+</div>

@@ -212,9 +212,7 @@ sub export_array{
 		    output     => undef,
 		    target     => '.',
 		    namespace  => '',
-		    heading_regex => qr{ 
-		         \b(Meta\s*Column|Reporter\s*Identifier|Composite\s*Sequence\s*Identifier)\b 
-		                     }ixms, 
+		    heading_regex => $CONFIG->get_MX_ADF_REGEX, 
 		    array_info => $design_info,
 		});
     }
@@ -399,9 +397,7 @@ foreach my $subid (@ARGV) {
 		    output     => undef,
 		    target     => '.',
 		    namespace  => '',
-		    heading_regex => qr{ 
-		         \b(Meta\s*Column|Reporter\s*Identifier|Composite\s*Sequence\s*Identifier)\b 
-		                     }ixms, 
+		    heading_regex => $CONGIG->get_MX_ADF_REGEX, 
 		    array_info => $design_info,
 		});
         

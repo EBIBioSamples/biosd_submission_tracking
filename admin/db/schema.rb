@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 4) do
+ActiveRecord::Schema.define(:version => 5) do
 
   create_table "array_designs", :force => true do |t|
     t.integer  "miamexpress_subid"
@@ -83,6 +83,15 @@ ActiveRecord::Schema.define(:version => 4) do
   add_index "categories_taxons", ["category_id"], :name => "category_id"
   add_index "categories_taxons", ["taxon_id"], :name => "taxon_id"
 
+  create_table "daemon_instances", :force => true do |t|
+    t.integer "pipeline_id"
+    t.string  "daemon_type"
+    t.integer "pid"
+    t.time    "start_time"
+    t.boolean "running"
+    t.string  "user"
+  end
+
   create_table "data_files", :force => true do |t|
     t.integer "experiment_id", :null => false
     t.string  "name"
@@ -117,18 +126,18 @@ ActiveRecord::Schema.define(:version => 4) do
   create_table "events", :force => true do |t|
     t.integer  "array_design_id"
     t.integer  "experiment_id"
-    t.string   "event_type",       :limit => 50, :default => "", :null => false
+    t.string   "event_type",       :limit => 50,  :default => "", :null => false
     t.integer  "was_successful"
     t.string   "source_db",        :limit => 30
     t.string   "target_db",        :limit => 30
     t.datetime "start_time"
     t.datetime "end_time"
-    t.string   "machine",          :limit => 30
+    t.string   "machine",          :limit => 50
     t.string   "operator",         :limit => 30
-    t.string   "log_file"
-    t.integer  "jobregister_dbid", :limit => 13
+    t.string   "log_file",         :limit => 511
+    t.integer  "jobregister_dbid", :limit => 15
     t.text     "comment"
-    t.integer  "is_deleted",                                     :null => false
+    t.integer  "is_deleted",                                      :null => false
   end
 
   add_index "events", ["array_design_id"], :name => "array_design_id"
@@ -216,7 +225,6 @@ ActiveRecord::Schema.define(:version => 4) do
   end
 
   add_index "loaded_data", ["data_format_id"], :name => "data_format_id"
-  add_index "loaded_data", ["md5_hash"], :name => "loaded_data_md5_hash"
   add_index "loaded_data", ["platform_id"], :name => "platform_loaded_data_ibfk_1"
 
   create_table "loaded_data_quality_metrics", :force => true do |t|
@@ -279,6 +287,19 @@ ActiveRecord::Schema.define(:version => 4) do
 
   add_index "permissions_roles", ["role_id"], :name => "role_id"
   add_index "permissions_roles", ["permission_id"], :name => "permission_id"
+
+  create_table "pipelines", :force => true do |t|
+    t.string  "submission_type",     :default => "",                            :null => false
+    t.integer "instances_to_start",  :default => 1
+    t.string  "checker_daemon"
+    t.string  "exporter_daemon"
+    t.integer "polling_interval",    :default => 5
+    t.string  "checker_threshold",   :default => "ERROR_INNOCENT, ERROR_MIAME"
+    t.string  "qt_filename"
+    t.boolean "keep_protocol_accns", :default => false
+    t.string  "accession_prefix"
+    t.string  "pipeline_subdir"
+  end
 
   create_table "platforms", :force => true do |t|
     t.string "name", :limit => 50, :default => "", :null => false

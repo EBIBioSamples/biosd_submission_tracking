@@ -1,0 +1,2 @@
+module DaemonInstancesHelper
+end

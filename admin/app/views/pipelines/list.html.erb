@@ -1,0 +1,39 @@
+<%= render_partial "title" %>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+	  <%= content_tag("th", "Type" ) %>
+	  <%= content_tag("th", "Default number to start" ) %>
+	  <%= content_tag("th", "Polling interval" ) %>
+	  <%= content_tag("th", "Accession prefix" ) %>
+	  <%= content_tag("th", "Keep protocol accns?") %>
+	  <%= content_tag("th", "Checker" ) %>
+	  <%= content_tag("th", "Exporter" ) %>
+	  <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+	</tr>
+	
+	<% @pipelines.each do |p| %>
+	  <tr>
+	  	<td>
+	  	  <%= link_to "Edit", :action => "edit", 
+                              :id     => p.id %>
+	  	</td>
+		<%= content_tag("td", p.submission_type) %>
+		<%= content_tag("td", p.instances_to_start) %>
+		<%= content_tag("td", p.polling_interval) %>
+		<%= content_tag("td", p.accession_prefix) %>
+		<%= content_tag("td", p.keep_protocol_accns) %>
+		<%= content_tag("td", p.checker_daemon) %>
+		<%= content_tag("td", p.exporter_daemon) %>
+		<td>
+		  <%= link_to "List daemon instances", :controller => "daemon_instances",
+                                               :action => "list",
+                                               :pipeline_id => p.id %>
+		</td>
+	  </tr>
+	<% end %>
+	
+  </table>
+</div>
