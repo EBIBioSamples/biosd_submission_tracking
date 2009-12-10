@@ -9,6 +9,7 @@
 	  <%= content_tag("th", "Process ID" ) %>
 	  <%= content_tag("th", "Start Time" ) %>
 	  <%= content_tag("th", "Running?" ) %>
+	  <%= content_tag("th", "End Time" ) %>
 	</tr>
 	
 	<% @daemons.each do |d| %>
@@ -19,6 +20,7 @@
 		<%= content_tag("td", p.pid) %>
 		<%= content_tag("td", p.start_time) %>
 		<%= content_tag("td", p.running) %>
+		<%= content_tag("td", p.end_time) %>
 	  </tr>
 	<% end %>
 	

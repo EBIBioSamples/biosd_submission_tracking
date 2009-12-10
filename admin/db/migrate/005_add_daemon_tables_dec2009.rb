@@ -16,12 +16,14 @@ class AddDaemonTablesDec2009 < ActiveRecord::Migration
     Pipeline.create :submission_type => "Tab2MAGE", 
                     :checker_daemon => "T2MChecker", 
                     :exporter_daemon => "T2MExporter", 
-                    :accession_prefix => "E-TABM-"
+                    :accession_prefix => "E-TABM-",
+                    :pipeline_subdir => "TABM"
               
     Pipeline.create :submission_type => "MAGE-TAB", 
                     :checker_daemon => "MAGETABChecker", 
                     :exporter_daemon => "MAGETABExporter", 
-                    :accession_prefix => "E-MTAB-"
+                    :accession_prefix => "E-MTAB-",
+                    :pipeline_subdir => "MTAB"
                     
     Pipeline.create :submission_type => "GEO", 
                     :checker_daemon => "MAGETABChecker", 
@@ -38,13 +40,15 @@ class AddDaemonTablesDec2009 < ActiveRecord::Migration
                     :instances_to_start => 0,
                     :checker_daemon => "MAGETABChecker", 
                     :exporter_daemon => "MAGETABExporter", 
-                    :accession_prefix => "E-BIID-"
+                    :accession_prefix => "E-BIID-",
+                    :pipeline_subdir => "BIID"
                     
     create_table :daemon_instances do |t|
       t.integer :pipeline_id
       t.string  :daemon_type
       t.integer :pid
       t.time    :start_time
+      t.time    :end_time
       t.boolean :running
       t.string  :user
     end
