@@ -32,7 +32,8 @@ class AddDaemonTablesDec2009 < ActiveRecord::Migration
                     :keep_protocol_accns => 1,
                     :pipeline_subdir => "GEOD"
     
-    Pipeline.create :submission_type => "MIAMExpress", 
+    Pipeline.create :submission_type => "MIAMExpress",
+                    :instances_to_start => 0,
                     :checker_daemon => "MXChecker",  
                     :accession_prefix => "E-MEXP-"
                     
@@ -47,8 +48,8 @@ class AddDaemonTablesDec2009 < ActiveRecord::Migration
       t.integer :pipeline_id
       t.string  :daemon_type
       t.integer :pid
-      t.time    :start_time
-      t.time    :end_time
+      t.datetime :start_time
+      t.datetime :end_time
       t.boolean :running
       t.string  :user
     end

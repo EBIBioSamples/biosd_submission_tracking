@@ -16,11 +16,11 @@
 	  <tr>
 		<%= content_tag("td", d.pipeline.submission_type) %>
 		<%= content_tag("td", d.daemon_type) %>
-		<%= content_tag("td", p.user) %>
-		<%= content_tag("td", p.pid) %>
-		<%= content_tag("td", p.start_time) %>
-		<%= content_tag("td", p.running) %>
-		<%= content_tag("td", p.end_time) %>
+		<%= content_tag("td", d.user ) %>
+		<%= content_tag("td", d.pid) %>
+		<%= content_tag("td", d.start_time) %>
+		<%= content_tag("td", d.running) %>
+		<%= content_tag("td", d.end_time) %>
 	  </tr>
 	<% end %>
 	

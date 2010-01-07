@@ -84,12 +84,13 @@ ActiveRecord::Schema.define(:version => 5) do
   add_index "categories_taxons", ["taxon_id"], :name => "taxon_id"
 
   create_table "daemon_instances", :force => true do |t|
-    t.integer "pipeline_id"
-    t.string  "daemon_type"
-    t.integer "pid"
-    t.time    "start_time"
-    t.boolean "running"
-    t.string  "user"
+    t.integer  "pipeline_id"
+    t.string   "daemon_type"
+    t.integer  "pid"
+    t.datetime "start_time"
+    t.datetime "end_time"
+    t.boolean  "running"
+    t.string   "user"
   end
 
   create_table "data_files", :force => true do |t|

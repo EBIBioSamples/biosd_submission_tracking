@@ -4,53 +4,33 @@
 #
 # Script to launch/restart tracking daemons
 #
-#
+# $Id$
 
 use strict;
 use Getopt::Long;
+use English;
+
+use POSIX ":sys_wait_h";
+use File::Temp;
 
 use ArrayExpress::Curator::Common qw(date_now);
-use ArrayExpress::AutoSubmissions::DB::Pipeline;
-use ArrayExpress::AutoSubmissions::DB::DaemonInstance;
+use ArrayExpress::Curator::Config qw($CONFIG);
+use ArrayExpress::AutoSubmission::DB::Pipeline;
+use ArrayExpress::AutoSubmission::DB::DaemonInstance;
 
-# Reaper method to wait for children and update tracking database if they die
-$SIG{CHLD} = \&REAPER;
-sub REAPER {
-    my $pid;
+$|=1;
 
-    $pid = waitpid(-1, &WNOHANG);
-
-    if ($pid == -1) {
-        # no child waiting.  Ignore it.
-    } 
-    elsif (WIFEXITED($?)) {
-        # Process exited
-        my @results = ArrayExpress::AutoSubmissions::DB::DaemonInstance->search( 
-            running => 1,
-            pid     => $pid, 
-        );
-        
-        my $di = $results[0] or return;
-        # FIXME add end_time
-        $di->set( running => 0, end_time => date_now );
-        $di->update;
-    } 
-    else {
-        #"False alarm on $pid.\n";
-    }
-    $SIG{CHLD} = \&REAPER;          # in case of unreliable signals
-}
-
-my (@pipelines, $restart, $help);
+my (@pipelines, $restart, $kill, $help);
 
 GetOptions(
     "p|pipeline=s" => \@pipelines,
     "r|restart"    => \$restart,
     "h|help"       => \$help,
+    "k|kill"       => \$kill,
 );
 
-$usage<<END;
-
+my $usage=<<END;
+    Usage: FIXME
 END
 
 if ($help){
@@ -58,20 +38,21 @@ if ($help){
 	exit;
 }
 
-if ($restart){
-	"** Restart will kill ALL tracking daemons currently running **\nContinue? (y/n)\n";
+if ($restart or $kill){
+	print "** This will kill ALL tracking daemons currently running **\nContinue? (y/n)\n";
 	my $answer = <>;
 	die unless $answer=~/^y/i;
 	
 	# Get list of pids from subs tracking.
-	my $result = ArrayExpress::AutoSubmissions::DB::DaemonInstance->search( running => 1 );
+	my $result = ArrayExpress::AutoSubmission::DB::DaemonInstance->search( running => 1 );
 	
 	# kill them all
 	my @pids;
 	while (my $daemon = $result->next){
 		my $pid = $daemon->pid;
 		push @pids, $pid;
-		kill "USR1", $pid or die "Could not send kill signal to process $pid. $!"; 
+		print "Killing $pid\n";
+		kill "USR1", $pid or warn "Could not send kill signal to process $pid. $!"; 
 	}
 	
 	# poll every 5 seconds until they are all gone
@@ -91,6 +72,11 @@ if ($restart){
 	
 }
 
+if ($kill){
+	print "Done.\n";
+	exit;
+}
+
 # Get the pipeline objects from names specified by user
 my @pipeline_objects;
 if(@pipelines){
@@ -106,8 +92,11 @@ else{
 	# Or get list of defaults from subs tracking
 	my $result = ArrayExpress::AutoSubmission::DB::Pipeline->retrieve_all;
 	while (my $pipeline = $result->next){
-		for (0..$pipeline->instances_to_start){
-			push @pipeline_objects, $pipeline;
+		if ($pipeline->instances_to_start){
+			my $num = $pipeline->instances_to_start - 1;
+			for (0..$num){
+				push @pipeline_objects, $pipeline;
+			}
 		}
 	}
 }
@@ -116,44 +105,47 @@ my @child_pids;
 foreach my $pipeline (@pipeline_objects){
 	
 	# get pipeline parameters from subs tracking
-	$submis_type = $pipeline->submission_type;
+	my $submis_type = $pipeline->submission_type;
 	
 	TYPE: foreach my $daemon qw(exporter_daemon checker_daemon){
         
         my $type = $pipeline->$daemon;		
 		next TYPE unless defined($type);
 		
+		my $pidfile = File::Temp::tempnam($CONFIG->get_AUTOSUBMISSIONS_FILEBASE, "$submis_type.$type.");
+		
 		my $pid = fork();
-		if ($pid) {
-	        # parent
-	        push(@child_pids, $pid);
-	        # Store pid in subs tracking
-	        ArrayExpress::AutoSubmission::DB::DaemonInstance->new({
-	        	pipeline_id => $pipeline->id,
-	        	daemon_type => $type,
-	        	pid         => $pid,
-	        	start_time  => date_now,
-	        	running     => 1,
-	        	user        => getlogin,
-	        });
-	    }
-	    elsif ($pid == 0) {
+		
+	    if ($pid == 0) {
 	        # child
 	        # Spawn daemon
+	        $PROGRAM_NAME .= ".$submis_type.$type";
 	        my $daemon_class = "ArrayExpress::AutoSubmission::Daemon::".$type;
 	        eval "use $daemon_class";
 	        if ($@){
 	        	die "Could not load $daemon_class. $!";
 	        }
+	        
+	        my $threshold;
+            foreach my $level (split /\s*,\s*/, $pipeline->checker_threshold){
+            	my $get_level = "get_$level";
+            	if ($threshold){
+            		$threshold = ($threshold | $CONFIG->$get_level);
+            	}
+            	else{
+            		$threshold = $CONFIG->$get_level;
+            	}
+            }
 
             # Common daemon atts
 	        my %atts = (
 	            polling_interval  => $pipeline->polling_interval,
                 experiment_type   => $submis_type,
-                checker_threshold => $pipeline->checker_threshold,
+                checker_threshold => $threshold,
                 autosubs_admin    => $CONFIG->get_AUTOSUBS_ADMIN(),
                 accession_prefix  => $pipeline->accession_prefix,
-                qt_filename       => $pipeline->qt_filename,	        
+                qt_filename       => $pipeline->qt_filename,
+                pidfile           => $pidfile,	        
 	        );
 
             # Exporter sepcific atts
@@ -162,14 +154,67 @@ foreach my $pipeline (@pipeline_objects){
 	        	$atts{keep_protocol_accns} = $pipeline->keep_protocol_accns;
 	        }
 	        
-	        $daemon_class->new(\%atts);
-	        $daemon->run;
+	        my $daemon_instance = $daemon_class->new(\%atts);
+	        $daemon_instance->run;
 	        exit(0);
 	    } 
+		elsif ($pid) {
+	        # parent
+
+	        # Sleep for a few secs to allow pid file to be written by child
+	        sleep 5;
+	        
+	        open (my $pid_fh, "<", $pidfile) or die "Could not open temp pid file $pidfile for reading. $!";
+	        my @pids = <$pid_fh>;
+	        push(@child_pids, $pids[0]);
+	        
+	        # Store pid in subs tracking      
+	        ArrayExpress::AutoSubmission::DB::DaemonInstance->insert({
+	        	pipeline_id => $pipeline->id,
+	        	daemon_type => $type,
+	        	pid         => $pids[0],
+	        	start_time  => date_now(),
+	        	running     => 1,
+	        	user        => getlogin,
+	        });
+	        
+	        unlink $pidfile;
+	    }
 	    else {
 	        die "Couldn't fork to create $submis_type $type daemon: $!\n";
 	    }	
 	}
 }
 
+print "Waiting for child processes...\n";
+
+# Monitor daemon processes
+my %dead;
+while (1) {
+    my @dead_pids = grep { (kill 0, $_) == 0 } @child_pids;
+
+    PID: foreach my $pid (@dead_pids){
+    	# Skip if we've already handled this
+    	next PID if $dead{$pid};
+print "$pid is dead\n";    	
+    	# Record that the process has died
+        my @results = ArrayExpress::AutoSubmission::DB::DaemonInstance->search( 
+            running => 1,
+            pid     => $pid, 
+        );
+        
+        if (my $di = $results[0]){
+            $di->set( running => 0, end_time => date_now() );
+            $di->update;
+        }
+        
+        $dead{$pid} = 1;
+    }
+    
+    if (scalar(@dead_pids) == scalar(@child_pids)){
+    	# They are all dead - we can exit
+    	exit;
+    }
+    sleep 2;
+}
 
