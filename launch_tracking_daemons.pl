@@ -6,6 +6,9 @@
 #
 # $Id$
 
+# Next line is a placeholder. Uncomment and edit as necessary, or set PERL5LIB environmental variable
+# use lib /path/to/directory/containing/Curator/modules;
+
 use strict;
 use Getopt::Long;
 use English;
@@ -30,7 +33,21 @@ GetOptions(
 );
 
 my $usage=<<END;
-    Usage: FIXME
+    Usage: 
+      
+      To start all default daemons:
+      launch_tracking_daemons.pl 
+      
+      To start specific daemons:
+      launch_tracking_daemons.pl -p Tab2MAGE -p MAGE-TAB
+      
+      To kill all dameons currently known to be running:
+      launch_tracking_daemons.pl -k
+      
+      To kill all running daemons and then restart all default daemons:
+      launch_tracking_daemons.pl -r
+      
+      NB: when using this script take care not to start more than 1 MIAMExpress checker daemon
 END
 
 if ($help){
@@ -51,6 +68,9 @@ if ($restart or $kill){
 	while (my $daemon = $result->next){
 		my $pid = $daemon->pid;
 		push @pids, $pid;
+		# FIX: This is not very safe. Could be an old pid which has been
+		# reassigned to some other process. Should check that progname for 
+		# this id matches info in db
 		print "Killing $pid\n";
 		kill "USR1", $pid or warn "Could not send kill signal to process $pid. $!"; 
 	}
@@ -127,7 +147,8 @@ foreach my $pipeline (@pipeline_objects){
 	        }
 	        
 	        my $threshold;
-            foreach my $level (split /\s*,\s*/, $pipeline->checker_threshold){
+	        my $comma_and_space=qr(\s*,\s*);
+            foreach my $level (split $comma_and_space, $pipeline->checker_threshold){
             	my $get_level = "get_$level";
             	if ($threshold){
             		$threshold = ($threshold | $CONFIG->$get_level);
@@ -196,8 +217,10 @@ while (1) {
     PID: foreach my $pid (@dead_pids){
     	# Skip if we've already handled this
     	next PID if $dead{$pid};
-print "$pid is dead\n";    	
+    	chomp $pid;
+        print "$pid is dead\n";    	
     	# Record that the process has died
+        
         my @results = ArrayExpress::AutoSubmission::DB::DaemonInstance->search( 
             running => 1,
             pid     => $pid, 
