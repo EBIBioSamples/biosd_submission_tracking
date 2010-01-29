@@ -18,7 +18,7 @@ class DaemonInstancesController < ApplicationController
 
     params[:page] ||= 1
     @daemons = DaemonInstance.paginate :page => params[:page],
-      :per_page   => 40,
+      :per_page   => 30,
       :order      => order_by,
       :conditions => conditions
   end

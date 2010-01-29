@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 5) do
+ActiveRecord::Schema.define(:version => 6) do
 
   create_table "array_designs", :force => true do |t|
     t.integer  "miamexpress_subid"
@@ -345,6 +345,16 @@ ActiveRecord::Schema.define(:version => 5) do
 
   add_index "roles_users", ["user_id"], :name => "user_id"
   add_index "roles_users", ["role_id"], :name => "role_id"
+
+  create_table "samples", :force => true do |t|
+    t.string   "accession"
+    t.string   "user_accession"
+    t.string   "submission_accession"
+    t.datetime "date_assigned"
+    t.datetime "date_last_processed"
+    t.text     "comment"
+    t.integer  "is_deleted"
+  end
 
   create_table "spreadsheets", :force => true do |t|
     t.integer "experiment_id", :null => false

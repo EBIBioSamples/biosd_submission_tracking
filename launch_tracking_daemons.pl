@@ -12,6 +12,7 @@
 use strict;
 use Getopt::Long;
 use English;
+use Carp qw(confess);
 
 use POSIX ":sys_wait_h";
 use File::Temp;
@@ -143,7 +144,7 @@ foreach my $pipeline (@pipeline_objects){
 	        my $daemon_class = "ArrayExpress::AutoSubmission::Daemon::".$type;
 	        eval "use $daemon_class";
 	        if ($@){
-	        	die "Could not load $daemon_class. $!";
+	        	die "Could not load $daemon_class. $!, $@";
 	        }
 	        
 	        my $threshold;
