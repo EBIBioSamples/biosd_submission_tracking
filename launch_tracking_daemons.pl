@@ -66,13 +66,23 @@ if ($restart or $kill){
 	
 	# kill them all
 	my @pids;
-	while (my $daemon = $result->next){
+	PID: while (my $daemon = $result->next){
 		my $pid = $daemon->pid;
-		push @pids, $pid;
-		# FIX: This is not very safe. Could be an old pid which has been
-		# reassigned to some other process. Should check that progname for 
-		# this id matches info in db
-		print "Killing $pid\n";
+
+        # Use grep to check that the process we are about to kill
+        # has the name we expect it to have
+		my $name_suffix = $daemon->pipeline_id->submission_type
+		                  ."."
+		                  .$daemon->daemon_type;
+		my $rc = system("ps $pid | grep $name_suffix");
+		
+		if ($rc){
+		    warn ("Process $pid does not have the expected name. Check this process manually before killing it\n");
+		    next PID;	
+		}
+        
+        push @pids, $pid;
+		print "Killing $pid ($name_suffix)\n";
 		kill "USR1", $pid or warn "Could not send kill signal to process $pid. $!"; 
 	}
 	

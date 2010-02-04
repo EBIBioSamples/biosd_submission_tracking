@@ -28,8 +28,11 @@ class Experiment < ActiveRecord::Base
                            :allow_nil => true,
                            :in        => 0..1,
                            :message   => "is not 0 or 1"
+  
+ 
+  #Old list of expt types: %w(Tab2MAGE MIAMExpress MUGEN GEO MAGE-TAB ESD BII Unknown)
   validates_inclusion_of :experiment_type,
-                           :in      => %w(Tab2MAGE MIAMExpress MUGEN GEO MAGE-TAB Unknown),
+                           :in      => Pipeline.find(:all).map{ |p| p.submission_type },
                            :message => "is not recognized"
   validates_format_of :accession, :with => /^(E-[A-Z]{4}-\d+|unknown)?$/, :message => "is not the correct format"
 
