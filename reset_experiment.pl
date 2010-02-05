@@ -16,7 +16,7 @@ use English qw( -no_match_vars );
 use Readonly;
 
 use ArrayExpress::Curator::Config qw($CONFIG);
-use ArrayExpress::Curator::Common qw(date_now);
+use ArrayExpress::Curator::Common qw(date_now make_efo_adder_for_sub);
 require ArrayExpress::AutoSubmission::DB::Experiment;
 
 # These values are assumed to be numeric later.
@@ -92,18 +92,20 @@ sub parse_args {
     my %args;
 
     GetOptions(
-	"p|pending" => \$args{pending},
+	    "p|pending" => \$args{pending},
         "c|check"   => \$args{check},
         "e|export"  => \$args{export},
+        "m|map"     => \$args{map_oes},
     );
 
-    unless ( ( $args{pending} || $args{check} || $args{export} ) && @ARGV) {
+    unless ( ( $args{pending} || $args{check} || $args{export} || $args{map_oes} ) && @ARGV) {
         print <<"NOINPUT";
 Usage: $PROGRAM_NAME <option> <list of submission directories>
 
 Options:  -c   set submission for immediate re-checking
           -e   set submission for MAGE-ML export without re-checking
           -p   set submission to pending status for user editing
+          -m   map terms in submission to EFO (submission must be at spreadsheet stage)
 
    Note that -p will not work for MIAMExpress submissions exported to MAGE-TAB;
    for such submissions use the mx_reset_experiment.pl script.
@@ -156,6 +158,10 @@ foreach my $dirname (@ARGV) {
 	    $CONFIG->get_STATUS_PENDING(),
 	    $PENDING,
 	);
+    }
+    elsif ( $args->{map_oes}){
+    	my $adder = make_efo_adder_for_sub($id, $expt_type);
+    	$adder->add_terms;
     }
     else {
 	die("Error: Unrecognised user option.");
