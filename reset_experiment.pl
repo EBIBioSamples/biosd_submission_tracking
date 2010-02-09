@@ -16,7 +16,9 @@ use English qw( -no_match_vars );
 use Readonly;
 
 use ArrayExpress::Curator::Config qw($CONFIG);
-use ArrayExpress::Curator::Common qw(date_now make_efo_adder_for_sub);
+use ArrayExpress::Curator::Common qw(date_now);
+use ArrayExpress::Curator::CreateOntologyAdder qw(make_efo_adder_for_sub);
+
 require ArrayExpress::AutoSubmission::DB::Experiment;
 
 # These values are assumed to be numeric later.
