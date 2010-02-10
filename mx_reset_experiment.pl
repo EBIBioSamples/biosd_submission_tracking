@@ -19,6 +19,7 @@ use Readonly;
 use ArrayExpress::Curator::Config qw($CONFIG);
 use ArrayExpress::Curator::Common qw(date_now mx2tab);
 require ArrayExpress::AutoSubmission::DB::Experiment;
+use ArrayExpress::Curator::CreateOntologyAdder qw(make_efo_adder_for_mx_sub);
 
 Readonly my $EXPT_TYPE => 'MIAMExpress';
 Readonly my $CURATION  => 1;
@@ -150,9 +151,10 @@ sub parse_args {
         "c|check"   => \$args{check},
         "q|quick"   => \$args{quick},
         "e|export"  => \$args{export},
+        "m|map"     => \$args{map_oes},
     );
 
-    unless ( ( $args{pending} || $args{check} || $args{quick} || $args{export} ) && @ARGV) {
+    unless ( ( $args{pending} || $args{check} || $args{quick} || $args{export} || $args{map_oes} ) && @ARGV) {
         print <<"NOINPUT";
 Usage: $PROGRAM_NAME <option> <list of submission ids>
 
@@ -168,6 +170,8 @@ Options:  -c   set submission for full re-checking
 
           -p   set submission to pending status for user editing
                  (sets experiment back to "MIAMExpress").
+           
+          -m   map terms in submission to EFO (submission must be at spreadsheet stage)
 
 NOINPUT
 
@@ -223,6 +227,10 @@ foreach my $subid (@ARGV) {
 	    $PENDING,
 	    $EXPT_TYPE,
 	);
+    }
+    elsif( $args->{map_oes} ){
+    	my $adder = make_efo_adder_for_mx_sub($subid);
+    	$adder->add_terms;    	
     }
     else {
 	die("Error: Unrecognised user option.");
