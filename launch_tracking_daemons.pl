@@ -186,6 +186,15 @@ foreach my $pipeline (@pipeline_objects){
 	        	$atts{keep_protocol_accns} = $pipeline->keep_protocol_accns;
 	        }
 	        
+	        # MX connection specific atts
+	        if ($submis_type eq "MIAMExpress"){
+                $atts{autosubs_admin} = $CONFIG->get_MX_AUTOSUBS_ADMIN(),
+                $atts{mx_dsn}         = $CONFIG->get_MX_DSN(),
+                $atts{mx_username}    = $CONFIG->get_MX_USERNAME(),
+                $atts{mx_password}    = $CONFIG->get_MX_PASSWORD(),
+                $atts{mx_dbparams}    = $CONFIG->get_MX_DBPARAMS(),
+	        }
+	        
 	        my $daemon_instance = $daemon_class->new(\%atts);
 	        $daemon_instance->run;
 	        exit(0);
@@ -227,8 +236,8 @@ while (1) {
 
     PID: foreach my $pid (@dead_pids){
     	# Skip if we've already handled this
-    	next PID if $dead{$pid};
     	chomp $pid;
+    	next PID if $dead{$pid};
         print "$pid is dead\n";    	
     	# Record that the process has died
         
