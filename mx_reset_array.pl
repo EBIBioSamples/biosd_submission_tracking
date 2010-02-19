@@ -397,7 +397,7 @@ foreach my $subid (@ARGV) {
 		    output     => undef,
 		    target     => '.',
 		    namespace  => '',
-		    heading_regex => $CONGIG->get_MX_ADF_REGEX, 
+		    heading_regex => $CONFIG->get_MX_ADF_REGEX, 
 		    array_info => $design_info,
 		});
         
