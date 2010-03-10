@@ -12,7 +12,7 @@ class DaemonInstancesController < ApplicationController
 
   def list
     
-    order_by = 'start_time DESC'
+    order_by = 'running DESC, start_time DESC'
     
     conditions =  ["pipeline_id = ?", "#{params[:pipeline_id]}"] unless params[:pipeline_id].nil?
 
