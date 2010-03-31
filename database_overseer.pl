@@ -3,11 +3,11 @@
 # Script to perform periodic checks and maintenance on the
 # autosubmissions database. Tasks include:
 #
-# 1. Query database for all Tab2MAGE experiments which have data
+# 1. Query database for all experiments of specified type which have files
 # uploaded but appear to be abandoned, email submitter and ask them to
 # complete.
 #
-# [more to be added as necessary]
+# 
 #
 # $Id$
 
@@ -34,16 +34,20 @@ sub email_reminder {
     my $mailbody = (<<"MAILBODY");
 Dear $user,
 
-We are emailing you to query the status of your ongoing $type
+We are emailing you to query the status of your ongoing $type 
 data submission, "$expt".
 
-Our records indicate that it has now been longer than a week since you
-last edited your experiment, and that you have successfully uploaded
-both a spreadsheet and accompanying data files. If your submission is
-now complete, please return to it and click on the final "submit" button
-to indicate to us that it is ready for processing. Until this is done,
-we will assume that your submission is not yet finished to your
-satisfaction.
+Our records indicate that it has been over two weeks since you last
+edited your experiment, and that you have uploaded either a spreadsheet 
+or data files or both. 
+
+To complete your submission, return to it, add any missing files and 
+click on the final "submit" button to indicate to us that it is ready 
+for processing. Until this is done, we will assume that your submission 
+is not yet finished to your satisfaction.
+
+If you do not want to continue with this submission please tell us. We
+will close the submission and will stop sending reminders about it.
 
 Best regards,
 
@@ -78,9 +82,11 @@ MAILBODY
 ########
 
 my $help_wanted;
-GetOptions("h|help" => \$help_wanted,);
+my $expt_type;
 
-if ($help_wanted) {
+GetOptions("h|help" => \$help_wanted, "t|type=s" => \$expt_type);
+
+if ($help_wanted or !$expt_type) {
 
     print (<<"USAGE");
 
@@ -88,6 +94,9 @@ if ($help_wanted) {
 
 This script is designed to be run as a cron job; it performs various periodic
 maintenance tasks on the autosubmissions database.
+
+Use the -t option to specify the type of incomplete submission you want to check for
+e.g. -t MAGE-TAB or -t Tab2MAGE
 
 USAGE
 
@@ -105,15 +114,17 @@ my $expt_iterator
     = ArrayExpress::AutoSubmission::DB::Experiment->search(
 	is_deleted      => 0,
 	in_curation     => 0,
-	experiment_type => 'Tab2MAGE',
+	experiment_type => $expt_type,
     );
 
 SUBMISSION:
 while ( my $submission = $expt_iterator->next() ) {
 
     # Skip clearly unfinished submissions.
+    # If submission has either spreadsheet or data we email
+    # in case submitter did not realise they failed to submit
     unless ( scalar $submission->spreadsheets(is_deleted => 0)
-        && scalar $submission->data_files(is_deleted => 0) ) {
+        || scalar $submission->data_files(is_deleted => 0) ) {
         next SUBMISSION;
     }
 
@@ -134,8 +145,8 @@ while ( my $submission = $expt_iterator->next() ) {
     # Time elapsed in weeks.
     my $elapsed_weeks = Delta_Format( $delta, 'approx', 2, '%wt' );
 
-    # Over a week since last edit.
-    if ( $elapsed_weeks > 1 ) {
+    # Over 2 weeks since last edit, but within 6 months
+    if ( $elapsed_weeks > 2 and $elapsed_weeks < 24 ) {
         my $last = ParseDate( $submission->date_last_processed() );
 
         my $elapsed_months;
@@ -143,28 +154,28 @@ while ( my $submission = $expt_iterator->next() ) {
             my $procdelta   = DateCalc( $last, $now, 1 );
             $elapsed_months = Delta_Format( $procdelta, 'approx', 2, '%Mt' );
         }
-
+        
         # Either never processed, or over a month since last done.
         if ( ! $last || ( $elapsed_months > 1 ) ) {
 
-	    # Make a note for cron feedback to admin.
-	    print STDOUT (
-		"Emailing ",
-		$user->login(),
-		" concerning submission ",
-		$submission->name(),
-		"\n",
-	    );
-
-            # Send the email, note the date.
-            email_reminder($submission);
-	    my $date = date_now();
-            $submission->set(
-		'date_last_processed' => $date,
-		'comment'             => "Emailed reminder on $date\n\n"
-		                            . ($submission->comment() || q{}),
-	    );
-            $submission->update();
+		    # Make a note for cron feedback to admin.
+		    print STDOUT (
+			"Emailing ",
+			$user->login(),
+			" concerning submission ",
+			$submission->name(),
+			"\n",
+		    );
+	
+	        # Send the email, note the date.
+	        email_reminder($submission);
+		    my $date = date_now();
+	        $submission->set(
+			'date_last_processed' => $date,
+			'comment'             => "Emailed reminder on $date\n\n"
+			                            . ($submission->comment() || q{}),
+		    );
+	        $submission->update();
         }
     }
 }
