@@ -1,6 +1,7 @@
 require_dependency 'annotation'
 
 class Experiment < ActiveRecord::Base
+ 
   has_many   :design_instances,   :dependent => :destroy
   has_many   :designs,            :through   => :design_instances
 
@@ -40,6 +41,8 @@ class Experiment < ActiveRecord::Base
   validates_uniqueness_of :accession, :if => Proc.new{ |expt| expt.accession !~ /^(unknown)?$/ }
 
   validates_associated :organisms
+  
+  validates_numericality_of :in_curation, :equal_to => 1, :if => "status == \"Abandoned\"", :message => ": Abandoned experiments must be put in curation to prevent user access"
 
   # Annotation mixin
   include Annotation
