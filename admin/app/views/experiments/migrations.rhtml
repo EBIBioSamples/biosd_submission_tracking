@@ -21,8 +21,7 @@
       <%= content_tag("th", "Release Date") %>
       <%= content_tag("th", "Is Released") %>
       <%= content_tag("th", "In DW") %>
-      <%= content_tag("th", "Comment") %>
-      <%= content_tag("th", "Checker Score") %>	  
+      <%= content_tag("th", "Comment") %> 
       <%= content_tag("th", "Migration Status") %>
       <%= content_tag("th", "Migration Comment") %>	  	  
     </tr>
@@ -57,7 +56,6 @@
                               '<font color="green">YES</font>' :
                               '<font color="red">no</font>') %>
 	<%= content_tag("td", truncate(e.comment) ) %>
-	<%= content_tag("td", e.checker_score, {:class => 'highlight'} )     %>
 	<%= content_tag("td", truncate(e.migration_status), {:class => 'highlight'} ) %>
 	<%= content_tag("td", e.migration_comment, {:class => 'highlight'} ) %>	
       </tr> 
