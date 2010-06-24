@@ -19,6 +19,7 @@ class Experiment < ActiveRecord::Base
   has_many   :data_files
 
   has_many   :events
+  has_many   :experiment_quality_metrics
 
   belongs_to :user
 

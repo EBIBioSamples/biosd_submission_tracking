@@ -1,0 +1,23 @@
+<%= content_tag("h1", @experiment.accession+" Quality Metric Information", :class => "title") %>
+
+<table width="100%">
+<tr>
+  <%= content_tag("th", "Quality Metric") %>
+  <%= content_tag("th", "Value" ) %>
+  <%= content_tag("th", "Status" ) %>
+  <%= content_tag("th", "Date Calculated") %>
+</tr>
+
+<tr>
+<% @quality_metrics.each do |q| %>
+  <%= content_tag("td", q.quality_metric.name ) %>
+  <%= content_tag("td", q.value ) %>
+  <%= content_tag("td", q.status ) %>
+  <%= content_tag("td", q.date_calculated ) %>
+<% end %> 
+</tr>
+</table>
+
+<%= content_tag("div", @content) %>
+
+<%= link_to 'Back', :action => 'list' %>

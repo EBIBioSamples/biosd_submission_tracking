@@ -83,7 +83,7 @@ sub create_record {
 	# Everything else goes in quality_metrics. At the moment this
 	# is constrained to decimal type.
 	my $qm = ArrayExpress::AutoSubmission::DB::QualityMetric->find_or_create({
-	    type => $key,
+	    name => $key,
 	});
 
 	my $qm_instances = $loaded_data->quality_metric_instances(

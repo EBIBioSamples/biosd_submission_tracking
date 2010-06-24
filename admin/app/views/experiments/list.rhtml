@@ -32,10 +32,13 @@
       <tr>
 	<td>
 	<%= link_to "Details", :action          => "show", 
-                               :id              => e.id,
-			       :page            => params[:page],
+                           :id              => e.id,
+			               :page            => params[:page],
 	                       :search_term     => @search_term %>
-        </td>
+	                       
+	<%= link_to "QM",      :action => "show_qm",
+	                       :id     => e.id %> 
+    </td>
 	<%= content_tag("td", e.accession) %>
 	<%= content_tag("td", e.curated_name) %>
         <%= content_tag("td", e.num_samples) %>

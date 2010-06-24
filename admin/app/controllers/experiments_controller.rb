@@ -88,6 +88,50 @@ class ExperimentsController < ApplicationController
     @show_migration = params[:migration]
     @experiment = Experiment.find(params[:id])
   end
+  
+  def show_qm
+    
+    @experiment = Experiment.find(params[:id])
+
+    acc = @experiment.accession
+    pipeline = Pipeline.find(:first, 
+                             :conditions => {:submission_type => @experiment.experiment_type})
+    if pipeline
+      subdir = pipeline.pipeline_subdir
+    else
+      acc =~ /E-([A-Z]{4})-\d/
+      subdir = $1
+    end
+ 
+    dir_path = "/nfs/ma/ma-exp/EXPERIMENTS/"+subdir+"/"+acc+"/QM/QMreport/"
+    if params[:file]
+      show_pdf(:dir => dir_path, :file => params[:file], :acc => acc)
+      return
+    end
+    
+    @quality_metrics = @experiment.experiment_quality_metrics
+    file_path = dir_path+"QMreport.html"
+    if File.readable?(file_path)
+      report = File.new(file_path, "r")
+      input = report.read()
+      input.scan(/src="([^"]*)"/){ |f|
+        # Might need to do periodic clear out of images directory
+        new_file = RAILS_ROOT + "/public/images/"+ acc + f[0]
+        FileUtils.copy(dir_path+f[0], new_file)  
+      }
+      @content = input.gsub(/src="/, "src=\"/images/"+acc)
+      @content = @content.gsub(/href="(\w*\.pdf)"/, 'href="'+params[:id]+'?file=\1"')   
+      report.close
+    else
+      @content = "<h3>File "+file_path+" not found or unreadable</h3>"
+    end
+    
+  end
+  
+  def show_pdf params
+    download_name = params[:acc] + "_" + params[:file]
+    send_file(params[:dir]+params[:file], :filename => download_name, :type => "application/pdf")  
+  end
 
   def new
     @experiment = Experiment.new

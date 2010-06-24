@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 6) do
+ActiveRecord::Schema.define(:version => 7) do
 
   create_table "array_designs", :force => true do |t|
     t.integer  "miamexpress_subid"
@@ -117,11 +117,11 @@ ActiveRecord::Schema.define(:version => 6) do
   add_index "design_instances", ["experiment_id"], :name => "experiment_id"
 
   create_table "designs", :force => true do |t|
-    t.string  "display_label",     :limit => 50
+    t.string  "display_label",     :limit => 100
     t.string  "ontology_category", :limit => 50
     t.string  "ontology_value",    :limit => 50
-    t.string  "design_type",       :limit => 15, :default => "", :null => false
-    t.integer "is_deleted",                                      :null => false
+    t.string  "design_type",       :limit => 20
+    t.integer "is_deleted",                       :null => false
   end
 
   create_table "events", :force => true do |t|
@@ -136,13 +136,21 @@ ActiveRecord::Schema.define(:version => 6) do
     t.string   "machine",          :limit => 50
     t.string   "operator",         :limit => 30
     t.string   "log_file",         :limit => 511
-    t.integer  "jobregister_dbid", :limit => 15
+    t.integer  "jobregister_dbid", :limit => 20
     t.text     "comment"
     t.integer  "is_deleted",                                      :null => false
   end
 
   add_index "events", ["array_design_id"], :name => "array_design_id"
   add_index "events", ["experiment_id"], :name => "experiment_id"
+
+  create_table "experiment_quality_metrics", :force => true do |t|
+    t.string   "value"
+    t.integer  "quality_metric_id"
+    t.integer  "experiment_id"
+    t.string   "status"
+    t.datetime "date_calculated"
+  end
 
   create_table "experiments", :force => true do |t|
     t.string   "accession"
@@ -321,11 +329,11 @@ ActiveRecord::Schema.define(:version => 6) do
   add_index "protocols", ["accession"], :name => "accession", :unique => true
 
   create_table "quality_metrics", :force => true do |t|
-    t.string "type",        :limit => 50, :default => "", :null => false
+    t.string "name",        :limit => 50
     t.text   "description"
   end
 
-  add_index "quality_metrics", ["type"], :name => "type", :unique => true
+  add_index "quality_metrics", ["name"], :name => "type", :unique => true
 
   create_table "quantitation_types", :force => true do |t|
     t.string  "name",       :limit => 128, :default => "", :null => false
