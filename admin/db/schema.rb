@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 7) do
+ActiveRecord::Schema.define(:version => 8) do
 
   create_table "array_designs", :force => true do |t|
     t.integer  "miamexpress_subid"
@@ -30,6 +30,7 @@ ActiveRecord::Schema.define(:version => 7) do
     t.integer  "is_released"
     t.string   "migration_status"
     t.text     "migration_comment"
+    t.string   "file_to_load"
   end
 
   add_index "array_designs", ["miamexpress_subid"], :name => "miamexpress_subid", :unique => true
@@ -190,6 +191,8 @@ ActiveRecord::Schema.define(:version => 7) do
     t.integer  "ae_data_warehouse_score"
     t.string   "migration_status"
     t.text     "migration_comment"
+    t.string   "migration_source"
+    t.string   "file_to_load"
   end
 
   add_index "experiments", ["user_id"], :name => "user_id"

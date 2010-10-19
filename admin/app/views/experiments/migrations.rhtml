@@ -23,7 +23,8 @@
       <%= content_tag("th", "In DW") %>
       <%= content_tag("th", "Comment") %> 
       <%= content_tag("th", "Migration Status") %>
-      <%= content_tag("th", "Migration Comment") %>	  	  
+      <%= content_tag("th", "Migration Comment") %>	
+      <%= content_tag("th", "Migration Source") %>	  	  
     </tr>
 
     <% @experiments.each do |e| %>
@@ -58,6 +59,7 @@
 	<%= content_tag("td", truncate(e.comment) ) %>
 	<%= content_tag("td", truncate(e.migration_status), {:class => 'highlight'} ) %>
 	<%= content_tag("td", e.migration_comment, {:class => 'highlight'} ) %>	
+	<%= content_tag("td", e.migration_source, {:class => 'highlight'} ) %>	
       </tr> 
     <% end %>
   </table>
