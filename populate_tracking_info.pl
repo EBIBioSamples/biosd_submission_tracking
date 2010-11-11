@@ -302,6 +302,8 @@ sub update_heavy_expt_queries {
 	$expt->set(
 	    ae_miame_score => $aedb->get_ae_miame_score($acc),
 	);
+	# FIXME: should get_ae_minseqe_score from AE2 but nowhere
+	# in subs tracking db to write it to yet
     }
 
     # FIXME where do we even get this from?
