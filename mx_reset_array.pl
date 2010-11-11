@@ -40,7 +40,7 @@ use ArrayExpress::ADFParser::ADFConvert qw(
                   );
 
 # Global variables to switch magetab and mageml export on and off
-my $EXPORT_MAGETAB = 0;
+my $EXPORT_MAGETAB = 1;
 my $EXPORT_MAGEML = 1;
 
 # FIXME: This script is getting long. Methods should be factored out
@@ -58,6 +58,7 @@ sub parse_args {
 	    "p|pending" => \$args{pending},
         "c|check"   => \$args{check},
         "e|export"  => \$args{export},
+        "m|magetab" => \$args{magetab},
     );
 
     unless ( ( $args{pending} || $args{check} || $args{export} ) && @ARGV) {
@@ -71,6 +72,10 @@ Options:  -c   re-check submission
                  (sets MIAMExpress submission status to "C").
 
           -p   set submission to pending status for user editing
+          
+          -m   export MAGE-TAB to AE2 load directory.
+                 (temporary option to allow curator controlled AE2 export during 
+                 AE2 testing phase)
 
 NOINPUT
 
@@ -268,7 +273,10 @@ sub export_array{
     	my $end = date_now;
     	
     	if($magetab_path){
-    		$array->set( file_to_load => $magetab_path,);
+    		$array->set( 
+    		    file_to_load => $magetab_path,
+    		    migration_status => "Exported directly to AE2",
+    		);
     		$array->update;
     	}
 
@@ -638,6 +646,13 @@ foreach my $subid (@ARGV) {
         else{
             update_sub_tracking($subid, $CONFIG->get_STATUS_COMPLETE);
         }
+    }
+    
+    if ($args->{magetab}){
+        # Change export option variables and then export
+        $EXPORT_MAGETAB = 1;
+        $EXPORT_MAGEML = 0;
+        $args->{export} = 1;	
     }
     
     if ($args->{export}){
