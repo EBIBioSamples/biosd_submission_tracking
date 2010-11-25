@@ -1,0 +1,44 @@
+<%= content_tag("h1", "Sample Groups", :class => "title") %>
+
+<div>
+  <% form_tag do %>
+	<%= content_tag("span", "Search on Accession, User Accession, Submission Accession, Project Name or Source Repository (wildcards: *, ?): ") %>
+	<%= text_field_tag("search_term", @search_term) %>
+	<%= submit_tag("Search") %>
+  <% end %>
+</div>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", "Accession") %>
+      <%= content_tag("th", "User accession") %>
+      <%= content_tag("th", "Submission accession") %>
+      <%= content_tag("th", "Project name") %>
+      <%= content_tag("th", "Date last processed") %>
+      <%= content_tag("th", "Source repository") %>
+      <%= content_tag("th", "Linking repositories") %>
+      <%= content_tag("th", "Comment") %>
+    </tr>
+
+    <% @samplegroups.each do |p| %>
+      <tr>
+	<%= content_tag("td", p.accession) %>
+	<%= content_tag("td", p.user_accession) %>
+	<%= content_tag("td", p.submission_accession) %>
+	<%= content_tag("td", p.project_name) %>
+	<%= content_tag("td", p.date_last_processed ?
+			      p.date_last_processed.strftime('%Y-%m-%d') :
+                              "") %>
+    <%= content_tag("td", p.source_repository) %>  
+    <%= content_tag("td", p.linking_repositories) %>                           
+	<%= content_tag("td", p.comment) %>
+      </tr> 
+    <% end %>
+  </table>
+
+  <%= will_paginate @samplegroups, :class  => 'footer',
+	                        :params => { :search_term => params[:search_term] }  %>
+
+
+</div>

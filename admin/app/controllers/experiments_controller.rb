@@ -34,6 +34,24 @@ class ExperimentsController < ApplicationController
 
   end
 
+  def sample_subs
+    num_per_page = params[:list_all].to_i.zero? ? 30 : 1000000
+
+    sql_where_clause = "is_deleted=0 and experiment_type='biosample'"
+
+    @search_term = ""
+
+    @search_term = strip_single_quotes(params[:search_term])
+    
+    sql_where_clause += search_sql(@search_term,"accession","comment","name")
+
+    params[:page] ||= 1
+    @experiments = Experiment.paginate :page => params[:page],
+      :per_page   => num_per_page,
+      :conditions => sql_where_clause.to_s,
+      :order      => 'accession'
+  end
+  
   def today_list
     @time_now = Time.now;
     date_today       = @time_now.strftime("%Y-%m-%d %H:%M:%S");

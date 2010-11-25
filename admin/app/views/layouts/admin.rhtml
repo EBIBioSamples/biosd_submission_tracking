@@ -40,6 +40,21 @@
     </div>
 
     <div class="menu-item">
+    <%= link_to "GEO experiments", 
+                :controller => "tab2mages", 
+                :action => "list",
+	        :experiment_type => "GEO",
+                :has_gds => "0" %>
+    </div>
+
+    <div class="menu-item">
+    <%= link_to "MAGE-TAB experiments", 
+                :controller => "tab2mages", 
+                :action => "list",
+	        :experiment_type => "MAGE-TAB" %>
+    </div>
+
+    <div class="menu-item">
     <%= link_to "MUGEN experiments", 
                 :controller => "tab2mages", 
                 :action => "list",
@@ -60,22 +75,7 @@
                 :experiment_type => "GEO",
                 :has_gds => "1" %>
     </div>
-
-    <div class="menu-item">
-    <%= link_to "GEO experiments", 
-                :controller => "tab2mages", 
-                :action => "list",
-	        :experiment_type => "GEO",
-                :has_gds => "0" %>
-    </div>
-
-    <div class="menu-item">
-    <%= link_to "MAGE-TAB experiments", 
-                :controller => "tab2mages", 
-                :action => "list",
-	        :experiment_type => "MAGE-TAB" %>
-    </div>
-
+       
     <div class="menu-item">
     <%= link_to "Protocols", 
                 :controller => "protocols", 
@@ -207,6 +207,31 @@
 			
    </div>
 
+   <div class="submenu">
+      <div class="submenutitle">
+        <%= content_tag("h4", "BioSample DB") %>
+      </div>
+
+    <div class="menu-item">
+    <%= link_to "Submissions", 
+                :controller => "experiments", 
+                :action => "sample_subs" %>
+    </div>
+    
+    <div class="menu-item">
+    <%= link_to "Sample Groups", 
+                :controller => "samplegroups", 
+                :action => "list" %>
+    </div>
+ 
+    <div class="menu-item">
+    <%= link_to "Samples", 
+                :controller => "samples", 
+                :action => "list" %>
+    </div>   
+   
+   </div>
+   
    <div class="submenu">
     <% if !session[:user].nil? %>
       <div class="submenutitle">

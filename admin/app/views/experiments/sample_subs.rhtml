@@ -1,0 +1,65 @@
+<%= content_tag("h1", "BioSample Submissions", :class => "title") %>
+
+<% if flash[:notice] %><div class="notice"><%= flash[:notice] %></div><% end %>
+
+<div>
+  <% form_tag do %>
+	<%= content_tag("span", "Search on Accession, Name, Comment (wildcards: *, ?): ") %>
+	<%= text_field_tag("search_term", @search_term) %>
+	<%= submit_tag("Search") %>
+  <% end %>
+</div>
+
+<div>
+  <table>
+    <tr>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+      <%= content_tag("th", "Accession") %>
+      <%= content_tag("th", "Directory") %>
+      <%= content_tag("th", "Name") %>
+      <%= content_tag("th", "User") %>
+      <%= content_tag("th", "Status") %>
+      <%= content_tag("th", "Curator") %>
+      <%= content_tag("th", "Date last processed") %>
+      <%= content_tag("th", "Comment") %>
+      <%= content_tag("th", " ", { :class => 'actionlist' } ) %>
+    </tr>
+
+    <% @experiments.each do |e| %>
+		
+      <tr>
+	<td>
+	<%= link_to "Edit", :action          => "edit", 
+                        :id              => e.id,
+			            :page            => params[:page],
+                        :experiment_type => "biosample",
+	                    :search_term     => @search_term %>
+    </td>
+	<%= content_tag("td", e.accession) %>
+	<%= content_tag("td", e.directory) %>
+	<%= content_tag("td", e.name) %>
+	<%= content_tag("td", e.user ? e.user.login : nil) %>
+	<%= content_tag("td", e.status) %>
+	<%= content_tag("td", e.curator) %>
+	<%= content_tag("td", e.date_last_processed ?
+			e.date_last_processed.localtime.strftime('%Y-%m-%d %H:%M:%S') :
+                        "") %>
+	<%= content_tag("td", truncate(e.comment, 100)) %>
+	<td>
+	<%= link_to "Samples", :controller   => "samples",
+	                       :action       => "list",
+	                       :submission_accession => e.accession %>
+    <%= link_to "Groups",  :controller   => "samplegroups",
+	                       :action       => "list",
+	                       :submission_accession => e.accession %>                       
+	</td>
+      </tr> 
+    <% end %>
+  </table>
+
+  <%= content_tag("p", "Note that all times are GMT.") %>
+
+  <%= will_paginate @experiments, :class  => 'footer',
+	                          :params => { :search_term => params[:search_term] }  %>
+
+</div>

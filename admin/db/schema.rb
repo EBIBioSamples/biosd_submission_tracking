@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 8) do
+ActiveRecord::Schema.define(:version => 9) do
 
   create_table "array_designs", :force => true do |t|
     t.integer  "miamexpress_subid"
@@ -94,6 +94,8 @@ ActiveRecord::Schema.define(:version => 8) do
     t.string   "user"
   end
 
+  add_index "daemon_instances", ["pipeline_id"], :name => "FK_daemon_inst_to_pipeline"
+
   create_table "data_files", :force => true do |t|
     t.integer "experiment_id", :null => false
     t.string  "name"
@@ -152,6 +154,9 @@ ActiveRecord::Schema.define(:version => 8) do
     t.string   "status"
     t.datetime "date_calculated"
   end
+
+  add_index "experiment_quality_metrics", ["quality_metric_id"], :name => "FK_exp_qm_to_qm"
+  add_index "experiment_quality_metrics", ["experiment_id"], :name => "FK_exp_qm_to_exp"
 
   create_table "experiments", :force => true do |t|
     t.string   "accession"
@@ -357,6 +362,19 @@ ActiveRecord::Schema.define(:version => 8) do
   add_index "roles_users", ["user_id"], :name => "user_id"
   add_index "roles_users", ["role_id"], :name => "role_id"
 
+  create_table "sample_groups", :force => true do |t|
+    t.string   "accession"
+    t.string   "user_accession"
+    t.string   "submission_accession"
+    t.string   "project_name"
+    t.string   "source_repository"
+    t.string   "linking_repositories"
+    t.datetime "date_assigned"
+    t.datetime "date_last_processed"
+    t.text     "comment"
+    t.integer  "is_deleted"
+  end
+
   create_table "samples", :force => true do |t|
     t.string   "accession"
     t.string   "user_accession"
@@ -365,6 +383,7 @@ ActiveRecord::Schema.define(:version => 8) do
     t.datetime "date_last_processed"
     t.text     "comment"
     t.integer  "is_deleted"
+    t.string   "source_repository"
   end
 
   create_table "spreadsheets", :force => true do |t|
