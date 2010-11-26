@@ -37,7 +37,7 @@ class ExperimentsController < ApplicationController
   def sample_subs
     num_per_page = params[:list_all].to_i.zero? ? 30 : 1000000
 
-    sql_where_clause = "is_deleted=0 and experiment_type='biosample'"
+    sql_where_clause = "is_deleted=0 and experiment_type='ESD'"
 
     @search_term = ""
 
