@@ -64,3 +64,7 @@ ActiveRecord::Base.default_timezone = :utc
 # Pagination now uses an external gem. Apparently
 # this is much better than the classic pagination.
 require 'will_paginate'
+
+# Check connection once an hour to stop application freezing overnight
+Thread.new{ loop{ sleep(60*60);
+ActiveRecord::Base.verify_active_connections! } }.priority = -10
