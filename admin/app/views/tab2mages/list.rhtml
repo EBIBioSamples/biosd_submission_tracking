@@ -20,7 +20,7 @@
       <%= content_tag("th", "Checker score") %>
       <%= content_tag("th", "No. of Hybs") %>
       <%= content_tag("th", "MIAME score") %>
-      <%= content_tag("th", "DW status") %>
+      <%= content_tag("th", "Atlas status") %>
       <%= content_tag("th", "In curation") %>
       <%= content_tag("th", "Status") %>
       <%= content_tag("th", "Software") %>
@@ -48,7 +48,7 @@
 	<%= content_tag("td", e.checker_score) %>
         <%= content_tag("td", e.num_hybridizations) %>
 	<%= content_tag("td", e.miame_score_html) %>
-	<%= content_tag("td", e.dw_status_html) %>
+	<%= content_tag("td", e.atlas_status_html) %>
 	<%= content_tag("td", e.in_curation.nil? ? '' :
                               e.in_curation? ?
                               '<font color="green">YES</font>' :

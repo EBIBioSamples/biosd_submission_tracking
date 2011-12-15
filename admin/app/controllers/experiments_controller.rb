@@ -121,7 +121,7 @@ class ExperimentsController < ApplicationController
       subdir = $1
     end
  
-    dir_path = "/nfs/ma/ma-exp/EXPERIMENTS/"+subdir+"/"+acc+"/QM/QMreport/"
+    dir_path = "/net/isilon5/ma/home/arrayexpress/ae2_production/data/EXPERIMENT/"+subdir+"/"+acc+"/QM/QMreport/"
     if params[:file]
       show_pdf(:dir => dir_path, :file => params[:file], :acc => acc)
       return

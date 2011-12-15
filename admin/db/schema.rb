@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 9) do
+ActiveRecord::Schema.define(:version => 10) do
 
   create_table "array_designs", :force => true do |t|
     t.integer  "miamexpress_subid"
@@ -94,8 +94,6 @@ ActiveRecord::Schema.define(:version => 9) do
     t.string   "user"
   end
 
-  add_index "daemon_instances", ["pipeline_id"], :name => "FK_daemon_inst_to_pipeline"
-
   create_table "data_files", :force => true do |t|
     t.integer "experiment_id", :null => false
     t.string  "name"
@@ -106,7 +104,7 @@ ActiveRecord::Schema.define(:version => 9) do
   add_index "data_files", ["experiment_id"], :name => "experiment_id"
 
   create_table "data_formats", :force => true do |t|
-    t.string "name", :limit => 50, :default => "", :null => false
+    t.string "name", :limit => 50, :null => false
   end
 
   add_index "data_formats", ["name"], :name => "name", :unique => true
@@ -130,7 +128,7 @@ ActiveRecord::Schema.define(:version => 9) do
   create_table "events", :force => true do |t|
     t.integer  "array_design_id"
     t.integer  "experiment_id"
-    t.string   "event_type",       :limit => 50,  :default => "", :null => false
+    t.string   "event_type",       :limit => 50,  :null => false
     t.integer  "was_successful"
     t.string   "source_db",        :limit => 30
     t.string   "target_db",        :limit => 30
@@ -141,7 +139,7 @@ ActiveRecord::Schema.define(:version => 9) do
     t.string   "log_file",         :limit => 511
     t.integer  "jobregister_dbid", :limit => 20
     t.text     "comment"
-    t.integer  "is_deleted",                                      :null => false
+    t.integer  "is_deleted",                      :null => false
   end
 
   add_index "events", ["array_design_id"], :name => "array_design_id"
@@ -155,31 +153,28 @@ ActiveRecord::Schema.define(:version => 9) do
     t.datetime "date_calculated"
   end
 
-  add_index "experiment_quality_metrics", ["quality_metric_id"], :name => "FK_exp_qm_to_qm"
-  add_index "experiment_quality_metrics", ["experiment_id"], :name => "FK_exp_qm_to_exp"
-
   create_table "experiments", :force => true do |t|
     t.string   "accession"
     t.string   "name"
     t.integer  "user_id"
     t.integer  "checker_score"
-    t.string   "software",                :limit => 100
-    t.string   "status",                  :limit => 50
+    t.string   "software",              :limit => 100
+    t.string   "status",                :limit => 50
     t.integer  "data_warehouse_ready"
     t.datetime "date_last_edited"
     t.datetime "date_submitted"
     t.datetime "date_last_processed"
     t.integer  "in_curation"
-    t.string   "curator",                 :limit => 30
+    t.string   "curator",               :limit => 30
     t.text     "comment"
-    t.string   "experiment_type",         :limit => 30
-    t.string   "miamexpress_login",       :limit => 30
+    t.string   "experiment_type",       :limit => 30
+    t.string   "miamexpress_login",     :limit => 30
     t.integer  "miamexpress_subid"
     t.integer  "is_affymetrix"
-    t.integer  "is_uhts",                 :limit => 4
-    t.integer  "use_native_datafiles",    :limit => 4
+    t.integer  "is_uhts",               :limit => 4
+    t.integer  "use_native_datafiles",  :limit => 4
     t.integer  "is_mx_batchloader"
-    t.integer  "is_deleted",                             :null => false
+    t.integer  "is_deleted",                           :null => false
     t.integer  "miame_score"
     t.integer  "in_data_warehouse"
     t.integer  "num_submissions"
@@ -189,15 +184,15 @@ ActiveRecord::Schema.define(:version => 9) do
     t.integer  "num_hybridizations"
     t.integer  "has_raw_data"
     t.integer  "has_processed_data"
-    t.integer  "has_gds",                 :limit => 4
+    t.integer  "has_gds",               :limit => 4
     t.datetime "release_date"
     t.integer  "is_released"
     t.integer  "ae_miame_score"
-    t.integer  "ae_data_warehouse_score"
     t.string   "migration_status"
     t.text     "migration_comment"
     t.string   "migration_source"
     t.string   "file_to_load"
+    t.string   "atlas_fail_score"
   end
 
   add_index "experiments", ["user_id"], :name => "user_id"
@@ -227,17 +222,17 @@ ActiveRecord::Schema.define(:version => 9) do
   add_index "experiments_quantitation_types", ["experiment_id"], :name => "experiment_id"
 
   create_table "factors", :force => true do |t|
-    t.string  "name",       :limit => 128, :default => "", :null => false
-    t.integer "is_deleted",                                :null => false
+    t.string  "name",       :limit => 128, :null => false
+    t.integer "is_deleted",                :null => false
   end
 
   create_table "loaded_data", :force => true do |t|
-    t.string   "identifier",                              :default => "", :null => false
-    t.string   "md5_hash",                  :limit => 35, :default => "", :null => false
-    t.integer  "data_format_id",                                          :null => false
-    t.integer  "is_deleted",                                              :null => false
+    t.string   "identifier",                              :null => false
+    t.string   "md5_hash",                  :limit => 35, :null => false
+    t.integer  "data_format_id",                          :null => false
+    t.integer  "is_deleted",                              :null => false
     t.integer  "platform_id"
-    t.integer  "needs_metrics_calculation",                               :null => false
+    t.integer  "needs_metrics_calculation",               :null => false
     t.datetime "date_hashed"
   end
 
@@ -292,9 +287,9 @@ ActiveRecord::Schema.define(:version => 9) do
   add_index "organisms", ["taxon_id"], :name => "taxon_id"
 
   create_table "permissions", :force => true do |t|
-    t.string  "name",       :limit => 40, :default => "", :null => false
+    t.string  "name",       :limit => 40, :null => false
     t.string  "info",       :limit => 80
-    t.integer "is_deleted",                               :null => false
+    t.integer "is_deleted",               :null => false
   end
 
   create_table "permissions_roles", :id => false, :force => true do |t|
@@ -306,7 +301,7 @@ ActiveRecord::Schema.define(:version => 9) do
   add_index "permissions_roles", ["permission_id"], :name => "permission_id"
 
   create_table "pipelines", :force => true do |t|
-    t.string  "submission_type",     :default => "",                            :null => false
+    t.string  "submission_type",                                                :null => false
     t.integer "instances_to_start",  :default => 1
     t.string  "checker_daemon"
     t.string  "exporter_daemon"
@@ -319,7 +314,7 @@ ActiveRecord::Schema.define(:version => 9) do
   end
 
   create_table "platforms", :force => true do |t|
-    t.string "name", :limit => 50, :default => "", :null => false
+    t.string "name", :limit => 50, :null => false
   end
 
   add_index "platforms", ["name"], :name => "name", :unique => true
@@ -344,14 +339,14 @@ ActiveRecord::Schema.define(:version => 9) do
   add_index "quality_metrics", ["name"], :name => "type", :unique => true
 
   create_table "quantitation_types", :force => true do |t|
-    t.string  "name",       :limit => 128, :default => "", :null => false
-    t.integer "is_deleted",                                :null => false
+    t.string  "name",       :limit => 128, :null => false
+    t.integer "is_deleted",                :null => false
   end
 
   create_table "roles", :force => true do |t|
-    t.string  "name",       :limit => 40, :default => "", :null => false
+    t.string  "name",       :limit => 40, :null => false
     t.string  "info",       :limit => 80
-    t.integer "is_deleted",                               :null => false
+    t.integer "is_deleted",               :null => false
   end
 
   create_table "roles_users", :id => false, :force => true do |t|
@@ -362,29 +357,32 @@ ActiveRecord::Schema.define(:version => 9) do
   add_index "roles_users", ["user_id"], :name => "user_id"
   add_index "roles_users", ["role_id"], :name => "role_id"
 
-  create_table "sample_groups", :force => true do |t|
-    t.string   "accession"
-    t.string   "user_accession"
-    t.string   "submission_accession"
-    t.string   "project_name"
-    t.string   "source_repository"
-    t.string   "linking_repositories"
-    t.datetime "date_assigned"
-    t.datetime "date_last_processed"
-    t.text     "comment"
-    t.integer  "is_deleted"
+  create_table "sample_assay", :primary_key => "accession", :force => true do |t|
+    t.string   "user_accession",                      :null => false
+    t.string   "submission_accession",                :null => false
+    t.datetime "date_assigned",                       :null => false
+    t.integer  "is_deleted",           :default => 0, :null => false
   end
 
-  create_table "samples", :force => true do |t|
-    t.string   "accession"
-    t.string   "user_accession"
-    t.string   "submission_accession"
-    t.datetime "date_assigned"
-    t.datetime "date_last_processed"
-    t.text     "comment"
-    t.integer  "is_deleted"
-    t.string   "source_repository"
+  add_index "sample_assay", ["submission_accession", "user_accession"], :name => "submission_user", :unique => true
+
+  create_table "sample_groups", :primary_key => "accession", :force => true do |t|
+    t.string   "user_accession",                      :null => false
+    t.string   "submission_accession",                :null => false
+    t.datetime "date_assigned",                       :null => false
+    t.integer  "is_deleted",           :default => 0, :null => false
   end
+
+  add_index "sample_groups", ["user_accession", "submission_accession"], :name => "submission_user", :unique => true
+
+  create_table "sample_reference", :primary_key => "accession", :force => true do |t|
+    t.string   "user_accession",                      :null => false
+    t.string   "submission_accession",                :null => false
+    t.datetime "date_assigned",                       :null => false
+    t.integer  "is_deleted",           :default => 0, :null => false
+  end
+
+  add_index "sample_reference", ["submission_accession", "user_accession"], :name => "submission_user", :unique => true
 
   create_table "spreadsheets", :force => true do |t|
     t.integer "experiment_id", :null => false
@@ -402,14 +400,14 @@ ActiveRecord::Schema.define(:version => 9) do
   end
 
   create_table "users", :force => true do |t|
-    t.string   "login",       :limit => 40,  :default => "", :null => false
+    t.string   "login",       :limit => 40,  :null => false
     t.string   "name",        :limit => 40
-    t.string   "password",    :limit => 40,  :default => "", :null => false
+    t.string   "password",    :limit => 40,  :null => false
     t.string   "email",       :limit => 100
     t.datetime "modified_at"
     t.datetime "created_at"
     t.datetime "access"
-    t.integer  "is_deleted",                                 :null => false
+    t.integer  "is_deleted",                 :null => false
   end
 
   add_index "users", ["login"], :name => "login", :unique => true
