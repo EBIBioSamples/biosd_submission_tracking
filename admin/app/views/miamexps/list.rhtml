@@ -21,7 +21,7 @@
       <%= content_tag("th", "Checker score") %>
       <%= content_tag("th", "No. of Hybs") %>
       <%= content_tag("th", "MIAME score") %>
-      <%= content_tag("th", "DW status") %>
+      <%= content_tag("th", "Atlas status") %>
       <%= content_tag("th", "Status") %>
       <%= content_tag("th", "Date last processed") %>
       <%= content_tag("th", "Curator") %>
@@ -46,7 +46,7 @@
 	<%= content_tag("td", e.checker_score) %>
         <%= content_tag("td", e.num_hybridizations) %>
 	<%= content_tag("td", e.miame_score_html) %>
-	<%= content_tag("td", e.dw_status_html) %>
+	<%= content_tag("td", e.atlas_status_html) %>
 	<%= content_tag("td", e.status) %>
 	<%= content_tag("td", e.date_last_processed ?
 			      e.date_last_processed.strftime('%Y-%m-%d') :
