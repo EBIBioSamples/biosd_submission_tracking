@@ -41,7 +41,7 @@ use ArrayExpress::ADFParser::ADFConvert qw(
 
 # Global variables to switch magetab and mageml export on and off
 my $EXPORT_MAGETAB = 1;
-my $EXPORT_MAGEML = 1;
+my $EXPORT_MAGEML = 0;
 
 # FIXME: This script is getting long. Methods should be factored out
 # into an array exporter class.
