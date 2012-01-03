@@ -26,20 +26,32 @@ my $webapp = ArrayExpress::AutoSubmission::WebForm->new(
 		alt         => 'ArrayExpress',
 	    },
 	    {
-		image       => '/microarray/T2M_logo_small.png',
-		destination => 'http://tab2mage.sourceforge.net/',
-		alt         => 'Tab2MAGE',
+		image       => '/microarray/MAGETAB_logo_small.png',
+		destination => 'http://tab2mage.sourceforge.net/docs/magetab_subs.html',
+		alt         => 'MAGE-TAB',
 		width       => 100,
 	    },
 	],
 	sidebar_links   => [
 	    {
-		text        => 'Introduction',
-		destination => 'http://www.ebi.ac.uk/miamexpress/help/tab2mage_help.html',
+		text        => 'Submitting MAGE-TAB to ArrayExpress',
+		destination => 'http://tab2mage.sourceforge.net/docs/magetab_subs.html',
 	    },
 	    {
-		text        => 'Creating a spreadsheet',
-		destination => 'http://tab2mage.sourceforge.net/docs/spreadsheet.html',
+		text        => 'MAGE-TAB overview',
+		destination => 'http://tab2mage.sourceforge.net/docs/magetab_docs.html',
+	    },
+	    {
+		text        => 'IDF detailed notes',
+		destination => 'http://tab2mage.sourceforge.net/docs/idf.html',
+	    },
+	    {
+		text        => 'SDRF detailed notes',
+		destination => 'http://tab2mage.sourceforge.net/docs/sdrf.html',
+	    },
+	    {
+		text        => 'MAGE-TAB specification',
+		destination => 'http://www.mged.org/mage-tab/',
 	    },
 	    {
 		text        => 'Microarray data submissions',
