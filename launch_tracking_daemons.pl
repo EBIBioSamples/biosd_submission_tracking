@@ -77,8 +77,10 @@ if ($restart or $kill){
 		my $rc = system("ps $pid | grep $name_suffix");
 		
 		if ($rc){
-		    warn ("Process $pid does not have the expected name. Check this process manually before killing it\n");
-		    next PID;	
+		    warn ("Process $pid with name $name_suffix not found. Updating daemon status to not running.\n");
+		    $daemon->set( running => 0, end_time => date_now() );
+		    $daemon->update();
+		    next PID;
 		}
         
         push @pids, $pid;
