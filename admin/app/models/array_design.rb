@@ -24,6 +24,10 @@ class ArrayDesign < ActiveRecord::Base
     end 
   end
   
+  def atlas_status_html
+    return self.dw_status_html
+  end
+  
   def dw_status_html
     return '<font color="blue">Loaded</font>' if self.in_data_warehouse.to_i > 0
   	return '' if self.data_warehouse_ready.nil?
