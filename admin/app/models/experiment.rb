@@ -86,5 +86,9 @@ class Experiment < ActiveRecord::Base
              self.atlas_fail_score.nil?              ? '' :
              '<font color="red">'+self.atlas_fail_score+'</font>'
     return status         
-  end  
+  end 
+
+  def ae_data_warehouse_score
+    return self.atlas_fail_score
+  end 
 end
