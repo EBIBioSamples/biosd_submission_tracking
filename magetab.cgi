@@ -22,6 +22,9 @@ my $webapp = ArrayExpress::AutoSubmission::WebForm->new(
 	intro_html_template    => 'magetab_intro.html',
 	upload_html_template   => 'magetab_upload.html',
 	template_html_template => 'magetab_template.html',
+    header_html_template => 'ebi_header.html',
+    footer_html_template => 'ebi_footer.html',
+	
 	sidebar_icons   => [
 	    {
 		image       => '/microarray/aelogo.png',
@@ -38,12 +41,16 @@ my $webapp = ArrayExpress::AutoSubmission::WebForm->new(
 	sidebar_links   => [
 	    {
 		text        => 'Submitting MAGE-TAB to ArrayExpress',
-		destination => 'http://tab2mage.sourceforge.net/docs/magetab_subs.html',
+		destination => 'http://www.ebi.ac.uk/fg/doc/help/spreadsheet_submissions.html',
 	    },
 	    {
 		text        => 'MAGE-TAB overview',
 		destination => 'http://tab2mage.sourceforge.net/docs/magetab_docs.html',
 	    },
+        {
+        text        => 'MAGE-TAB tutorial',
+        destination => 'http://www.ebi.ac.uk/training/online/course/arrayexpress-submitting-data-using-mage-tab',
+        },
 	    {
 		text        => 'IDF detailed notes',
 		destination => 'http://tab2mage.sourceforge.net/docs/idf.html',
