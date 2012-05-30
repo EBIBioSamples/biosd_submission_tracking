@@ -26,25 +26,20 @@ use ArrayExpress::MXExport::General qw(get_mx_file_path);
 use ArrayExpress::MXExport::ArrayDesign;
 use ArrayExpress::ADFParser::ArrayDesignInfo;
 use ArrayExpress::ADFParser::MIAMExpress_ADF;
+use ArrayExpress::ADFParser::MAGETAB_ADF;
 
 use ArrayExpress::ADFParser::ADFConvert qw(
                   add_dbs_to_header
-                  get_mx_to_magetab_mapping 
-                  get_magetab_adf_header
+                  get_mx_to_magetab_mapping
                   make_magetab_adf_header_from_design_info
                   process_header 
-                  process_lines 
+                  process_lines
+                  process_magetab_header_db_tags
                   print_adf
                   print_adf_header
                   $VERSION
                   );
 
-# Global variables to switch magetab and mageml export on and off
-my $EXPORT_MAGETAB = 1;
-my $EXPORT_MAGEML = 0;
-
-# FIXME: This script is getting long. Methods should be factored out
-# into an array exporter class.
 
 ########
 # SUBS #
@@ -55,7 +50,7 @@ sub parse_args {
     my %args;
 
     GetOptions(
-	    "p|pending" => \$args{pending},
+        "p|pending" => \$args{pending},
         "c|check"   => \$args{check},
         "e|export"  => \$args{export},
         "m|magetab" => \$args{magetab},
@@ -68,7 +63,7 @@ Usage: $PROGRAM_NAME <option> <list of submission ids>
 Options:  -c   re-check submission
                  (sets MIAMExpress submission status to "C").
 
-          -e   export MAGE-ML without re-checking
+          -e   export in MAGE-TAB format to AE2_LOAD directory without re-checking
                  (sets MIAMExpress submission status to "C").
 
           -p   set submission to pending status for user editing
@@ -210,9 +205,72 @@ QUERY
     return $array;
 }
 
+sub create_MXExport_array_design_get_mx_design_info {
+    
+    # From the MX submission ID, create the MXExport ArrayDesign object, 
+    # which has array_info (of class ADFParser/ArrayDesignInfo.pm) as one 
+    # of its attributes.
+    # $mx_design_info object is the value of the "array_info" attribute, 
+    # storing all the meta data associated with the ADF from the 
+    # MIAMExpress submissions database.        
+
+    my ($subid) = @_;
+    my ($design, $mx_design_info);
+    
+    eval{
+        $design = ArrayExpress::MXExport::ArrayDesign->new({
+            subid => $subid,
+        });
+        
+        $mx_design_info = $design->get_array_info;
+        
+    };
+
+    if ($@){
+      	my $error = "Could not get array design information. Error: $@";
+       	update_sub_tracking($subid, $CONFIG->get_STATUS_CRASHED, $error);
+       	die $error;
+    }
+    return ($design, $mx_design_info);
+}    
+
+
+sub create_mx_adf_parser {
+    my ($adf_path, $design_info) = @_;
+    print "Creating a MIAMExpress ADF parser...\n";
+    my $parser = ArrayExpress::ADFParser::MIAMExpress_ADF->new({
+		    adf_path   => $adf_path,
+		    composites => undef,
+		    accession  => 'na',
+		    output     => undef,
+		    target     => '.',
+		    namespace  => '',
+		    heading_regex => $CONFIG->get_MX_ADF_REGEX, 
+		    array_info => $design_info,
+    });
+    return $parser;
+}
+
+sub create_mtab_adf_parser {
+    my ($adf_path, $design_info) = @_;
+    print "Creating a MAGE-TAB ADF parser...\n";
+    my $parser = ArrayExpress::ADFParser::MAGETAB_ADF->new({
+		    adf_path   => $adf_path,
+		    composites => undef,
+		    accession  => 'na',
+		    output     => undef,
+		    target     => '.',
+		    namespace  => '',
+		    heading_regex => $CONFIG->get_MAGETAB_ADF_REGEX,
+		    array_info => $design_info,
+    });    
+    return $parser;
+}    
+
+
 sub export_array{
 
-    my ($array, $adf_path, $design_info, $parser)  = @_;
+    my ($array, $adf_path, $design_info, $from_magetab, $parser)  = @_;
     ref($array) eq 'ArrayExpress::AutoSubmission::DB::ArrayDesign'
         or die "Error: first argument passed to export_array must be an ArrayExpress::AutoSubmission::DB::ArrayDesign object. This is a ".ref($array)."\n";
     
@@ -224,22 +282,18 @@ sub export_array{
     
     # Convert mac to unix - MX ADF export can't handle mac line endings
     mac2unix($adf_path);    
-    
-    if (!$parser){
-        # create one for mx and dw checking
-        print "Creating MIAMExpress ADF parser..\n";
-		$parser = ArrayExpress::ADFParser::MIAMExpress_ADF->new({
-		    adf_path   => $adf_path,
-		    composites => undef ,
-		    accession  => 'na',
-		    output     => undef,
-		    target     => '.',
-		    namespace  => '',
-		    heading_regex => $CONFIG->get_MX_ADF_REGEX, 
-		    array_info => $design_info,
-		});
-    }
    
+    # When we're doing force/manual export, no parser object is passed
+    # to this method. We'll have to generate either a MX or a MTAB parser,
+    # depending on the format of the file we're exporting from.  
+ 
+    if (!$parser && !$from_magetab){
+        $parser = create_mx_adf_parser($adf_path, $design_info);
+    } elsif (!$parser && $from_magetab){
+        $parser = create_mtab_adf_parser($adf_path, $design_info);
+    }
+    
+  
     # set up the export log file (replacing checker log)
     my $export_log = "$adf_path.export";
     $parser->set_log_file_path($export_log);
@@ -260,160 +314,51 @@ sub export_array{
     );
     $array->update;
     
-    if ($EXPORT_MAGETAB){
-    	my $start = date_now;     		
-    	my $magetab_path;
-    	update_sub_tracking($array->miamexpress_subid, $CONFIG->get_STATUS_AE2_EXPORT);
-    	if ($parser->is_nimblegen){   		
-    		$magetab_path = export_ndf_magetab($accession, $adf_path, $design_info, $export_log_fh);
-    	}
-    	else{   		
-    		$magetab_path = export_array_magetab($accession, $adf_path, $design_info, $export_log_fh);
-    	}
-    	my $end = date_now;
-    	
-    	if($magetab_path){
-    		$array->set( 
-    		    file_to_load => $magetab_path,
-    		    migration_status => "Exported directly to AE2",
-    		);
-    		$array->update;
-    	}
+    # Now do the actual export. Warn again about array design info being taken
+    # exclusively from the MIAMExpress form!
+    my $start = date_now;     		
+    my $magetab_path;
+    update_sub_tracking($array->miamexpress_subid, $CONFIG->get_STATUS_AE2_EXPORT);
 
-        $array->add_to_events({
-			event_type       => 'AE2 Export',
-			was_successful   => ( $magetab_path ? 1 : 0 ),
-			source_db        => "MIAMExpress",
-			start_time       => $start,
-			end_time         => $end,
-			machine          => hostname(),
-			operator         => getlogin(),
-			log_file         => $export_log,
-			is_deleted       => 0,
-		});
-    }
+    my $meta_data_warning = "*** Warning: ADF export takes array design info meta-data ONLY from the MIAMExpress form!\n";
+    print STDOUT $meta_data_warning;
+    print $export_log_fh $meta_data_warning;
     
-    if ($EXPORT_MAGEML){
-    	my $start = date_now;	
-    	update_sub_tracking($array->miamexpress_subid, $CONFIG->get_STATUS_EXPORT);
-    	
-    	# We need to export mageml for both standard and NDF submissions
-        my $xml_path = export_array_mageml($accession, $adf_path, $name, $export_log_fh, $parser);
-        
-        # Check if it is a Nimblegen design file (NDF)
-        if ($parser->is_nimblegen){
-    	    $xml_path = export_ndf_mageml($accession, $adf_path, $export_log_fh, $xml_path);
-            $array->set(
-        	    comment => "NDF converted to ADF.",
-            );
-            $array->update;       
-        }
-        my $end = date_now;
-        
-        $array->add_to_events({
-			event_type       => 'MAGE-ML export',
-			was_successful   => ( $xml_path ? 1 : 0 ),
-			source_db        => "MIAMExpress",
-			start_time       => $start,
-			end_time         => $end,
-			machine          => hostname(),
-			operator         => getlogin(),
-			log_file         => $export_log,
-			is_deleted       => 0,
-		});
+    if ($parser->is_nimblegen){   		
+        $magetab_path = export_ndf_magetab($accession, $adf_path, $design_info, $export_log_fh);
     }
+    else{   		
+    	$magetab_path = export_array_magetab($accession, $adf_path, $design_info, $export_log_fh, $from_magetab);
+    }
+    my $end = date_now;
     
+    if($magetab_path){
+    	$array->set( 
+    	    file_to_load => $magetab_path,
+    	    migration_status => "Exported directly to AE2",
+    	);
+    	$array->update;
+    }
+
+    $array->add_to_events({
+		event_type       => 'AE2 Export',
+		was_successful   => ( $magetab_path ? 1 : 0 ),
+		source_db        => "MIAMExpress",
+		start_time       => $start,
+		end_time         => $end,
+		machine          => hostname(),
+		operator         => getlogin(),
+		log_file         => $export_log,
+		is_deleted       => 0,
+    });
+    
+   
     return;
-}
-
-sub export_array_mageml{
-
-    my ($accession, $adf_path, $name, $export_log_fh, $parser) = @_;
-        
-    my $export_script = $CONFIG->get_MX_ARRAY_MAGEML_EXPORT_COMMAND
-        or die "Error: array MAGEML export command not provided in Config file";
-        
-    # Run array mageml export script              
-    my $command = "$export_script '$name' $accession";
-    my $time = date_now;
-    mprint (*STDOUT, $export_log_fh, "$time - Starting MAGEML export using command:\n$command\n");
-    my $status = system ($command);
-    $time = date_now;
-    if ($status == 0){
-        mprint (*STDOUT, $export_log_fh, "$time - MAGEML export completed\n");
-    }
-    else{
-        print $export_log_fh, "$time - MAGEML export failed: $?\n";
-        die "MAGEML export failed: $?";
-    }
-    
-    # Move mageml to target directory
-    my $target_dir = File::Spec->catdir( $CONFIG->get_AUTOSUBMISSIONS_ARRAY_TARGET, "MEXP", $accession );
-    my $xml = $adf_path.".xml";
-    my $target_path = File::Spec->catfile($target_dir, $accession.".xml");
-    
-    if (! -e $target_dir){
-        mkdir ($target_dir, 0777)
-            or die "Error: could not make target directory $target_dir - $!";
-    }
-    chmod 0777, $target_dir;     
-
-    move ($xml, $target_path)
-        or die "Error: could not move mageml from $xml to $target_path - $!";
-    
-    return $target_path;
-}
-
-sub export_ndf_mageml{
-	
-	my ($accession, $adf_path, $export_log_fh, $target_path) = @_;
-	
-	my ($vol, $target_dir, $file) = File::Spec->splitpath($target_path);
-    my $new_name = $accession.".adf.txt";
-    my $adf_target_path = File::Spec->catfile($target_dir,$new_name);
-     		
-    # Convert NDF to ADF and copy to load dir
-    my $conversion_complete = run_ndf_converter($adf_path, $adf_target_path, $export_log_fh);
-    	
-    mprint (*STDOUT, $export_log_fh, date_now." - Removing FeatureGroups_assnlist from mageml\n");    
-    # Remove FeatureGroups_assnlist from mageml
-    my $new_xml = $target_path.".new";
-    open (my $in_fh, "<", $target_path)
-        or die ("Could not open $target_path to remove FeatureGroups_assnlist: $!");
-    open (my $out_fh, ">", $new_xml)
-        or die ("Could not open $new_xml for writing: $!");
-        
-    my $in_featuregroup_assnlist = 0;    
-    while (<$in_fh>){
-        $in_featuregroup_assnlist = 1 if /<FeatureGroups_assnlist>/;
-        print $out_fh $_ unless $in_featuregroup_assnlist;
-        $in_featuregroup_assnlist = 0 if /<\/FeatureGroups_assnlist>/;
-    }
-    close $in_fh;
-    close $out_fh;
-        
-    # Backup original xml file
-    my $xml_bak = $target_path.".bak";
-    move($target_path, $xml_bak)
-        or die "Could not move $target_path to $xml_bak: $!";
-    chmod 0777, $xml_bak;
-        
-    # Move new file to target xml file path
-    move($new_xml, $target_path)
-        or die "Could not move $new_xml to $target_path: $!";
-    chmod 0777, $target_path;
-    mprint (*STDOUT, $export_log_fh, date_now." - FeatureGroups_assnlist removed\n");
-
-    unless($conversion_complete){
-    	return undef;
-    }
-        
-    return $target_path; 
 }
 
 sub export_ndf_magetab{
 
-    my ($accession, $adf_path, $design_info, $export_log_fh) = @_;
+    my ($accession, $adf_path, $design_info, $export_log_fh, $export_from_format) = @_;
 
     my $final_adf = File::Spec->catfile(ae2_load_dir_for_acc($accession), $accession.".adf.txt");
 
@@ -476,48 +421,87 @@ sub run_ndf_converter{
     return 1;
 }
 
-sub export_array_magetab{
-	my ($acc, $adf_path, $design_info, $export_log_fh) = @_;
+sub export_array_magetab{   
+    
+    my ($acc, $adf_path, $mx_design_info, $export_log_fh, $from_magetab) = @_;
 	
-	my $output = File::Spec->catfile(ae2_load_dir_for_acc($acc), $acc.".adf.txt");
+    my $output = File::Spec->catfile(ae2_load_dir_for_acc($acc), $acc.".adf.txt");
 	
-	mprint (*STDOUT, $export_log_fh, date_now." - MAGE-TAB exporting $adf_path to $output\n");
+    mprint (*STDOUT, $export_log_fh, date_now." - MAGE-TAB exporting $adf_path to $output\n");
+    
+    # $header_info_ref is a simple hash holding mage-tab formatted meta-data header,
+    # hash key = ADF tag, hash value = actual meta data:
 	
-	my $header_info_ref = make_magetab_adf_header_from_design_info($design_info);
-	
-    my %adf_tag = get_mx_to_magetab_mapping();
+    my $header_info_ref = make_magetab_adf_header_from_design_info($mx_design_info);
+   	
     open (my $adf_fh, "<", $adf_path) 
         or die "Error: Could not open $adf_path for reading - $!";
 
-    # get header and process all remaining lines, identify empty cols
-    
-    # FIXME: in future if we fail to identify MX headings we should
-    # look for MAGETAB ADF headings and if found simply insert
-    # ADF header info and then copy file to AE2 load dir
-    my ($heading_line, $all_lines_fh, $value_count_ref) 
-        = process_lines($adf_fh, $CONFIG->get_MX_ADF_REGEX);
+    if ( $from_magetab == 0 ) {
+        my %adf_tag = get_mx_to_magetab_mapping();
 
-    my ($keepers_ref, $new_headings_ref, $dbs_used_ref) 
-        = process_header($heading_line, \%adf_tag, $value_count_ref);
+        # get column headings and process all remaining lines, identify empty cols
+        # process_lines separates column headings from the meat of the ADF
+        
+        my ($heading_line, $all_lines_fh, $value_count_ref) 
+            = process_lines($adf_fh, $CONFIG->get_MX_ADF_REGEX);
 
-    # Add some extra info to header that we gathered while parsing ADF body
-    add_dbs_to_header($header_info_ref, $dbs_used_ref);
+        # process_header changes MX column headings to corresponding MAGE-TAB ones:
+        
+        my ($keepers_count_ref, $new_headings_ref, $dbs_used_ref) 
+            = process_header($heading_line, \%adf_tag, $value_count_ref);
 
-    open (my $fh, ">", $output) 
-        or die "Error: Could not open $output for writing - $!";
+        # Add some extra info to header that we gathered while parsing ADF body
+        add_dbs_to_header($header_info_ref, $dbs_used_ref);
 
-    print_adf(
-            fh              => $fh, 
-            headers_ref     => $new_headings_ref, 
-            lines_fh        => $all_lines_fh, 
-            keepers_ref     => $keepers_ref, 
-            delim           => "\t",
-            header_info_ref => $header_info_ref,
-          ); 
+        open (my $fh, ">", $output) 
+            or die "Error: Could not open $output for writing - $!";
+
+        print_adf(
+                fh              => $fh, 
+                headers_ref     => $new_headings_ref, 
+                lines_fh        => $all_lines_fh, 
+                keepers_ref     => $keepers_count_ref, 
+                delim           => "\t",
+                header_info_ref => $header_info_ref,
+              ); 
+
+     } elsif ( $from_magetab == 1 ) {
+         
+         # If the user's submission was in MAGE-TAB format, we take the
+         # meta-data from the MIAMExpress form, not the meta-data in the
+         # ADF's header (even if there is one)
+         
+         # Also, the ADF's column headings are isolated to look for 
+         # names of external DBs, because we need to add Term Source
+         # information in the meta-data for these DBs
+
+         # The column headings and content of the ADF are not modified.
+         
+         my ($heading_line, $all_lines_fh, $value_count_ref)
+            = process_lines($adf_fh, $CONFIG->get_MAGETAB_ADF_REGEX);
+  
+         my ($keepers_count_ref, $unmod_headings_ref, $dbs_used_ref) 
+            = process_magetab_header_db_tags($heading_line);
+        
+         add_dbs_to_header($header_info_ref, $dbs_used_ref);
+         
+         open (my $fh, ">", $output) 
+            or die "Error: Could not open $output for writing - $!";
+         
+         print_adf(
+                fh              => $fh, 
+                headers_ref     => $unmod_headings_ref,
+                lines_fh        => $all_lines_fh,
+                keepers_ref     => $keepers_count_ref,
+                delim           => "\t",
+                header_info_ref => $header_info_ref,
+              ); 
+    }
    
-   mprint (*STDOUT, $export_log_fh, date_now." - MAGE-TAB export complete\n");
+    mprint (*STDOUT, $export_log_fh, date_now." - MAGE-TAB export complete\n");
    
-   return $output;   
+    return $output;   
 }
 
 sub mac2unix{
@@ -533,6 +517,40 @@ sub mac2unix{
 	}
 	return;
 }
+
+sub detect_mtab_format{
+    my ($adf_path) = @_;  
+    my $is_magetab = 0;
+        
+    # We use MX regex to test as well because "Reporter Name" 
+    # in the MAGE-TAB regex is common to both MX and MAGE-TAB 
+    # formats. Using the MAGE-TAB regex alone will match ADFs
+    # of both formats and is_magetab will always be true
+    
+    my $mx_column_heading_regex = $CONFIG->get_MX_ADF_REGEX;
+    my $mtab_column_heading_regex = $CONFIG->get_MAGETAB_ADF_REFEX;
+
+    open (my $file, "<", $adf_path) or croak("Error: unable to open file $adf_path: $!");
+
+    # Only check the first 100 lines of the file so we don't try to look for headers
+    # throughout the entire file (some ADFs have thousands of rows!)
+
+    LINE: foreach my $line (<$file>){
+        last LINE if $. == 100;
+        if ($line =~ m/($mx_column_heading_regex)/) {
+            print "ADF is in MIAMExpress format.\n";
+            last LINE;
+        } elsif ($line =~ m/($mtab_column_heading_regex)/) {
+            $is_magetab = 1;
+            print "ADF is in MAGE-TAB format.\n";
+            last LINE;
+        }
+    }
+    close $file;
+    return $is_magetab;
+}
+
+
 
 ########
 # MAIN #
@@ -555,45 +573,31 @@ foreach my $subid (@ARGV) {
         my $array = update_sub_tracking($subid, $CONFIG->get_STATUS_CHECKING);
         my $accession = $array->get_accession;
         
-        # Attempt to get array design info from MX (need ADF file path)
-        my $design_info;
-        eval{
-            my $design = ArrayExpress::MXExport::ArrayDesign->new({
-                subid => $subid,
-            });
-            $design_info = $design->get_array_info;
-        };
-        if ($@){
-        	my $error = "Could not get array design information. Error: $@";
-        	update_sub_tracking($subid, $CONFIG->get_STATUS_CRASHED, $error);
-        	die $error;
-        }
-
-        $design_info->set_accession($accession);
+        # Attempt to get array design meta data (design_info). Meta data are info
+        # entered on the MIAMExpress webform as well as the submitter's personal details
         
-        my $adf = $design_info->get_adf_path;
-        my $report = $adf.".report";
+        my ($design, $mx_design_info) = create_MXExport_array_design_get_mx_design_info($subid);
+        $mx_design_info->set_accession($accession);
 
+        my $adf_path = $mx_design_info->get_adf_path;
+        my $report = $adf_path.".report";
+                                            
         my $parser;
-        
-        print "Starting ADF checking for $accession. ADF: $adf..\n";
+
+        print "Starting ADF checking for $accession. ADF: $adf_path..\n";
         my $start_time = time;
         
         # Convert mac to unix - MX ADF export can't handle mac line endings
-        mac2unix($adf);
+        mac2unix($adf_path);
 
-		# Create a MIAMExpress ADF parser
-		print "Creating MIAMExpress ADF parser..\n";
-		$parser = ArrayExpress::ADFParser::MIAMExpress_ADF->new({
-		    adf_path   => $adf,
-		    composites => undef ,
-		    accession  => 'na',
-		    output     => undef,
-		    target     => '.',
-		    namespace  => '',
-		    heading_regex => $CONFIG->get_MX_ADF_REGEX, 
-		    array_info => $design_info,
-		});
+        # Distinguish between MIAMExpress and MTAB ADFs here by checking the column headings
+        my $is_magetab = detect_mtab_format($adf_path); 
+
+        if ($is_magetab) {
+            $parser = create_mtab_adf_parser($adf_path, $mx_design_info);
+        } else {
+            $parser = create_mx_adf_parser($adf_path, $mx_design_info);
+        }
         
         # Attempt to check ADF file
         eval{
@@ -636,9 +640,9 @@ foreach my $subid (@ARGV) {
             print "Checker result: PASS\n";
         }
         
-        # Attempt to run mageml export
+        # Attempt to run automatic export as checking has passed
         eval{
-            export_array($array, $adf, $design_info, $parser);
+            export_array($array, $adf_path, $mx_design_info, $is_magetab, $parser);
         };
         if ($@){
             update_sub_tracking($subid, $CONFIG->get_STATUS_EXPORT_ERROR, "Array export failed with error: $@");
@@ -646,39 +650,25 @@ foreach my $subid (@ARGV) {
         else{
             update_sub_tracking($subid, $CONFIG->get_STATUS_COMPLETE);
         }
-    }
-    
-    if ($args->{magetab}){
-        # Change export option variables and then export
-        $EXPORT_MAGETAB = 1;
-        $EXPORT_MAGEML = 0;
-        $args->{export} = 1;	
-    }
-    
+    } 
+
+      
+    # If the "-e" option is called directly, then we manually/forcibly export the ADF
+
     if ($args->{export}){
         reset_mx_tsubmis($subid, 'C');
         
         my $array = update_sub_tracking($subid, "Starting export");
-        
-        # Attempt to get array design info from MX for use in export command
-        my $design_info;
+              
+        my ($design, $mx_design_info) = create_MXExport_array_design_get_mx_design_info($subid);
+        $mx_design_info->set_accession($array->get_accession);
+
+        my $adf = $mx_design_info->get_adf_path;
+        my $is_magetab = detect_mtab_format($adf); 
+
+        # Now call export_array to do manual export
         eval{
-            my $design = ArrayExpress::MXExport::ArrayDesign->new({
-                subid => $subid,
-            });
-            $design_info = $design->get_array_info;
-        };
-        if ($@){
-        	my $error = "Could not get array design information. Error: $@";
-        	update_sub_tracking($subid, $CONFIG->get_STATUS_CRASHED, $error);
-        	die $error;
-        }
-        
-        $design_info->set_accession($array->get_accession);
-        
-        # Attempt to run MIAMExpress mageml generation script
-        eval{
-            export_array($array, $design_info->get_adf_path, $design_info); 
+            export_array($array, $adf, $mx_design_info, $is_magetab);
         };
         if ($@){
         	update_sub_tracking($subid, $CONFIG->get_STATUS_EXPORT_ERROR, "Array export failed with error: $@");
