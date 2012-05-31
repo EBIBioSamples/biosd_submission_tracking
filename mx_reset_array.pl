@@ -20,7 +20,15 @@ use File::Copy qw(move copy);
 use Sys::Hostname;
 
 use ArrayExpress::Curator::Config qw($CONFIG);
-use ArrayExpress::Curator::Common qw(date_now mprint check_linebreaks ae2_load_dir_for_acc);
+use ArrayExpress::Curator::Common qw(
+    date_now 
+    mprint 
+    check_linebreaks 
+    ae2_load_dir_for_acc
+    print_adf_header
+    make_magetab_adf_header_from_design_info
+);
+
 require ArrayExpress::AutoSubmission::DB::ArrayDesign;
 use ArrayExpress::MXExport::General qw(get_mx_file_path);
 use ArrayExpress::MXExport::ArrayDesign;
@@ -30,13 +38,11 @@ use ArrayExpress::ADFParser::MAGETAB_ADF;
 
 use ArrayExpress::ADFParser::ADFConvert qw(
                   add_dbs_to_header
-                  get_mx_to_magetab_mapping
-                  make_magetab_adf_header_from_design_info
+                  get_mx_to_magetab_mapping                 
                   process_header 
                   process_lines
                   process_magetab_header_db_tags
                   print_adf
-                  print_adf_header
                   $VERSION
                   );
 
