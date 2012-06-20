@@ -608,7 +608,8 @@ foreach my $subid (@ARGV) {
         # Attempt to check ADF file
         eval{
 	        $parser->check({ 
-		        log_file_path => $report
+		        log_file_path => $report,
+		        print_meta_flag => 1,
 		    });
             
         };
