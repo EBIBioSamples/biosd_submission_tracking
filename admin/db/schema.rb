@@ -384,6 +384,17 @@ ActiveRecord::Schema.define(:version => 10) do
 
   add_index "sample_reference", ["submission_accession", "user_accession"], :name => "submission_user", :unique => true
 
+  create_table "samples", :force => true do |t|
+    t.string   "accession"
+    t.string   "user_accession"
+    t.string   "submission_accession"
+    t.datetime "date_assigned"
+    t.datetime "date_last_processed"
+    t.text     "comment"
+    t.integer  "is_deleted"
+    t.string   "source_repository"
+  end
+
   create_table "spreadsheets", :force => true do |t|
     t.integer "experiment_id", :null => false
     t.string  "name"
