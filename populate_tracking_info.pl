@@ -234,6 +234,7 @@ sub update_expt_metadata {
     my $has_metadata = $expt->release_date();
 
     # Always update the date info, as it will change.
+    # Always update atlas eligibility score as this check may be rerun
     $expt->set(
 	release_date => ( $aedb->get_release_date($acc) || 0 ),
     );
@@ -243,6 +244,10 @@ sub update_expt_metadata {
     $expt->set(
 	in_data_warehouse => $aedb->get_expt_in_data_warehouse($acc),
     );
+    $expt->set(
+    atlas_fail_score => $aedb->get_atlas_fail_score($acc),
+    );
+    
 
     unless ( $expt->curated_name() ) {
 	$expt->set(
@@ -306,12 +311,6 @@ sub update_heavy_expt_queries {
 	# in subs tracking db to write it to yet
     }
 
-    # FIXME where do we even get this from?
-#    unless ( defined ($expt->ae_data_warehouse_score()) ) {
-#	$expt->set(
-#	    ae_data_warehouse_score => $aedb->get_ae_data_warehouse_score($acc),
-#	);
-#    }
     unless ( scalar ($expt->organisms()) ) {
 	my $species_list = $aedb->get_expt_species($acc);
 	foreach my $species ( @$species_list ) {
