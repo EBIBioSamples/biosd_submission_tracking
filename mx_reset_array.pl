@@ -534,7 +534,7 @@ sub detect_mtab_format{
     # of both formats and is_magetab will always be true
     
     my $mx_column_heading_regex = $CONFIG->get_MX_ADF_REGEX;
-    my $mtab_column_heading_regex = $CONFIG->get_MAGETAB_ADF_REFEX;
+    my $mtab_column_heading_regex = $CONFIG->get_MAGETAB_ADF_REGEX;
 
     open (my $file, "<", $adf_path) or croak("Error: unable to open file $adf_path: $!");
 
