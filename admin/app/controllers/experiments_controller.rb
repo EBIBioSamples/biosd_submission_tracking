@@ -58,6 +58,7 @@ class ExperimentsController < ApplicationController
     date_yesterday   = sprintf("%04d-%02d-%02d", @time_now.year, @time_now.month, @time_now.mday - 1);
     sql_where_clause = sprintf("is_deleted=0 and date_last_processed between '%s' and '%s'", date_yesterday, date_today);
 
+
     if params[:experiment_type]
       sql_where_clause += " and experiment_type='#{ params[:experiment_type] }'"
     end
@@ -69,9 +70,12 @@ class ExperimentsController < ApplicationController
 #      :conditions => sql_where_clause.to_s,
 #      :order      => 'date_last_processed DESC'
 
+# Temp change to hide GEO imports while we import everything (March 2010)
+expt_sql_where_clause = "#{sql_where_clause} and experiment_type!='GEO'"
+
     # Include array designs too
     experiment_and_array_sql =  "select id, 'ArrayDesign' as object_type, date_last_processed from array_designs where #{sql_where_clause} 
-    union select id, 'Experiment' as object_type, date_last_processed from experiments where #{sql_where_clause} order by date_last_processed DESC";
+    union select id, 'Experiment' as object_type, date_last_processed from experiments where #{expt_sql_where_clause} order by date_last_processed DESC";
 
     @experiments = Experiment.paginate_by_sql experiment_and_array_sql, 
        :page => params[:page],
