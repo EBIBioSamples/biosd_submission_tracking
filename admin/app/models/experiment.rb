@@ -84,6 +84,7 @@ class Experiment < ActiveRecord::Base
   def atlas_status_html
     status = self.in_data_warehouse?                 ? '<font color="blue">Loaded</font>'  :
              self.atlas_fail_score.nil?              ? '' :
+             self.atlas_fail_score == 'PASS'         ? '<font color="green">PASS</font>' :
              '<font color="red">'+self.atlas_fail_score+'</font>'
     return status         
   end 
