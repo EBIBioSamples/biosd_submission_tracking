@@ -21,10 +21,8 @@ class RemoveColsForBioSd < ActiveRecord::Migration
     remove_column :experiments,   :has_raw_data
     remove_column :experiments,   :has_processed_data
     remove_column :experiments,   :ae_miame_score
-    remove_column :experiments,   :ae_data_warehouse_score
-    drop_table  :array_designs
-    drop_table  :array_designs_experiments
-    drop_table  :array_designs_organisms
+    remove_column :experiments,   :atlas_fail_score
+   
     
   end
 
@@ -39,7 +37,7 @@ class RemoveColsForBioSd < ActiveRecord::Migration
     add_column :experiments,   :curator,        :string
     add_column :experiments,   :experiment_type,        :string
     add_column :experiments,   :miamexpress_login,      :string
-    add_column :experiments,   :miamexpress_subid,      :string
+    add_column :experiments,   :miamexpress_subid,      :integer
     add_column :experiments,   :is_affymetrix,  :integer
     add_column :experiments,   :is_mx_batchloader,      :integer
     add_column :experiments,   :miame_score,    :integer
@@ -50,7 +48,7 @@ class RemoveColsForBioSd < ActiveRecord::Migration
     add_column :experiments,   :has_raw_data,   :integer
     add_column :experiments,   :has_processed_data,     :integer
     add_column :experiments,   :ae_miame_score,  :integer
-    add_column :experiments,   :ae_data_warehouse_score,        :integer
+    add_column :experiments,   :atlas_fail_score,        :integer
     
   end
 end
