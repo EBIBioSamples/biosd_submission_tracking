@@ -1,6 +1,5 @@
 class RemoveColsForBioSd < ActiveRecord::Migration
   def self.up
-    remove_column :experiments,   :name
     remove_column :experiments,   :user_id
     remove_column :experiments,   :checker_score
     remove_column :experiments,   :software
@@ -27,7 +26,6 @@ class RemoveColsForBioSd < ActiveRecord::Migration
   end
 
   def self.down
-    add_column :experiments,   :name,   :string
     add_column :experiments,   :user_id,        :integer
     add_column :experiments,   :checker_score,  :integer
     add_column :experiments,   :software,       :string  
