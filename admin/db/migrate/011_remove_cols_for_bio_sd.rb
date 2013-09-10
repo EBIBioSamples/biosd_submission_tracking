@@ -21,6 +21,7 @@ class RemoveColsForBioSd < ActiveRecord::Migration
     remove_column :experiments,   :has_processed_data
     remove_column :experiments,   :ae_miame_score
     remove_column :experiments,   :atlas_fail_score
+    remove_column :events,        :array_design_id
    
     
   end
@@ -47,6 +48,7 @@ class RemoveColsForBioSd < ActiveRecord::Migration
     add_column :experiments,   :has_processed_data,     :integer
     add_column :experiments,   :ae_miame_score,  :integer
     add_column :experiments,   :atlas_fail_score,        :integer
+    add_column :events,        :array_design_id,        :integer
     
   end
 end
